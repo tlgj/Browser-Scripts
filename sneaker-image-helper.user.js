@@ -178,16 +178,16 @@
               border-color .15s ease, box-shadow .18s ease, opacity .15s ease;
 }
 
-.tm-btn:hover{ 
-  background: var(--tm-btn-hover); 
-  border-color: rgba(255,255,255,0.18); 
+.tm-btn:hover{
+  background: var(--tm-btn-hover);
+  border-color: rgba(255,255,255,0.18);
   transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.28);
+  box-shadow: none;
 }
 
-.tm-btn:active{ 
-  transform: translateY(1px); 
-  box-shadow: 0 2px 6px rgba(0,0,0,0.20);
+.tm-btn:active{
+  transform: translateY(1px);
+  box-shadow: none;
 }
 
 .tm-btn:disabled{ opacity: 0.45; cursor: not-allowed; transform: none; box-shadow: none; }
@@ -197,10 +197,10 @@
   background: rgba(77,163,255,0.16);
 }
 
-.tm-btn-primary:hover{ 
-  background: rgba(77,163,255,0.22); 
-  border-color: rgba(77,163,255,0.80); 
-  box-shadow: 0 6px 24px var(--tm-accent-soft);
+.tm-btn-primary:hover{
+  background: rgba(77,163,255,0.22);
+  border-color: rgba(77,163,255,0.80);
+  box-shadow: none;
 }
 
 .tm-btn-danger{
@@ -211,7 +211,7 @@
 .tm-btn-danger:hover{
   background: rgba(255,93,93,0.22);
   border-color: rgba(255,93,93,0.82);
-  box-shadow: 0 6px 24px rgba(255,93,93,0.30);
+  box-shadow: none;
 }
 
 .tm-btn-ghost{
@@ -430,11 +430,11 @@
   transition: all .18s ease;
 }
 
-.tm-thumb:hover{ 
-  opacity: 0.96; 
-  border-color: rgba(255,255,255,0.18); 
+.tm-thumb:hover{
+  opacity: 0.96;
+  border-color: rgba(255,255,255,0.18);
   transform: translateY(-3px) scale(1.05);
-  box-shadow: 0 8px 20px rgba(0,0,0,0.35);
+  box-shadow: none;
   z-index: 2;
 }
 
@@ -446,8 +446,7 @@
   opacity: 1;
   border-color: rgba(77,163,255,0.85);
   transform: translateY(-2px);
-  box-shadow: 0 0 0 3px rgba(77,163,255,0.5), 
-              0 8px 20px rgba(77,163,255,0.25);
+  box-shadow: none;
 }
 
 /* ===== 浮动按钮（美化版） ===== */
@@ -461,7 +460,7 @@
 
 #tm-img-slide-float-btn:hover {
   transform: scale(1.05);
-  box-shadow: 0 12px 40px var(--tm-accent-soft);
+  box-shadow: none;
 }
 
 /* ===== 设置面板输入框 ===== */
@@ -2207,15 +2206,15 @@
             font-weight: 900;
             letter-spacing: .4px;
         `;
-        btn.addEventListener('mouseenter', () => { 
-            btn.style.background = 'rgba(255,255,255,0.10)'; 
+        btn.addEventListener('mouseenter', () => {
+            btn.style.background = 'rgba(255,255,255,0.10)';
             btn.style.transform = 'scale(1.05)';
-            btn.style.boxShadow = '0 12px 40px rgba(77,163,255,0.35)';
+            btn.style.boxShadow = 'none';
         });
-        btn.addEventListener('mouseleave', () => { 
-            btn.style.background = 'rgba(18,18,20,0.72)'; 
+        btn.addEventListener('mouseleave', () => {
+            btn.style.background = 'rgba(18,18,20,0.72)';
             btn.style.transform = 'scale(1)';
-            btn.style.boxShadow = '0 12px 34px rgba(0,0,0,0.45)';
+            btn.style.boxShadow = 'none';
         });
 
         applyBtnPosition(btn);
