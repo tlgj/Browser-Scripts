@@ -2,7 +2,7 @@
 // @name         球鞋看图助手
 // @name:en      Sneaker Image Helper
 // @namespace    https://github.com/tlgj/Browser-Scripts
-// @version      1.4.4.1
+// @version      1.4.4.4
 // @description  提取页面图片并清洗到高清，支持多品牌URL规则。幻灯片浏览，内置独立查看器（拖动/缩放/滚轮切图）。支持保存/一键保存/全部保存/停止，自动创建子文件夹。链接信息显示/隐藏持久化。默认提取 JPEG/PNG/WebP/AVIF 格式。支持后缀名预设快速选择。
 // @author       tlgj
 // @license      MIT
@@ -83,7 +83,14 @@
     const SETTINGS = {
         enableButton: GM_getValue(STORE_KEYS.ENABLE_BUTTON, DEFAULTS.enableButton),
         btnPos: GM_getValue(STORE_KEYS.BTN_POS, DEFAULTS.btnPos),
-        filter: Object.assign({}, DEFAULTS.filter, GM_getValue(STORE_KEYS.FILTER, {})),
+        filter: (() => {
+            const savedFilter = GM_getValue(STORE_KEYS.FILTER, {});
+            return {
+                minSidePx: savedFilter.minSidePx !== undefined && savedFilter.minSidePx !== '' ? savedFilter.minSidePx : DEFAULTS.filter.minSidePx,
+                minSizeKB: savedFilter.minSizeKB !== undefined && savedFilter.minSizeKB !== '' ? savedFilter.minSizeKB : DEFAULTS.filter.minSizeKB,
+                exts: savedFilter.exts !== undefined && savedFilter.exts !== '' ? savedFilter.exts : DEFAULTS.filter.exts,
+            };
+        })(),
         scanBackgroundImages: DEFAULTS.scanBackgroundImages,
         maxElementsForBgScan: DEFAULTS.maxElementsForBgScan,
         preloadRadius: DEFAULTS.preloadRadius,
@@ -91,7 +98,14 @@
         saveRootFolder: GM_getValue(STORE_KEYS.SAVE_ROOT_FOLDER, DEFAULTS.saveRootFolder),
     };
 
-    function saveFilter() { GM_setValue(STORE_KEYS.FILTER, SETTINGS.filter); }
+    function saveFilter() {
+        const filterToSave = {
+            minSidePx: SETTINGS.filter.minSidePx !== '' && SETTINGS.filter.minSidePx !== null ? SETTINGS.filter.minSidePx : DEFAULTS.filter.minSidePx,
+            minSizeKB: SETTINGS.filter.minSizeKB !== '' && SETTINGS.filter.minSizeKB !== null ? SETTINGS.filter.minSizeKB : DEFAULTS.filter.minSizeKB,
+            exts: SETTINGS.filter.exts !== '' && SETTINGS.filter.exts !== null ? SETTINGS.filter.exts : DEFAULTS.filter.exts,
+        };
+        GM_setValue(STORE_KEYS.FILTER, filterToSave);
+    }
     function saveBlacklist() { GM_setValue(STORE_KEYS.BLACKLIST, SETTINGS.blacklist); }
 
     function isBlacklisted() {
@@ -950,9 +964,19 @@
     }
 
     function getMinSideHintFromImg(img) {
-        const w = img.naturalWidth || img.clientWidth || 0;
-        const h = img.naturalHeight || img.clientHeight || 0;
+        // 优先使用 naturalWidth/Height（实际尺寸）
+        let w = img.naturalWidth || 0;
+        let h = img.naturalHeight || 0;
+
+        // 如果无法获取实际尺寸，尝试使用 clientWidth/clientHeight（显示尺寸）
+        if (!w || !h) {
+            w = img.clientWidth || 0;
+            h = img.clientHeight || 0;
+        }
+
+        // 如果仍然无法获取，返回 0
         if (!w || !h) return 0;
+
         return Math.min(w, h);
     }
 
@@ -1146,7 +1170,8 @@
 
     function passSimpleFilters(minSideHint, ext) {
         const minSide = Number(SETTINGS.filter.minSidePx || 0);
-        if (minSide && minSideHint && minSideHint < minSide) return false;
+        // 如果设置了分辨率过滤，过滤掉尺寸小于阈值或无法获取尺寸的图片
+        if (minSide && minSideHint < minSide) return false;
         if (ext && !extAllowed(ext)) return false;
         return true;
     }
@@ -2206,17 +2231,6 @@
             font-weight: 900;
             letter-spacing: .4px;
         `;
-        btn.addEventListener('mouseenter', () => {
-            btn.style.background = 'rgba(255,255,255,0.10)';
-            btn.style.transform = 'scale(1.05)';
-            btn.style.boxShadow = 'none';
-        });
-        btn.addEventListener('mouseleave', () => {
-            btn.style.background = 'rgba(18,18,20,0.72)';
-            btn.style.transform = 'scale(1)';
-            btn.style.boxShadow = 'none';
-        });
-
         applyBtnPosition(btn);
 
         let dragging = false;
