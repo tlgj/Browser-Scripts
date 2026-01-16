@@ -1363,6 +1363,7 @@ function updateStopBtn(overlay, selector, state) {
         // 仅在元素数量变化较大时重建 observer
         if (thumbObserver) {
             thumbObserver.disconnect();
+            thumbObserver = null;
         }
 
         strip.innerHTML = '';
