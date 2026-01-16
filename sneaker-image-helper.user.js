@@ -2,7 +2,7 @@
 // @name         球鞋看图助手
 // @name:en      Sneaker Image Helper
 // @namespace    https://github.com/tlgj/Browser-Scripts
-// @version      1.4.3.8
+// @version      1.4.4.0
 // @description  提取页面图片并清洗到高清，支持多品牌URL规则。幻灯片浏览，内置独立查看器（拖动/缩放/滚轮切图）。支持保存/一键保存/全部保存/停止，自动创建子文件夹。链接信息显示/隐藏持久化。默认提取 JPEG/PNG/WebP/AVIF 格式。支持后缀名预设快速选择。
 // @author       tlgj
 // @license      MIT
@@ -31,7 +31,6 @@
     // 说明：GM_download 的 name 支持 "folder/file.ext" 时才会创建文件夹；
     // 若环境不支持，本脚本会自动降级为"平铺文件名"继续下载。
     // =========================================================
-    // FAST_SAVE_ROOT_FOLDER 已移至 SETTINGS.saveRootFolder，通过设置面板可配置
 
     function sanitizePathPart(input, maxLen = 60) {
         const s = String(input || '')
@@ -60,10 +59,10 @@
     // =========================================================
     const STORE_KEYS = {
         ENABLE_BUTTON: 'sih_enable_button',
-        BTN_POS: 'sih_btn_pos', // {left, top}
-        FILTER: 'sih_filter',   // {minSidePx, minSizeKB, exts}
-        BLACKLIST: 'sih_blacklist', // 网站黑名单
-        SAVE_ROOT_FOLDER: 'sih_save_root_folder', // 下载根目录
+        BTN_POS: 'sih_btn_pos',
+        FILTER: 'sih_filter',
+        BLACKLIST: 'sih_blacklist',
+        SAVE_ROOT_FOLDER: 'sih_save_root_folder',
     };
 
     const DEFAULTS = {
@@ -77,8 +76,8 @@
         scanBackgroundImages: false,
         maxElementsForBgScan: 8000,
         preloadRadius: 2,
-        blacklist: [], // 黑名单网站列表
-        saveRootFolder: 'TM_Images', // 下载根目录名称
+        blacklist: [],
+        saveRootFolder: 'TM_Images',
     };
 
     const SETTINGS = {
@@ -101,20 +100,18 @@
         return SETTINGS.blacklist.some(site => {
             const pattern = site.trim().toLowerCase();
             if (!pattern) return false;
-            // 支持 *.example.com 格式的通配符
             if (pattern.startsWith('*.')) {
                 const domain = pattern.slice(2);
                 return hostname === domain || hostname.endsWith('.' + domain);
             }
-            // 精确匹配
             return hostname === pattern;
         });
     }
 
     // =========================================================
-    // UI Styles
+    // UI Styles（美化版）
     // =========================================================
-    const STYLE_ID = 'sih-style-v1312';
+    const STYLE_ID = 'sih-style-v1440';
     function injectStyles() {
         if (document.getElementById(STYLE_ID)) return;
         const style = document.createElement('style');
@@ -132,25 +129,33 @@
   --tm-btn-hover: rgba(255,255,255,0.16);
   --tm-danger: #ff5d5d;
   --tm-radius: 14px;
+  --tm-accent: rgba(77,163,255,1);
+  --tm-accent-soft: rgba(77,163,255,0.35);
 }
+
 #tm-img-slide-overlay, #tm-img-viewer-overlay{ font-family: var(--tm-font); }
+
 .tm-glassbar{
   background: var(--tm-glass);
   border-bottom: 1px solid var(--tm-border);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 }
+
 .tm-glassfooter{
   background: var(--tm-glass-2);
   border-top: 1px solid var(--tm-border);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 }
+
 .tm-topbar{
   display:flex; align-items:center; gap: 14px; padding: 12px 14px;
 }
+
 .tm-top-left{ display:flex; align-items:center; gap:12px; }
 .tm-top-right{ display:flex; align-items:center; gap:10px; flex-wrap: wrap; justify-content:flex-end; }
+
 .tm-filename{
   flex: 1; text-align: center; padding: 0 12px;
   font-size: 20px; font-weight: 900; letter-spacing: 0.2px;
@@ -158,6 +163,8 @@
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   user-select: text;
 }
+
+/* ===== 按钮样式（美化版） ===== */
 .tm-btn{
   appearance: none;
   border: 1px solid var(--tm-border);
@@ -167,25 +174,44 @@
   padding: 10px 12px;
   border-radius: 12px;
   cursor: pointer;
-  transition: transform .08s ease, background .15s ease, border-color .15s ease;
+  transition: transform .12s ease, background .15s ease, 
+              border-color .15s ease, box-shadow .18s ease, opacity .15s ease;
 }
-.tm-btn:hover{ background: var(--tm-btn-hover); border-color: rgba(255,255,255,0.18); }
-.tm-btn:active{ transform: translateY(1px); }
-.tm-btn:disabled{ opacity: 0.45; cursor: not-allowed; }
+
+.tm-btn:hover{ 
+  background: var(--tm-btn-hover); 
+  border-color: rgba(255,255,255,0.18); 
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.28);
+}
+
+.tm-btn:active{ 
+  transform: translateY(1px); 
+  box-shadow: 0 2px 6px rgba(0,0,0,0.20);
+}
+
+.tm-btn:disabled{ opacity: 0.45; cursor: not-allowed; transform: none; box-shadow: none; }
 
 .tm-btn-primary{
   border-color: rgba(77,163,255,0.55);
   background: rgba(77,163,255,0.16);
 }
-.tm-btn-primary:hover{ background: rgba(77,163,255,0.22); border-color: rgba(77,163,255,0.80); }
+
+.tm-btn-primary:hover{ 
+  background: rgba(77,163,255,0.22); 
+  border-color: rgba(77,163,255,0.80); 
+  box-shadow: 0 6px 24px var(--tm-accent-soft);
+}
 
 .tm-btn-danger{
   border-color: rgba(255,93,93,0.55);
   background: rgba(255,93,93,0.14);
 }
+
 .tm-btn-danger:hover{
   background: rgba(255,93,93,0.22);
   border-color: rgba(255,93,93,0.82);
+  box-shadow: 0 6px 24px rgba(255,93,93,0.30);
 }
 
 .tm-btn-ghost{
@@ -193,9 +219,11 @@
   background: transparent;
   color: rgba(255,255,255,0.74);
 }
+
 .tm-btn-ghost:hover{
   background: rgba(255,255,255,0.08);
   color: rgba(255,255,255,0.94);
+  box-shadow: none;
 }
 
 .tm-pill{
@@ -205,11 +233,22 @@
   border: 1px solid var(--tm-border);
   background: rgba(0,0,0,0.18);
 }
+
 .tm-kv{ font-size: 16px; color: rgba(255,255,255,0.94); letter-spacing: .2px; }
 .tm-kv small{ font-size: 14px; color: rgba(255,255,255,0.74); font-weight: 800; }
 
 .tm-label{ font-size: 14px; color: rgba(255,255,255,0.74); margin-bottom: 6px; }
-.tm-url{ font-size: 15px; color: rgba(255,255,255,0.88); word-break: break-all; line-height: 1.5; }
+
+.tm-url{ 
+  font-size: 15px; 
+  color: rgba(255,255,255,0.88); 
+  word-break: break-all; 
+  line-height: 1.5;
+  padding: 8px 10px;
+  background: rgba(0,0,0,0.25);
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.06);
+}
 
 .tm-stage{
   height: 100%;
@@ -221,6 +260,7 @@
   gap: 10px;
   overflow: hidden;
 }
+
 .tm-canvas{
   position: relative;
   flex: 1 1 auto;
@@ -228,6 +268,7 @@
   height: 100%;
   min-height: 0;
 }
+
 .tm-image-box{
   position: absolute;
   inset: 0;
@@ -237,6 +278,8 @@
   overflow: hidden;
   border-radius: var(--tm-radius);
 }
+
+/* ===== 主图样式（美化版） ===== */
 .tm-main-img{
   display: block;
   max-width: 100%;
@@ -250,8 +293,30 @@
   user-select: none;
   -webkit-user-drag: none;
   opacity: 1;
-  transition: opacity .10s ease;
+  transition: opacity .2s ease, box-shadow .25s ease;
 }
+
+.tm-main-img:hover {
+  box-shadow: 0 24px 60px rgba(0,0,0,0.55);
+}
+
+/* ===== 加载动画 ===== */
+@keyframes tm-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.tm-main-img.loading {
+  background: linear-gradient(90deg, 
+    rgba(255,255,255,0.04) 25%, 
+    rgba(255,255,255,0.10) 50%, 
+    rgba(255,255,255,0.04) 75%
+  );
+  background-size: 200% 100%;
+  animation: tm-shimmer 1.8s infinite;
+}
+
+/* ===== 提示气泡 ===== */
 .tm-hint{
   position:absolute;
   left: 50%;
@@ -265,32 +330,58 @@
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   z-index: 4;
+  animation: tm-hint-in 0.25s ease;
 }
+
+@keyframes tm-hint-in {
+  from { 
+    opacity: 0; 
+    transform: translateX(-50%) translateY(8px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateX(-50%) translateY(0); 
+  }
+}
+
 #tm-status.tm-hint{ bottom: 14px; }
 #tm-help.tm-hint{ bottom: 56px; }
 
+/* ===== 导航按钮（美化版） ===== */
 .tm-navbtn{
   position:absolute;
   top:50%;
   transform: translateY(-50%);
-  width: 92px;
-  height: 92px;
+  width: 60px;
+  height: 60px;
   display:grid;
   place-items:center;
-  border-radius: 20px;
+  border-radius: 16px;
   border: 1px solid var(--tm-border);
   background: rgba(0,0,0,0.28);
   color: rgba(255,255,255,0.92);
-  font-size: 44px;
+  font-size: 32px;
   cursor: pointer;
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   z-index: 5;
+  opacity: 0.6;
+  transition: all .2s ease;
 }
-.tm-navbtn:hover{ background: rgba(255,255,255,0.10); }
-.tm-navbtn:active{ transform: translateY(-50%) translateY(1px); }
 
+.tm-navbtn:hover{ 
+  opacity: 1;
+  background: rgba(255,255,255,0.12); 
+  transform: translateY(-50%) scale(1.08);
+}
+
+.tm-navbtn:active{ 
+  transform: translateY(-50%) scale(0.96); 
+}
+
+/* ===== 缩略图条（美化版） ===== */
 .tm-strip-panel{
+  position: relative;
   width: min(96vw, 1400px);
   background: rgba(0,0,0,0.26);
   border: 1px solid var(--tm-border);
@@ -299,6 +390,7 @@
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 }
+
 .tm-strip{
   display:flex;
   gap:10px;
@@ -306,10 +398,24 @@
   scroll-behavior: smooth;
   padding: 2px;
 }
-.tm-strip::-webkit-scrollbar{ height: 10px; }
-.tm-strip::-webkit-scrollbar-thumb{ background: rgba(255,255,255,0.14); border-radius: 999px; }
-.tm-strip::-webkit-scrollbar-track{ background: rgba(255,255,255,0.06); border-radius: 999px; }
 
+.tm-strip::-webkit-scrollbar{ height: 8px; }
+
+.tm-strip::-webkit-scrollbar-thumb{ 
+  background: rgba(255,255,255,0.18); 
+  border-radius: 4px; 
+}
+
+.tm-strip::-webkit-scrollbar-thumb:hover{ 
+  background: rgba(255,255,255,0.28); 
+}
+
+.tm-strip::-webkit-scrollbar-track{ 
+  background: rgba(255,255,255,0.04); 
+  border-radius: 4px; 
+}
+
+/* ===== 缩略图（美化版） ===== */
 .tm-thumb{
   width: 86px;
   height: 86px;
@@ -320,23 +426,45 @@
   border: 1px solid var(--tm-border);
   opacity: 0.78;
   cursor: pointer;
-  transition: opacity .15s ease, transform .08s ease, border-color .15s ease, box-shadow .15s ease;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+  transition: all .18s ease;
 }
-.tm-thumb:hover{ opacity: 0.96; border-color: rgba(255,255,255,0.18); }
-.tm-thumb:active{ transform: translateY(1px); }
+
+.tm-thumb:hover{ 
+  opacity: 0.96; 
+  border-color: rgba(255,255,255,0.18); 
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.35);
+  z-index: 2;
+}
+
+.tm-thumb:active{ 
+  transform: translateY(-1px) scale(1.02); 
+}
+
 .tm-thumb.active{
   opacity: 1;
   border-color: rgba(77,163,255,0.85);
-  box-shadow: 0 0 0 3px rgba(77,163,255,0.18);
+  transform: translateY(-2px);
+  box-shadow: 0 0 0 3px rgba(77,163,255,0.5), 
+              0 8px 20px rgba(77,163,255,0.25);
 }
 
+/* ===== 浮动按钮（美化版） ===== */
 #tm-img-slide-float-btn{
   font-family: var(--tm-font);
   font-size: 16px !important;
   font-weight: 900;
   letter-spacing: 0.4px;
+  transition: transform .15s ease, box-shadow .2s ease, background .15s ease;
 }
 
+#tm-img-slide-float-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 12px 40px var(--tm-accent-soft);
+}
+
+/* ===== 设置面板输入框 ===== */
 #tm-slide-settings-simple input{
   font-family: var(--tm-font);
   font-size: 15px;
@@ -346,13 +474,15 @@
   background: rgba(255,255,255,0.08);
   color: rgba(255,255,255,0.94);
   outline: none;
+  transition: border-color .15s ease, box-shadow .15s ease;
 }
+
 #tm-slide-settings-simple input:focus{
   border-color: rgba(77,163,255,0.65);
   box-shadow: 0 0 0 3px rgba(77,163,255,0.18);
 }
 
-/* ===== Viewer ===== */
+/* ===== 查看器样式 ===== */
 #tm-img-viewer-overlay{
   position: fixed;
   inset: 0;
@@ -362,6 +492,7 @@
   grid-template-rows: auto 1fr;
   color: rgba(255,255,255,0.92);
 }
+
 #tm-img-viewer-overlay .tmv-top{
   display:flex; align-items:center; gap:10px;
   padding: 10px 12px;
@@ -371,6 +502,7 @@
   -webkit-backdrop-filter: blur(10px);
   flex-wrap: wrap;
 }
+
 #tm-img-viewer-overlay .tmv-title{
   flex: 1;
   font-weight: 900;
@@ -380,6 +512,7 @@
   text-overflow: ellipsis;
   user-select: text;
 }
+
 #tm-img-viewer-overlay .tmv-stage{
   position: relative;
   overflow: hidden;
@@ -388,6 +521,7 @@
   justify-content:center;
   touch-action: none;
 }
+
 #tm-img-viewer-overlay .tmv-img{
   max-width: 100%;
   max-height: 100%;
@@ -397,8 +531,11 @@
   user-select: none;
   -webkit-user-drag: none;
   cursor: grab;
+  transition: opacity .2s ease;
 }
+
 #tm-img-viewer-overlay .tmv-img:active{ cursor: grabbing; }
+
 #tm-img-viewer-overlay .tmv-hint{
   position:absolute;
   left: 50%;
@@ -413,6 +550,7 @@
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   pointer-events:none;
+  animation: tm-hint-in 0.25s ease;
 }
         `;
         document.head.appendChild(style);
@@ -645,94 +783,67 @@
 
     const HOST_RULE_MAP = {
         'jd-360buyimg': [BRAND_RULES.JD_360BUYIMG_REMOVE_AVIF],
-
         'goat': [BRAND_RULES.GOAT_CLEAN],
         'flightclub': [REUSABLE_RULES.REMOVE_ALL_QUERY],
         'stockx': [BRAND_RULES.STOCKX_HIGH_RES],
-
         'nike-cn': [BRAND_RULES.NIKE_CN_TO_GLOBAL, BRAND_RULES.NIKE_CLEAN_PATH, REUSABLE_RULES.TO_PNG],
         'nike-global': [BRAND_RULES.NIKE_CLEAN_PATH, REUSABLE_RULES.TO_PNG],
         'nike-ae-like': [BRAND_RULES.NIKE_AE_LIKE],
-
         'adidas-assets': [BRAND_RULES.ADIDAS_ASSETS_PATH, BRAND_RULES.ADIDAS_JPG_TO_PNG],
-
         'asics-intl': [BRAND_RULES.ASICS_HIGH_RES],
         'asics-hk': [REUSABLE_RULES.REMOVE_VERSION_QUERY],
         'asics-tw': [REUSABLE_RULES.REMOVE_VERSION_QUERY],
-
         'brooks-intl': [REUSABLE_RULES.REMOVE_ALL_QUERY, REUSABLE_RULES.TO_PNG],
         'converse-cn': [REUSABLE_RULES.REMOVE_ALL_QUERY],
-
         'decathlon-intl': [REUSABLE_RULES.REMOVE_ALL_QUERY],
         'decathlon-cn': [REUSABLE_RULES.REMOVE_ALL_QUERY, REUSABLE_RULES.TO_PNG],
         'decathlon-hk': [REUSABLE_RULES.REMOVE_ALL_QUERY, REUSABLE_RULES.TO_PNG],
-
         'fila-sg': [BRAND_RULES.FILA_SG_QUERY],
         'fila-hk': [BRAND_RULES.FILA_HK_TO_CLOUDFRONT],
         'fila-hk-cloudfront': [BRAND_RULES.FILA_HK_CLOUDFRONT],
-
         'hoka-intl': [REUSABLE_RULES.REMOVE_ALL_QUERY],
         'hoka-cn': [BRAND_RULES.HOKA_CN_REMOVE_QUERY],
-
         'lining-cn': [REUSABLE_RULES.REMOVE_ALL_QUERY],
         'mizuno-usa': [REUSABLE_RULES.REMOVE_ALL_QUERY],
-
         'mlb-korea': [BRAND_RULES.MLB_KOREA_PARAMS],
         'mlb-korea-shop': [BRAND_RULES.MLB_KOREA_SHOP_FILES],
-
         'newbalance-intl': [REUSABLE_RULES.REMOVE_ALL_QUERY],
         'newbalance-cn': [BRAND_RULES.NEWBALANCE_CN_CLEAN],
-
         'old-order-shopify': [BRAND_RULES.SHOPIFY_REMOVE_SIZE, REUSABLE_RULES.REMOVE_ALL_QUERY],
-
         'on-intl': [REUSABLE_RULES.REMOVE_ALL_QUERY],
         'on-cn': [BRAND_RULES.ON_CN_REMOVE_OSS_QUERY],
-
         'puma-intl': [BRAND_RULES.PUMA_INTL_UPLOAD_PARAMS],
         'puma-cn': [BRAND_RULES.PUMA_CN_IMAGE_PROCESSING],
-
         'reebok-intl': [REUSABLE_RULES.REMOVE_ALL_QUERY],
         'salomon-intl': [REUSABLE_RULES.REMOVE_ALL_QUERY],
-
         'saucony-intl': [BRAND_RULES.SAUCONY_SCENE7_REMOVE_DOLLAR_PARAMS, REUSABLE_RULES.REMOVE_ALL_QUERY],
-
         'skechers-usa': [BRAND_RULES.SKECHERS_USA_PATH],
         'skechers-hk': [REUSABLE_RULES.REMOVE_VERSION_QUERY],
         'skechers-sg': [BRAND_RULES.SKECHERS_SG_SUFFIX, REUSABLE_RULES.REMOVE_VERSION_QUERY],
-
         'thenorthface-intl': [BRAND_RULES.THENORTHFACE_INTL_CLEAN],
         'thenorthface-cn': [BRAND_RULES.THENORTHFACE_CN_REMOVE_QUERY],
-
         'underarmour-scene7': [BRAND_RULES.UNDERARMOUR_SCENE7],
         'vans-intl': [BRAND_RULES.VANS_INTL_CLEAN_PARAMS],
-
         'sneakernews-wp': [REUSABLE_RULES.REMOVE_ALL_QUERY],
         'sanity-cdn': [BRAND_RULES.SANITY_CLEAN],
-
         'poizon-cdn': [BRAND_RULES.POIZON_FORCE_PNG],
         'shihuo-cdn': [REUSABLE_RULES.REMOVE_SIZE_SUFFIX, REUSABLE_RULES.REMOVE_ALL_QUERY],
-
         'kickscrew-shopify': [BRAND_RULES.SHOPIFY_REMOVE_SIZE, REUSABLE_RULES.REMOVE_ALL_QUERY],
         'novelship-img': [REUSABLE_RULES.REMOVE_ALL_QUERY],
         'snipes-demandware': [REUSABLE_RULES.REMOVE_ALL_QUERY],
-
         'magento-shiekh': [BRAND_RULES.MAGENTO_TO_ORIGINAL],
         'amazon-media': [BRAND_RULES.AMAZON_MEDIA_CLEAN],
         'ebay-img-force-png': [BRAND_RULES.EBAY_TO_PNG_2000],
         'end-clothing': [BRAND_RULES.END_CLOTHING_CLEAN],
-
         'runnmore-like': [BRAND_RULES.RUNNMORE_LIKE_TO_ORIGINAL],
         'opencart-generic': [BRAND_RULES.OPENCART_TO_ORIGINAL],
-
         't4s-cdn': [BRAND_RULES.T4S_TO_ORIGINAL],
         'alicdn': [BRAND_RULES.ALICDN_REMOVE_SUFFIX],
-
         'footlocker-scene7': [BRAND_RULES.FOOTLOCKER_SCENE7_FORCE_ZOOM2000PNG],
         'stadiumgoods-shopify': [BRAND_RULES.SHOPIFY_REMOVE_SIZE, REUSABLE_RULES.REMOVE_ALL_QUERY],
     };
 
     function detectHostTypeByUrlObj(u, fullUrlStr) {
-        // 京东：imgxx.360buyimg.com 之类
         if (u.hostname === '360buyimg.com' || u.hostname.endsWith('.360buyimg.com')) {
             return 'jd-360buyimg';
         }
@@ -832,7 +943,7 @@
             const u = new URL(urlStr);
             let name = u.pathname.split('/').pop() || '';
             name = decodeURIComponent(name);
-if (!/\.[a-z0-9]+$/i.test(name) && fallbackExt) name = `${name}.${fallbackExt}`;
+            if (!/\.[a-z0-9]+$/i.test(name) && fallbackExt) name = `${name}.${fallbackExt}`;
             return name || '(无文件名)';
         } catch {
             return '(无文件名)';
@@ -846,7 +957,6 @@ if (!/\.[a-z0-9]+$/i.test(name) && fallbackExt) name = `${name}.${fallbackExt}`;
         return Math.min(w, h);
     }
 
-    // 增强提取：补齐常见懒加载字段 + <a href> 直链图 + inline style url(...)
     function extractCandidates() {
         const seen = new Set();
         const list = [];
@@ -859,7 +969,6 @@ if (!/\.[a-z0-9]+$/i.test(name) && fallbackExt) name = `${name}.${fallbackExt}`;
             list.push({ rawUrl: abs, minSideHint: minSideHint || 0 });
         };
 
-        // 懒加载属性列表
         const LAZY_URL_ATTRS = [
             'data-src', 'data-original', 'data-lazy', 'data-lazy-src', 'data-url',
             'data-image', 'data-img', 'data-zoom', 'data-zoom-image', 'data-large_image',
@@ -867,24 +976,20 @@ if (!/\.[a-z0-9]+$/i.test(name) && fallbackExt) name = `${name}.${fallbackExt}`;
         ];
         const LAZY_SRCSET_ATTRS = ['data-srcset', 'data-lazy-srcset'];
 
-        // 1) 一次遍历处理所有 img 和 source 元素
         document.querySelectorAll('img, source').forEach(el => {
             const tagName = el.tagName.toLowerCase();
 
-            // 处理 srcset
             const srcset = el.getAttribute('srcset');
             if (srcset) {
                 const best = pickBestFromSrcset(srcset);
                 if (best?.url) add(best.url, best.wHint || 0);
             }
 
-            // 处理常规 src (仅 img)
             if (tagName === 'img') {
                 const src = el.currentSrc || el.src;
                 if (src) add(src, getMinSideHintFromImg(el));
             }
 
-            // 处理懒加载属性
             for (const a of LAZY_URL_ATTRS) {
                 const v = el.getAttribute(a);
                 if (v) add(v, 0);
@@ -898,25 +1003,21 @@ if (!/\.[a-z0-9]+$/i.test(name) && fallbackExt) name = `${name}.${fallbackExt}`;
             }
         });
 
-        // 2) meta / preload
         document.querySelectorAll('meta[property="og:image"][content], meta[name="og:image"][content]').forEach(m => add(m.getAttribute('content'), 0));
         document.querySelectorAll('link[rel="preload"][as="image"][href]').forEach(l => add(l.getAttribute('href'), 0));
 
-        // 3) <a href="...jpg"> 直链图
         const IMG_EXT_RE = /\.(?:jpe?g|png|gif|webp|avif|bmp|svg)(?:[?#]|$)/i;
         document.querySelectorAll('a[href]').forEach(a => {
             const href = a.getAttribute('href');
             if (href && IMG_EXT_RE.test(href)) add(href, 0);
         });
 
-        // 4) 低成本扫描：仅扫描 inline style 里的 url(...)
         document.querySelectorAll('[style*="url("]').forEach(el => {
             const s = el.getAttribute('style') || '';
             const matches = s.matchAll(/url\(["']?(.*?)["']?\)/gi);
             for (const m of matches) add(m[1], 0);
         });
 
-        // 5) 可选：全量背景图扫描（保持原逻辑）
         if (SETTINGS.scanBackgroundImages) {
             const all = document.getElementsByTagName('*');
             if (all.length <= SETTINGS.maxElementsForBgScan) {
@@ -933,16 +1034,14 @@ if (!/\.[a-z0-9]+$/i.test(name) && fallbackExt) name = `${name}.${fallbackExt}`;
     }
 
     // =========================================================
-    // 3) Content-Length 过滤（更可靠：HEAD 失败自动 Range GET 兜底）
+    // 3) Content-Length 过滤
     // =========================================================
     function parseLengthFromHeaders(headers) {
         const h = headers || '';
 
-        // Content-Range: bytes 0-0/1234567
         let m = h.match(/content-range:\s*bytes\s+\d+-\d+\/(\d+)/i);
         if (m) return parseInt(m[1], 10);
 
-        // Content-Length: 1234567
         m = h.match(/content-length:\s*(\d+)/i);
         if (m) return parseInt(m[1], 10);
 
@@ -980,7 +1079,6 @@ if (!/\.[a-z0-9]+$/i.test(name) && fallbackExt) name = `${name}.${fallbackExt}`;
                 timeout: timeoutMs,
                 responseType: 'arraybuffer',
                 onprogress: (evt) => {
-                    // 防止某些服务器无视 Range 返回大文件，做个软保护
                     if (evt && evt.loaded > 65536) {
                         try { req && req.abort && req.abort(); } catch { /* ignore */ }
                         done(null);
@@ -1036,7 +1134,7 @@ if (!/\.[a-z0-9]+$/i.test(name) && fallbackExt) name = `${name}.${fallbackExt}`;
     }
 
     // =========================================================
-    // 4) 简化过滤：后缀 + 分辨率
+    // 4) 简化过滤
     // =========================================================
     function extAllowed(ext) {
         const exts = String(SETTINGS.filter.exts || '').trim();
@@ -1055,7 +1153,7 @@ if (!/\.[a-z0-9]+$/i.test(name) && fallbackExt) name = `${name}.${fallbackExt}`;
     }
 
     // =========================================================
-    // 工具函数：生成唯一文件名
+    // 工具函数
     // =========================================================
     function createUniqueNameGenerator() {
         const used = new Map();
@@ -1068,9 +1166,6 @@ if (!/\.[a-z0-9]+$/i.test(name) && fallbackExt) name = `${name}.${fallbackExt}`;
         };
     }
 
-    // =========================================================
-    // 统一下载函数：支持 Promise 回调和带状态提示两种模式
-    // =========================================================
     function gmDownloadUnified({ url, name, saveAs, setStatus, onOkText, onFailText, onTimeoutText }) {
         return new Promise((resolve) => {
             let retriedFlat = false;
@@ -1090,7 +1185,6 @@ if (!/\.[a-z0-9]+$/i.test(name) && fallbackExt) name = `${name}.${fallbackExt}`;
                         resolve(false);
                     },
                     onerror: () => {
-                        // 路径失败自动降级：不支持文件夹时改用平铺文件名
                         if (!saveAs && !retriedFlat && typeof finalName === 'string' && finalName.includes('/')) {
                             retriedFlat = true;
                             const flat = finalName.replace(/\//g, '_');
@@ -1108,9 +1202,6 @@ if (!/\.[a-z0-9]+$/i.test(name) && fallbackExt) name = `${name}.${fallbackExt}`;
         });
     }
 
-    // =========================================================
-    // 通用：批量下载执行器（支持失败列表/停止/进度回调）
-    // =========================================================
     async function runBulkDownload({ plan, state, download, onProgress, concurrency = 2, delayMs = 80 }) {
         let cursor = 0;
         let attempted = 0;
@@ -1139,149 +1230,138 @@ if (!/\.[a-z0-9]+$/i.test(name) && fallbackExt) name = `${name}.${fallbackExt}`;
         return { attempted, ok, fails };
     }
 
-// =========================================================
-// 通用批量保存函数
-// =========================================================
-async function bulkSaveAll({ items, folder, state, setHintFn, updateStopBtnFn, singleSaveFn }) {
-    if (!items.length) {
-        if (singleSaveFn) {
-            singleSaveFn();
-        } else {
-            setHintFn('没有图片可保存');
-        }
-        return;
-    }
-    if (state.running) { setHintFn('正在全部保存中…如需重新开始请先点"停止"'); return; }
-
-    const total = items.length;
-    const okConfirm = window.confirm(`确认要【全部保存】${total} 张图片吗？\n可能会触发浏览器"允许多文件下载"提示。`);
-    if (!okConfirm) return;
-
-    const saveFolder = folder || buildSaveFolderForPage();
-    state.running = true;
-    state.cancel = false;
-    updateStopBtnFn();
-
-    const uniqName = createUniqueNameGenerator();
-    const plan = items.map((it, idx) => {
-        const extPath = getExt(it.cleanUrl);
-        const ext = it.ext || guessExtFromUrl(it.cleanUrl, extPath) || 'jpg';
-        const base = safeFilenameFromUrl(it.cleanUrl, ext);
-        const numbered = `${String(idx + 1).padStart(3, '0')}_${base}`;
-        // 下载：使用 cleanUrl（处理后的原图）
-        return { url: it.cleanUrl, name: uniqName(`${saveFolder}/${numbered}`) };
-    });
-
-    const download = (p) => gmDownloadUnified({ url: p.url, name: p.name });
-
-    const res1 = await runBulkDownload({
-        plan,
-        state,
-        download,
-        onProgress: (attempted, ok, fail) => setHintFn(`全部保存中：${attempted}/${total}（成功 ${ok}，失败 ${fail}）`),
-    });
-
-    if (state.cancel) {
-        state.running = false;
-        updateStopBtnFn();
-        setHintFn(`已停止：成功 ${res1.ok}/${total}，失败 ${res1.fails.length}`);
-        return;
-    }
-
-    if (res1.fails.length > 0) {
-        const retry = window.confirm(`全部保存完成：成功 ${res1.ok}/${total}，失败 ${res1.fails.length}\n是否重试失败项？`);
-        if (retry) {
-            const res2 = await runBulkDownload({
-                plan: res1.fails,
-                state,
-                download,
-                onProgress: (attempted, ok2) => {
-                    const okTotal = res1.ok + ok2;
-                    setHintFn(`重试中：${attempted}/${res1.fails.length}（重试成功 ${ok2}）总成功 ${okTotal}/${total}`);
-                },
-            });
-
-            state.running = false;
-            updateStopBtnFn();
-
-            if (state.cancel) {
-                setHintFn(`已停止：总成功 ${res1.ok + res2.ok}/${total}`);
-                return;
+    async function bulkSaveAll({ items, folder, state, setHintFn, updateStopBtnFn, singleSaveFn }) {
+        if (!items.length) {
+            if (singleSaveFn) {
+                singleSaveFn();
+            } else {
+                setHintFn('没有图片可保存');
             }
-
-            const okTotal = res1.ok + res2.ok;
-            setHintFn(`全部保存完成：成功 ${okTotal}/${total}，失败 ${total - okTotal}`);
             return;
         }
+        if (state.running) { setHintFn('正在全部保存中…如需重新开始请先点"停止"'); return; }
+
+        const total = items.length;
+        const okConfirm = window.confirm(`确认要【全部保存】${total} 张图片吗？\n可能会触发浏览器"允许多文件下载"提示。`);
+        if (!okConfirm) return;
+
+        const saveFolder = folder || buildSaveFolderForPage();
+        state.running = true;
+        state.cancel = false;
+        updateStopBtnFn();
+
+        const uniqName = createUniqueNameGenerator();
+        const plan = items.map((it, idx) => {
+            const extPath = getExt(it.cleanUrl);
+            const ext = it.ext || guessExtFromUrl(it.cleanUrl, extPath) || 'jpg';
+            const base = safeFilenameFromUrl(it.cleanUrl, ext);
+            const numbered = `${String(idx + 1).padStart(3, '0')}_${base}`;
+            return { url: it.cleanUrl, name: uniqName(`${saveFolder}/${numbered}`) };
+        });
+
+        const download = (p) => gmDownloadUnified({ url: p.url, name: p.name });
+
+        const res1 = await runBulkDownload({
+            plan,
+            state,
+            download,
+            onProgress: (attempted, ok, fail) => setHintFn(`全部保存中：${attempted}/${total}（成功 ${ok}，失败 ${fail}）`),
+        });
+
+        if (state.cancel) {
+            state.running = false;
+            updateStopBtnFn();
+            setHintFn(`已停止：成功 ${res1.ok}/${total}，失败 ${res1.fails.length}`);
+            return;
+        }
+
+        if (res1.fails.length > 0) {
+            const retry = window.confirm(`全部保存完成：成功 ${res1.ok}/${total}，失败 ${res1.fails.length}\n是否重试失败项？`);
+            if (retry) {
+                const res2 = await runBulkDownload({
+                    plan: res1.fails,
+                    state,
+                    download,
+                    onProgress: (attempted, ok2) => {
+                        const okTotal = res1.ok + ok2;
+                        setHintFn(`重试中：${attempted}/${res1.fails.length}（重试成功 ${ok2}）总成功 ${okTotal}/${total}`);
+                    },
+                });
+
+                state.running = false;
+                updateStopBtnFn();
+
+                if (state.cancel) {
+                    setHintFn(`已停止：总成功 ${res1.ok + res2.ok}/${total}`);
+                    return;
+                }
+
+                const okTotal = res1.ok + res2.ok;
+                setHintFn(`全部保存完成：成功 ${okTotal}/${total}，失败 ${total - okTotal}`);
+                return;
+            }
+        }
+
+        state.running = false;
+        updateStopBtnFn();
+        setHintFn(`全部保存完成：成功 ${res1.ok}/${total}，失败 ${res1.fails.length}`);
     }
 
-    state.running = false;
-    updateStopBtnFn();
-    setHintFn(`全部保存完成：成功 ${res1.ok}/${total}，失败 ${res1.fails.length}`);
-}
+    function saveFast({ item, index, folder, setHintFn, onOkText }) {
+        const extPath = getExt(item.cleanUrl);
+        const ext = item.ext || guessExtFromUrl(item.cleanUrl, extPath) || 'jpg';
+        const base = safeFilenameFromUrl(item.cleanUrl, ext);
+        const numbered = `${String(index + 1).padStart(3, '0')}_${base}`;
 
-// =========================================================
-// 通用快速保存函数
-// =========================================================
-function saveFast({ item, index, folder, setHintFn, onOkText }) {
-    const extPath = getExt(item.cleanUrl);
-    const ext = item.ext || guessExtFromUrl(item.cleanUrl, extPath) || 'jpg';
-    const base = safeFilenameFromUrl(item.cleanUrl, ext);
-    const numbered = `${String(index + 1).padStart(3, '0')}_${base}`;
+        if (!folder) folder = buildSaveFolderForPage();
+        setHintFn(`一键保存：${folder}/…`);
 
-    if (!folder) folder = buildSaveFolderForPage();
-    setHintFn(`一键保存：${folder}/…`);
+        gmDownloadUnified({
+            url: item.cleanUrl,
+            name: `${folder}/${numbered}`,
+            saveAs: false,
+            setStatus: setHintFn,
+            onOkText: onOkText || `已开始下载到：${folder}/`
+        });
+    }
 
-    // 下载：使用 cleanUrl（处理后的原图）
-    gmDownloadUnified({
-        url: item.cleanUrl,
-        name: `${folder}/${numbered}`,
-        saveAs: false,
-        setStatus: setHintFn,
-        onOkText: onOkText || `已开始下载到：${folder}/`
-    });
-}
+    function stopAll({ state, setHintFn, updateStopBtnFn }) {
+        if (!state.running) return;
+        state.cancel = true;
+        setHintFn('已请求停止下载…将停止后续任务（无法取消正在进行的单个下载）');
+        updateStopBtnFn();
+    }
 
-// =========================================================
-// 通用停止全部下载函数
-// =========================================================
-function stopAll({ state, setHintFn, updateStopBtnFn }) {
-    if (!state.running) return;
-    state.cancel = true;
-    setHintFn('已请求停止下载…将停止后续任务（无法取消正在进行的单个下载）');
-    updateStopBtnFn();
-}
-
-// =========================================================
-// 通用停止按钮更新函数
-// =========================================================
-function updateStopBtn(overlay, selector, state) {
-    const btn = overlay?.querySelector(selector);
-    if (!btn) return;
-    btn.disabled = !state.running;
-}
+    function updateStopBtn(overlay, selector, state) {
+        const btn = overlay?.querySelector(selector);
+        if (!btn) return;
+        btn.disabled = !state.running;
+    }
 
     // =========================================================
     // 5) 幻灯片 UI + 查看器联动
     // =========================================================
     let overlay = null;
-    let list = [];     // {rawUrl, cleanUrl, hostType, ext, fileName, minSideHint, contentLength?}
+    let list = [];
     let current = 0;
     let slideSaveFolder = null;
 
-    let viewerOpen = false; // Esc 习惯：先关查看器
+    let viewerOpen = false;
 
     let thumbObserver = null;
-    const THUMB_PLACEHOLDER = 'data:image/gif;base64,R0lGODlhAQABAAAAACw=';
+    const THUMB_PLACEHOLDER = `data:image/svg+xml,${encodeURIComponent(`
+<svg xmlns="http://www.w3.org/2000/svg" width="86" height="86" viewBox="0 0 86 86">
+  <rect fill="#1a1a1c" width="86" height="86" rx="14"/>
+  <path fill="#333" d="M33 38a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm20 18H33l7-9 4 3 9-12 10 18z"/>
+</svg>
+`)}`;
     const THUMB_MAX_RENDER = 800;
 
     const slideBulk = { running: false, cancel: false };
 
-    // DOM 元素缓存（避免重复查询）
     let cachedEls = null;
     let wheelHandler = null;
 
-    // 缓存幻灯片 overlay 中的常用元素
     function cacheOverlayElements() {
         if (!overlay) { cachedEls = null; return; }
         cachedEls = {
@@ -1360,7 +1440,7 @@ function updateStopBtn(overlay, selector, state) {
         const strip = cachedEls?.strip || overlay?.querySelector('#tm-strip');
         if (!strip) return;
 
-        // 仅在元素数量变化较大时重建 observer
+        // ✅ 修复：先断开再置空
         if (thumbObserver) {
             thumbObserver.disconnect();
             thumbObserver = null;
@@ -1382,12 +1462,14 @@ function updateStopBtn(overlay, selector, state) {
             img.decoding = 'async';
             img.src = THUMB_PLACEHOLDER;
 
-            // 缩略图：优先 rawUrl（未处理）
             img.dataset.src = it.rawUrl;
 
-            // raw 失败时兜底用 cleanUrl（可自行删除这段以"严格只用 raw"）
             img.addEventListener('error', () => {
-                if (img.dataset.fallbackTried) return;
+                if (img.dataset.fallbackTried) {
+                    img.style.opacity = '0.3';
+                    img.alt = '加载失败';
+                    return;
+                }
                 img.dataset.fallbackTried = '1';
                 img.src = it.cleanUrl;
             });
@@ -1424,7 +1506,6 @@ function updateStopBtn(overlay, selector, state) {
         const it = list[current];
         const filename = safeFilenameFromUrl(it.cleanUrl, it.ext || 'jpg');
         setStatus('准备保存…');
-        // 下载：使用 cleanUrl（处理后的原图）
         gmDownloadUnified({ url: it.cleanUrl, name: filename, saveAs: true, setStatus, onOkText: '' });
     }
 
@@ -1473,18 +1554,27 @@ function updateStopBtn(overlay, selector, state) {
 
         const imgEl = els.mainImg || overlay?.querySelector('#tm-main-img');
         setStatus('加载中…');
+        
+        // ✅ 美化：添加加载动画
+        imgEl.classList.add('loading');
         imgEl.style.opacity = '0';
 
-        imgEl.onload = () => { setStatus(''); imgEl.style.opacity = '1'; };
-        imgEl.onerror = () => { setStatus('加载失败（可能防盗链/不存在）'); imgEl.style.opacity = '1'; };
-        // 主图：使用 cleanUrl（处理后的原图）
+        imgEl.onload = () => { 
+            setStatus(''); 
+            imgEl.style.opacity = '1'; 
+            imgEl.classList.remove('loading');
+        };
+        imgEl.onerror = () => { 
+            setStatus('加载失败（可能防盗链/不存在）'); 
+            imgEl.style.opacity = '0.5'; 
+            imgEl.classList.remove('loading');
+        };
         imgEl.src = it.cleanUrl;
 
         preloadAround(current);
         updateActiveThumbnail();
         updateFloatingButtonText();
 
-        // 查看器打开时，同步刷新查看器显示当前图
         if (viewerOpen) {
             openImageViewer(it.cleanUrl, it.fileName || it.cleanUrl);
         }
@@ -1544,8 +1634,7 @@ function updateStopBtn(overlay, selector, state) {
     }
 
     // =========================================================
-    // Viewer（独立查看器）：缩放/拖动/切图 + 保存/一键/全部/停止 + 新标签打开
-    // 变更：取消双击缩放；单击（任意缩放状态）返回幻灯片
+    // Viewer（独立查看器）
     // =========================================================
     let viewerOverlay = null;
     let viewerImgEl = null;
@@ -1638,6 +1727,13 @@ function updateStopBtn(overlay, selector, state) {
 
         if (!viewerOverlay) return;
         document.removeEventListener('keydown', onViewerKeydown, true);
+        
+        // ✅ 清理图片引用
+        if (viewerImgEl) {
+            viewerImgEl.onload = null;
+            viewerImgEl.onerror = null;
+        }
+        
         viewerOverlay.remove();
         viewerOverlay = null;
         viewerImgEl = null;
@@ -1659,13 +1755,11 @@ function updateStopBtn(overlay, selector, state) {
             return;
         }
 
-        // 切图（联动幻灯片）
         if (e.key === 'ArrowLeft') { e.preventDefault(); e.stopPropagation(); show(current - 1); return; }
         if (e.key === 'ArrowRight') { e.preventDefault(); e.stopPropagation(); show(current + 1); return; }
         if (e.key === 'Home') { e.preventDefault(); e.stopPropagation(); show(0); return; }
         if (e.key === 'End') { e.preventDefault(); e.stopPropagation(); show(list.length - 1); return; }
 
-        // 缩放快捷键
         if (e.key === '+' || e.key === '=') {
             e.preventDefault(); e.stopPropagation();
             viewerZoom.scale = Math.min(12, viewerZoom.scale * 1.15);
@@ -1706,7 +1800,7 @@ function updateStopBtn(overlay, selector, state) {
                 </div>
                 <div class="tmv-stage" id="tmv-stage">
                     <img class="tmv-img" id="tmv-img" />
-                    <div class="tmv-hint">滚轮切图 · Alt+滚轮缩放 · 拖动平移(放大后) · 单击返回幻灯片 · Esc 关闭</div>
+                    <div class="tmv-hint">滚轮切图 · Alt+滚轮缩放 · 拖动平移 · 单击返回幻灯片 · Esc 关闭</div>
                 </div>
             `;
 
@@ -1751,27 +1845,22 @@ function updateStopBtn(overlay, selector, state) {
                 viewerStopAll();
             });
 
-            // 单击返回幻灯片：点空白
             stageEl.addEventListener('click', (e) => {
                 if (e.target === stageEl) closeImageViewer();
             });
 
-            // 单击返回幻灯片：点图片（任意缩放状态）
             viewerImgEl.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                // 防止"拖拽结束触发 click"造成误退（不影响真正的单击）
                 if (viewerImgMoved) { viewerImgMoved = false; return; }
                 closeImageViewer();
             });
 
-            // 滚轮：切图（默认）；Alt+滚轮：缩放
             let wheelLock = 0;
             stageEl.addEventListener('wheel', (e) => {
                 const dy = e.deltaY || 0;
                 if (Math.abs(dy) < 2) return;
 
-                // Alt+滚轮缩放
                 if (e.altKey) {
                     e.preventDefault();
                     e.stopPropagation();
@@ -1781,7 +1870,6 @@ function updateStopBtn(overlay, selector, state) {
                     return;
                 }
 
-                // 默认滚轮切图
                 const now = Date.now();
                 if (now - wheelLock < 120) return;
                 wheelLock = now;
@@ -1793,7 +1881,6 @@ function updateStopBtn(overlay, selector, state) {
                 else show(current - 1);
             }, { passive: false });
 
-            // 拖动平移（仅 scale > 1）
             viewerImgEl.addEventListener('pointerdown', (e) => {
                 if (viewerZoom.scale <= 1) return;
                 viewerImgMoved = false;
@@ -1924,10 +2011,8 @@ function updateStopBtn(overlay, selector, state) {
             </div>
         `;
 
-        // DOM 查询缓存辅助
         const $ = (sel) => overlay.querySelector(sel);
 
-        // 顶部按钮
         bindClick($('#tm-close'), closeSlideshow);
         bindClick($('#tm-prev'), () => show(current - 1));
         bindClick($('#tm-next'), () => show(current + 1));
@@ -1943,24 +2028,24 @@ function updateStopBtn(overlay, selector, state) {
         bindClick($('#tm-save-all'), slideSaveAll);
         bindClick($('#tm-save-stop'), slideStopAll);
 
-        // 主图：点击打开查看器
         bindClick($('#tm-main-img'), () => {
             if (!list.length) return;
             const it = list[current];
             openImageViewer(it.cleanUrl, it.fileName || it.cleanUrl);
         });
 
-        // 幻灯片：滚轮切换（仅画布区域）
         let wheelLock = 0;
         const canvasEl = $('#tm-canvas');
         wheelHandler = (e) => {
+            // ✅ 修复：查看器打开时不响应
+            if (viewerOpen) return;
+            
             const now = Date.now();
             if (now - wheelLock < 120) return;
 
             const dy = e.deltaY || 0;
             if (Math.abs(dy) < 2) return;
 
-            // 不在按钮上响应
             if (e.target instanceof Element && e.target.closest('.tm-navbtn')) return;
 
             e.preventDefault();
@@ -1972,13 +2057,11 @@ function updateStopBtn(overlay, selector, state) {
         };
         canvasEl.addEventListener('wheel', wheelHandler, { passive: false });
 
-        // 点击遮罩空白关闭
         overlay.addEventListener('click', (e) => { if (e.target === overlay) closeSlideshow(); });
 
         document.body.appendChild(overlay);
         document.addEventListener('keydown', onKeydown, true);
 
-        // 缓存 DOM 元素引用
         cacheOverlayElements();
 
         updateSlideStopBtn();
@@ -1993,29 +2076,28 @@ function updateStopBtn(overlay, selector, state) {
     }
 
     function closeSlideshow() {
-        // 停止后续批量
         slideBulk.cancel = true;
         slideBulk.running = false;
         updateSlideStopBtn();
 
-        // 关闭幻灯片时，如果查看器开着，一并关闭
         if (viewerOpen) closeImageViewer();
 
         if (!overlay) return;
-        document.removeEventListener('keydown', onKeydown, true);
-
-        // 清理 wheel 监听器
-        const canvasEl = cachedEls?.mainImg?.parentElement?.parentElement || overlay?.querySelector('#tm-canvas');
+        
+        // ✅ 修复：先清理监听器
+        const canvasEl = overlay.querySelector('#tm-canvas');
         if (canvasEl && wheelHandler) {
             canvasEl.removeEventListener('wheel', wheelHandler);
             wheelHandler = null;
         }
 
+        // ✅ 修复：清理 observer
         if (thumbObserver) {
             thumbObserver.disconnect();
             thumbObserver = null;
         }
 
+        document.removeEventListener('keydown', onKeydown, true);
         overlay.remove();
         overlay = null;
         cachedEls = null;
@@ -2030,7 +2112,6 @@ function updateStopBtn(overlay, selector, state) {
         overlay ? closeSlideshow() : openSlideshow();
     }
 
-    // 键盘：查看器打开时，幻灯片不处理任何键（由查看器处理）
     function onKeydown(e) {
         if (!overlay || viewerOpen) return;
 
@@ -2058,9 +2139,6 @@ function updateStopBtn(overlay, selector, state) {
         el.addEventListener(type, (e) => { e.preventDefault(); e.stopPropagation(); fn(e); });
     }
 
-    // =========================================================
-    // 工具函数：样式操作辅助
-    // =========================================================
     function setVisibility(el, visible) {
         el.style.visibility = visible ? 'visible' : 'hidden';
         el.style.pointerEvents = visible ? 'auto' : 'none';
@@ -2092,7 +2170,6 @@ function updateStopBtn(overlay, selector, state) {
     function injectButton() {
         injectStyles();
 
-        // 检查黑名单
         if (isBlacklisted()) {
             const existed = document.getElementById(BTN_ID);
             if (existed) existed.remove();
@@ -2124,14 +2201,22 @@ function updateStopBtn(overlay, selector, state) {
             touch-action: none;
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
-            transition: transform .08s ease, background .15s ease, border-color .15s ease;
+            transition: transform .15s ease, box-shadow .2s ease, background .15s ease;
             font-family: var(--tm-font);
             font-size: 16px;
             font-weight: 900;
             letter-spacing: .4px;
         `;
-        btn.addEventListener('mouseenter', () => { btn.style.background = 'rgba(255,255,255,0.10)'; });
-        btn.addEventListener('mouseleave', () => { btn.style.background = 'rgba(18,18,20,0.72)'; });
+        btn.addEventListener('mouseenter', () => { 
+            btn.style.background = 'rgba(255,255,255,0.10)'; 
+            btn.style.transform = 'scale(1.05)';
+            btn.style.boxShadow = '0 12px 40px rgba(77,163,255,0.35)';
+        });
+        btn.addEventListener('mouseleave', () => { 
+            btn.style.background = 'rgba(18,18,20,0.72)'; 
+            btn.style.transform = 'scale(1)';
+            btn.style.boxShadow = '0 12px 34px rgba(0,0,0,0.45)';
+        });
 
         applyBtnPosition(btn);
 
@@ -2197,7 +2282,7 @@ function updateStopBtn(overlay, selector, state) {
     }
 
     // =========================================================
-    // 简化设置面板（三项）
+    // 简化设置面板
     // =========================================================
     const PANEL_ID = 'tm-slide-settings-simple';
 
@@ -2274,7 +2359,6 @@ function updateStopBtn(overlay, selector, state) {
             if (btn) applyBtnPosition(btn);
         };
 
-        // 后缀名预设按钮事件
         p.querySelectorAll('.tm-ext-preset').forEach(btn => {
             btn.onclick = () => {
                 const value = btn.dataset.value;
@@ -2285,8 +2369,8 @@ function updateStopBtn(overlay, selector, state) {
 
         p.querySelector('#tm-s-save').onclick = () => {
             SETTINGS.saveRootFolder = String(p.querySelector('#tm-root-folder').value || 'TM_Images');
-            SETTINGS.filter.minSidePx = Number(p.querySelector('#tm-minSide').value || 0);
-            SETTINGS.filter.minSizeKB = Number(p.querySelector('#tm-minKB').value || 0);
+            SETTINGS.filter.minSidePx = Math.max(0, parseInt(p.querySelector('#tm-minSide').value, 10) || 0);
+            SETTINGS.filter.minSizeKB = Math.max(0, parseInt(p.querySelector('#tm-minKB').value, 10) || 0);
             SETTINGS.filter.exts = String(p.querySelector('#tm-exts').value || '');
             GM_setValue(STORE_KEYS.SAVE_ROOT_FOLDER, SETTINGS.saveRootFolder);
             saveFilter();
@@ -2398,7 +2482,6 @@ function updateStopBtn(overlay, selector, state) {
             countEl.textContent = SETTINGS.blacklist.length;
         }
 
-        // 删除网站
         listEl.addEventListener('click', (e) => {
             if (e.target.classList.contains('tm-bl-delete')) {
                 const idx = parseInt(e.target.dataset.idx, 10);
@@ -2408,7 +2491,6 @@ function updateStopBtn(overlay, selector, state) {
             }
         });
 
-        // 添加网站
         p.querySelector('#tm-bl-add').onclick = () => {
             const input = inputEl.value.trim();
             if (!input) return;
@@ -2420,7 +2502,6 @@ function updateStopBtn(overlay, selector, state) {
             saveBlacklist();
             inputEl.value = '';
             renderList();
-            // 如果当前网站被拉黑，隐藏按钮
             if (isBlacklisted()) {
                 const existedBtn = document.getElementById(BTN_ID);
                 if (existedBtn) existedBtn.remove();
@@ -2429,14 +2510,12 @@ function updateStopBtn(overlay, selector, state) {
             }
         };
 
-        // 回车添加
         inputEl.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 p.querySelector('#tm-bl-add').click();
             }
         });
 
-        // 清空全部
         p.querySelector('#tm-bl-clear').onclick = () => {
             if (SETTINGS.blacklist.length === 0) return;
             if (confirm('确认清空所有黑名单网站吗？之后将在所有网站启用脚本。')) {
@@ -2447,7 +2526,6 @@ function updateStopBtn(overlay, selector, state) {
             }
         };
 
-        // 导出配置
         p.querySelector('#tm-bl-export').onclick = () => {
             const data = JSON.stringify({ blacklist: SETTINGS.blacklist, version: '1.0' }, null, 2);
             const blob = new Blob([data], { type: 'application/json' });
@@ -2459,7 +2537,6 @@ function updateStopBtn(overlay, selector, state) {
             URL.revokeObjectURL(url);
         };
 
-        // 导入配置
         const importFileInput = p.querySelector('#tm-bl-import-file');
         p.querySelector('#tm-bl-import').onclick = () => {
             importFileInput.click();
@@ -2481,7 +2558,6 @@ function updateStopBtn(overlay, selector, state) {
                         }
                         const merge = confirm(`检测到 ${imported.length} 个黑名单项。\n\n点击"确定"将合并到现有黑名单，点击"取消"将替换现有黑名单。`);
                         if (merge) {
-                            // 合并：只添加不存在的
                             const existing = new Set(SETTINGS.blacklist);
                             imported.forEach(site => {
                                 if (!existing.has(site)) {
@@ -2490,12 +2566,10 @@ function updateStopBtn(overlay, selector, state) {
                                 }
                             });
                         } else {
-                            // 替换
                             SETTINGS.blacklist = imported;
                         }
                         saveBlacklist();
                         renderList();
-                        // 检查并更新按钮状态
                         if (isBlacklisted()) {
                             const existedBtn = document.getElementById(BTN_ID);
                             if (existedBtn) existedBtn.remove();
@@ -2515,7 +2589,6 @@ function updateStopBtn(overlay, selector, state) {
             reader.readAsText(file);
         };
 
-        // 关闭面板
         p.querySelector('#tm-bl-close').onclick = () => p.remove();
 
         renderList();
@@ -2543,7 +2616,7 @@ function updateStopBtn(overlay, selector, state) {
     }
 
     // =========================================================
-    // 启动：注入按钮
+    // 启动
     // =========================================================
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', injectButton);
