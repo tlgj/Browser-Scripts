@@ -2,7 +2,7 @@
 // @name         球鞋看图助手
 // @name:en      Sneaker Image Helper
 // @namespace    https://github.com/tlgj/Browser-Scripts
-// @version      1.4.3.7
+// @version      1.4.3.8
 // @description  提取页面图片并清洗到高清，支持多品牌URL规则。幻灯片浏览，内置独立查看器（拖动/缩放/滚轮切图）。支持保存/一键保存/全部保存/停止，自动创建子文件夹。链接信息显示/隐藏持久化。默认提取 JPEG/PNG/WebP/AVIF 格式。支持后缀名预设快速选择。
 // @author       tlgj
 // @license      MIT
@@ -31,7 +31,7 @@
     // 说明：GM_download 的 name 支持 "folder/file.ext" 时才会创建文件夹；
     // 若环境不支持，本脚本会自动降级为"平铺文件名"继续下载。
     // =========================================================
-    const FAST_SAVE_ROOT_FOLDER = 'TM_Images';
+    // FAST_SAVE_ROOT_FOLDER 已移至 SETTINGS.saveRootFolder，通过设置面板可配置
 
     function sanitizePathPart(input, maxLen = 60) {
         const s = String(input || '')
@@ -49,9 +49,10 @@
     }
 
     function buildSaveFolderForPage() {
+        const root = sanitizePathPart(SETTINGS.saveRootFolder || 'TM_Images', 30);
         const host = sanitizePathPart(location.hostname, 40);
         const title = sanitizePathPart(document.title || 'page', 60);
-        return `${FAST_SAVE_ROOT_FOLDER}/${host}_${yyyymmdd()}_${title}`;
+        return `${root}/${host}_${yyyymmdd()}_${title}`;
     }
 
     // =========================================================
@@ -62,6 +63,7 @@
         BTN_POS: 'sih_btn_pos', // {left, top}
         FILTER: 'sih_filter',   // {minSidePx, minSizeKB, exts}
         BLACKLIST: 'sih_blacklist', // 网站黑名单
+        SAVE_ROOT_FOLDER: 'sih_save_root_folder', // 下载根目录
     };
 
     const DEFAULTS = {
@@ -76,6 +78,7 @@
         maxElementsForBgScan: 8000,
         preloadRadius: 2,
         blacklist: [], // 黑名单网站列表
+        saveRootFolder: 'TM_Images', // 下载根目录名称
     };
 
     const SETTINGS = {
@@ -86,6 +89,7 @@
         maxElementsForBgScan: DEFAULTS.maxElementsForBgScan,
         preloadRadius: DEFAULTS.preloadRadius,
         blacklist: GM_getValue(STORE_KEYS.BLACKLIST, DEFAULTS.blacklist) || [],
+        saveRootFolder: GM_getValue(STORE_KEYS.SAVE_ROOT_FOLDER, DEFAULTS.saveRootFolder),
     };
 
     function saveFilter() { GM_setValue(STORE_KEYS.FILTER, SETTINGS.filter); }
@@ -2222,9 +2226,14 @@ function updateStopBtn(overlay, selector, state) {
 
         p.innerHTML = `
             <div style="display:flex;align-items:center;gap:10px;">
-                <div style="font-weight:900;font-size:18px;">过滤设置</div>
+                <div style="font-weight:900;font-size:18px;">通用设置</div>
                 <div style="flex:1;"></div>
                 <button id="tm-s-close" class="tm-btn tm-btn-ghost" style="padding:8px 10px;">关闭</button>
+            </div>
+
+            <div style="margin-top:10px;">
+                <div class="tm-label">下载根目录名称</div>
+                <input id="tm-root-folder" type="text" value="${String(SETTINGS.saveRootFolder || 'TM_Images')}" placeholder="TM_Images" />
             </div>
 
             <div style="margin-top:10px;">
@@ -2274,9 +2283,11 @@ function updateStopBtn(overlay, selector, state) {
         });
 
         p.querySelector('#tm-s-save').onclick = () => {
+            SETTINGS.saveRootFolder = String(p.querySelector('#tm-root-folder').value || 'TM_Images');
             SETTINGS.filter.minSidePx = Number(p.querySelector('#tm-minSide').value || 0);
             SETTINGS.filter.minSizeKB = Number(p.querySelector('#tm-minKB').value || 0);
             SETTINGS.filter.exts = String(p.querySelector('#tm-exts').value || '');
+            GM_setValue(STORE_KEYS.SAVE_ROOT_FOLDER, SETTINGS.saveRootFolder);
             saveFilter();
             if (overlay) rebuildAndOpen();
             p.remove();
@@ -2526,7 +2537,7 @@ function updateStopBtn(overlay, selector, state) {
             }
         );
 
-        GM_registerMenuCommand('设置：分辨率/大小/后缀', openSettingsPanel);
+        GM_registerMenuCommand('设置：根目录/分辨率/大小/后缀', openSettingsPanel);
         GM_registerMenuCommand('黑名单设置', openBlacklistPanel);
     }
 
