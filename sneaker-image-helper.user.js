@@ -2,7 +2,7 @@
 // @name         球鞋看图助手
 // @name:en      Sneaker Image Helper
 // @namespace    https://github.com/tlgj/Browser-Scripts
-// @version      1.4.4.4
+// @version      1.4.4.5
 // @description  提取页面图片并清洗到高清，支持多品牌URL规则。幻灯片浏览，内置独立查看器（拖动/缩放/滚轮切图）。支持保存/一键保存/全部保存/停止，自动创建子文件夹。链接信息显示/隐藏持久化。默认提取 JPEG/PNG/WebP/AVIF 格式。支持后缀名预设快速选择。
 // @author       tlgj
 // @license      MIT
@@ -2080,68 +2080,6 @@
             else show(current - 1);
         };
         canvasEl.addEventListener('wheel', wheelHandler, { passive: false });
-
-        overlay.addEventListener('click', (e) => { if (e.target === overlay) closeSlideshow(); });
-
-        document.body.appendChild(overlay);
-        document.addEventListener('keydown', onKeydown, true);
-
-        cacheOverlayElements();
-
-        updateSlideStopBtn();
-        setStatus('');
-    }
-
-    function openSlideshow() {
-        if (overlay) return;
-        buildOverlay();
-        rebuildAndOpen();
-        updateFloatingButtonText();
-    }
-
-    function closeSlideshow() {
-        slideBulk.cancel = true;
-        slideBulk.running = false;
-        updateSlideStopBtn();
-
-        if (viewerOpen) closeImageViewer();
-
-        if (!overlay) return;
-        
-        // ✅ 修复：先清理监听器
-        const canvasEl = overlay.querySelector('#tm-canvas');
-        if (canvasEl && wheelHandler) {
-            canvasEl.removeEventListener('wheel', wheelHandler);
-            wheelHandler = null;
-        }
-
-        // ✅ 修复：清理 observer
-        if (thumbObserver) {
-            thumbObserver.disconnect();
-            thumbObserver = null;
-        }
-
-        document.removeEventListener('keydown', onKeydown, true);
-        overlay.remove();
-        overlay = null;
-        cachedEls = null;
-        list = [];
-        current = 0;
-        slideSaveFolder = null;
-
-        updateFloatingButtonText();
-    }
-
-    function toggleSlideshow() {
-        overlay ? closeSlideshow() : openSlideshow();
-    }
-
-    function onKeydown(e) {
-        if (!overlay || viewerOpen) return;
-
-        const keyHandlers = {
-            Escape: closeSlideshow,
-            ArrowLeft: () => show(current - 1),
             ArrowRight: () => show(current + 1),
             Home: () => show(0),
             End: () => show(list.length - 1),
