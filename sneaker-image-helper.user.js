@@ -2,7 +2,7 @@
 // @name         球鞋看图助手
 // @name:en      Sneaker Image Helper
 // @namespace    https://github.com/tlgj/Browser-Scripts
-// @version      1.4.8
+// @version      1.4.9
 // @description  提取页面图片并清洗到高清，支持多品牌URL规则。幻灯片浏览，内置独立查看器（拖动/缩放/滚轮切图）。支持保存/快速保存/全部保存/停止，自动创建子文件夹。链接信息显示/隐藏持久化。默认提取 JPEG/PNG/WebP/AVIF 格式。支持后缀名预设快速选择。
 // @author       tlgj
 // @license      MIT
@@ -265,6 +265,23 @@
 
 .tm-kv{ font-size: 16px; color: rgba(255,255,255,0.94); letter-spacing: .2px; }
 .tm-kv small{ font-size: 14px; color: rgba(255,255,255,0.74); font-weight: 800; }
+
+/* 文件夹区域样式 */
+#tm-folder-pill{
+  max-width: 280px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+#tm-folder-pill:hover{
+  background: rgba(0,0,0,0.28);
+  border-color: rgba(255,255,255,0.18);
+}
+#tm-folder{
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 .tm-label{ font-size: 14px; color: rgba(255,255,255,0.74); margin-bottom: 6px; }
 
