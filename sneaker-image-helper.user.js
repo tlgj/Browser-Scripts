@@ -2,7 +2,7 @@
 // @name         球鞋看图助手
 // @name:en      Sneaker Image Helper
 // @namespace    https://github.com/tlgj/Browser-Scripts
-// @version      1.4.7.1
+// @version      1.4.8
 // @description  提取页面图片并清洗到高清，支持多品牌URL规则。幻灯片浏览，内置独立查看器（拖动/缩放/滚轮切图）。支持保存/快速保存/全部保存/停止，自动创建子文件夹。链接信息显示/隐藏持久化。默认提取 JPEG/PNG/WebP/AVIF 格式。支持后缀名预设快速选择。
 // @author       tlgj
 // @license      MIT
@@ -2026,6 +2026,9 @@
                     <div class="tm-pill">
                       <div class="tm-kv"><span id="tm-hosttype">[no-rule]</span></div>
                     </div>
+                    <div class="tm-pill">
+                      <div class="tm-kv" id="tm-folder-pill" title="点击修改保存文件夹"><small>📁</small> <span id="tm-folder">...</span></div>
+                    </div>
                 </div>
 
                 <div id="tm-filename" class="tm-filename"></div>
@@ -2087,6 +2090,24 @@
         bindClick($('#tm-save-fast'), saveCurrentImageFast);
         bindClick($('#tm-save-all'), slideSaveAll);
         bindClick($('#tm-save-stop'), slideStopAll);
+
+        // 文件夹显示和点击修改功能
+        const folderEl = $('#tm-folder');
+        const folderPill = $('#tm-folder-pill');
+        const updateFolderDisplay = () => {
+            folderEl.textContent = slideSaveFolder || '未设置';
+        };
+        updateFolderDisplay();
+
+        bindClick(folderPill, () => {
+            const newFolder = window.prompt('修改保存文件夹（留空则使用默认）:', slideSaveFolder || '');
+            if (newFolder !== null) {
+                const trimmed = newFolder.trim();
+                slideSaveFolder = trimmed || buildSaveFolderForPage();
+                updateFolderDisplay();
+                setStatus(`保存文件夹已更新为：${slideSaveFolder}`);
+            }
+        });
 
         bindClick($('#tm-main-img'), () => {
             if (!list.length) return;
