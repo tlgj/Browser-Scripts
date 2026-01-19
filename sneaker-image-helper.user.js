@@ -2,7 +2,7 @@
 // @name         球鞋看图助手
 // @name:en      Sneaker Image Helper
 // @namespace    https://github.com/tlgj/Browser-Scripts
-// @version      1.4.4.6
+// @version      1.4.5
 // @description  提取页面图片并清洗到高清，支持多品牌URL规则。幻灯片浏览，内置独立查看器（拖动/缩放/滚轮切图）。支持保存/一键保存/全部保存/停止，自动创建子文件夹。链接信息显示/隐藏持久化。默认提取 JPEG/PNG/WebP/AVIF 格式。支持后缀名预设快速选择。
 // @author       tlgj
 // @license      MIT
@@ -38,6 +38,27 @@
             .replace(/[\\/:*?"<>|]+/g, '_')
             .replace(/\s+/g, ' ')
             .replace(/[\u0000-\u001f]+/g, '_');
+        return (s || 'untitled').slice(0, maxLen);
+    }
+
+    // 专门用于清理文件名的函数
+    // 处理更多可能导致保存失败的特殊字符
+    function sanitizeFilename(input, maxLen = 255) {
+        const s = String(input || '')
+            .trim()
+            // 替换文件名中不允许的字符（Windows/Mac/Linux通用）
+            .replace(/[\\/:*?"<>|]+/g, '_')
+            // 替换其他可能导致问题的特殊字符
+            .replace(/[%#@&!;()\[\]{}<>]+/g, '_')
+            // 替换控制字符
+            .replace(/[\u0000-\u001f\u007f-\u009f]+/g, '_')
+            // 替换连续空格和特殊符号
+            .replace(/\s+/g, '_')
+            .replace(/[._]{2,}/g, '_')
+            // 移除开头/结尾的特殊字符
+            .replace(/^[_\.\s-]+|[_\.\s-]+$/g, '')
+            // 替换换行符
+            .replace(/[\r\n\t]+/g, '_');
         return (s || 'untitled').slice(0, maxLen);
     }
 
@@ -943,7 +964,9 @@
         try {
             const u = new URL(urlStr);
             const pathname = u.pathname;
-            const name = pathname.split('/').pop() || 'image';
+            let name = pathname.split('/').pop() || 'image';
+            // 清理文件名中的特殊字符
+            name = sanitizeFilename(name, 200);
             if (/\.[a-z0-9]+$/i.test(name)) return name;
             return `${name}.${fallbackExt}`;
         } catch {
@@ -955,7 +978,14 @@
         try {
             const u = new URL(urlStr);
             let name = u.pathname.split('/').pop() || '';
-            name = decodeURIComponent(name);
+            // 安全解码并清理特殊字符
+            try {
+                name = decodeURIComponent(name);
+            } catch {
+                // 如果解码失败，使用原始名称
+            }
+            // 清理文件名中的特殊字符（仅用于显示，保留较长限制）
+            name = sanitizeFilename(name, 200);
             if (!/\.[a-z0-9]+$/i.test(name) && fallbackExt) name = `${name}.${fallbackExt}`;
             return name || '(无文件名)';
         } catch {
@@ -1193,6 +1223,7 @@
     function gmDownloadUnified({ url, name, saveAs, setStatus, onOkText, onFailText, onTimeoutText }) {
         return new Promise((resolve) => {
             let retriedFlat = false;
+            let retriedClean = false;
 
             const start = (finalName) => {
                 GM_download({
@@ -1209,12 +1240,26 @@
                         resolve(false);
                     },
                     onerror: () => {
+                        // 第一次重试：如果包含文件夹路径，尝试平铺文件名
                         if (!saveAs && !retriedFlat && typeof finalName === 'string' && finalName.includes('/')) {
                             retriedFlat = true;
                             const flat = finalName.replace(/\//g, '_');
                             if (setStatus) setStatus('当前环境可能不支持自动建文件夹，已降级为平铺文件名继续下载…');
                             start(flat);
                             return;
+                        }
+                        // 第二次重试：清理文件名中的特殊字符
+                        if (!saveAs && !retriedClean && typeof finalName === 'string') {
+                            const filenamePart = finalName.split('/').pop();
+                            const pathPart = finalName.includes('/') ? finalName.substring(0, finalName.lastIndexOf('/') + 1) : '';
+                            const cleaned = sanitizeFilename(filenamePart, 200);
+                            const cleanedName = pathPart + cleaned;
+                            if (cleaned !== filenamePart) {
+                                retriedClean = true;
+                                if (setStatus) setStatus('文件名包含特殊字符，已自动清理重试…');
+                                start(cleanedName);
+                                return;
+                            }
                         }
                         if (setStatus && onFailText !== undefined) setStatus(onFailText || '保存失败（可能被防盗链/跨域限制）');
                         resolve(false);
