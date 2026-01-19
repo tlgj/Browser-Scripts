@@ -2,8 +2,8 @@
 // @name         球鞋看图助手
 // @name:en      Sneaker Image Helper
 // @namespace    https://github.com/tlgj/Browser-Scripts
-// @version      1.4.6
-// @description  提取页面图片并清洗到高清，支持多品牌URL规则。幻灯片浏览，内置独立查看器（拖动/缩放/滚轮切图）。支持保存/一键保存/全部保存/停止，自动创建子文件夹。链接信息显示/隐藏持久化。默认提取 JPEG/PNG/WebP/AVIF 格式。支持后缀名预设快速选择。
+// @version      1.4.7
+// @description  提取页面图片并清洗到高清，支持多品牌URL规则。幻灯片浏览，内置独立查看器（拖动/缩放/滚轮切图）。支持保存/快速保存/全部保存/停止，自动创建子文件夹。链接信息显示/隐藏持久化。默认提取 JPEG/PNG/WebP/AVIF 格式。支持后缀名预设快速选择。
 // @author       tlgj
 // @license      MIT
 // @match        *://*/*
@@ -1305,9 +1305,6 @@
         if (state.running) { setHintFn('正在全部保存中…如需重新开始请先点"停止"'); return; }
 
         const total = items.length;
-        const okConfirm = window.confirm(`确认要【全部保存】${total} 张图片吗？\n可能会触发浏览器"允许多文件下载"提示。`);
-        if (!okConfirm) return;
-
         const saveFolder = folder || buildSaveFolderForPage();
         state.running = true;
         state.cancel = false;
@@ -1377,7 +1374,7 @@
         const numbered = `${String(index + 1).padStart(3, '0')}_${base}`;
 
         if (!folder) folder = buildSaveFolderForPage();
-        setHintFn(`一键保存：${folder}/…`);
+        setHintFn(`快速保存：${folder}/…`);
 
         gmDownloadUnified({
             url: item.cleanUrl,
@@ -1854,7 +1851,7 @@
                 <div class="tmv-top">
                     <div class="tmv-title" id="tmv-title"></div>
                     <button class="tm-btn tm-btn-primary" id="tmv-save" style="padding:8px 10px;">保存</button>
-                    <button class="tm-btn" id="tmv-save-fast" style="padding:8px 10px;">一键保存</button>
+                    <button class="tm-btn" id="tmv-save-fast" style="padding:8px 10px;">快速保存</button>
                     <button class="tm-btn" id="tmv-save-all" style="padding:8px 10px;">全部保存</button>
                     <button class="tm-btn" id="tmv-open" style="padding:8px 10px;">新标签打开</button>
                     <button class="tm-btn tm-btn-danger" id="tmv-stop" style="padding:8px 10px;" disabled>停止下载</button>
@@ -2035,7 +2032,7 @@
 
                 <div class="tm-top-right">
                     <button id="tm-save" class="tm-btn tm-btn-primary">保存</button>
-                    <button id="tm-save-fast" class="tm-btn">一键保存</button>
+                    <button id="tm-save-fast" class="tm-btn">快速保存</button>
                     <button id="tm-save-all" class="tm-btn">全部保存</button>
                     <button id="tm-save-stop" class="tm-btn tm-btn-danger" disabled>停止</button>
                     <button id="tm-open" class="tm-btn">新标签打开</button>
