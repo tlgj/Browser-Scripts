@@ -2,7 +2,7 @@
 // @name         球鞋看图助手
 // @name:en      Sneaker Image Helper
 // @namespace    https://github.com/tlgj/Browser-Scripts
-// @version      1.5.1
+// @version      1.5.2
 // @description  提取页面图片并清洗到高清，支持多品牌URL规则。幻灯片浏览，内置独立查看器（拖动/缩放/滚轮切图）。支持保存/快速保存/全部保存/停止，自动创建子文件夹。链接信息显示/隐藏持久化。默认提取 JPEG/PNG/WebP/AVIF 格式。支持后缀名预设快速选择。
 // @author       tlgj
 // @license      MIT
@@ -64,9 +64,10 @@
 
     function buildSaveFolderForPage() {
         const root = sanitizeFilename(SETTINGS.saveRootFolder || 'TM_Images', 30);
-        const host = sanitizeFilename(location.hostname, 40);
         const title = sanitizeFilename(document.title || 'page', 60);
-        return `${root}/${host}_${title}`;
+        const now = new Date();
+        const timeStr = `${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`;
+        return `${root}/${title}_${timeStr}`;
     }
 
     // =========================================================
