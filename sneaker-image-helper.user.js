@@ -2,7 +2,10 @@
 // @name         球鞋看图助手
 // @name:en      Sneaker Image Helper
 // @namespace    https://github.com/tlgj/Browser-Scripts
-// @version      1.5.6
+// @version      1.5.7
+
+
+
 
 
 // @description  提取页面图片并清洗到高清，支持多品牌URL规则。幻灯片浏览，内置独立查看器（拖动/缩放/滚轮切图）。支持保存/快速保存/全部保存/停止，自动创建子文件夹。链接信息显示/隐藏持久化。默认提取 JPEG/PNG/WebP/AVIF 格式。支持后缀名预设快速选择。
@@ -426,6 +429,8 @@
   opacity: 0.6;
   transition: all .2s ease;
 }
+#tm-prev.tm-navbtn{ left:0; }
+#tm-next.tm-navbtn{ right:0; }
 
 .tm-navbtn:hover{ 
   opacity: 1;
@@ -2084,13 +2089,14 @@
 
             <div class="tm-stage">
                 <div class="tm-canvas" id="tm-canvas">
-                    <button id="tm-prev" class="tm-navbtn" style="left:14px;">‹</button>
+                    <button id="tm-prev" class="tm-navbtn">‹</button>
 
                     <div class="tm-image-box">
                         <img id="tm-main-img" class="tm-main-img" title="点击：打开查看器；滚轮：切换图片" />
                     </div>
 
-                    <button id="tm-next" class="tm-navbtn" style="right:14px;">›</button>
+                    <button id="tm-next" class="tm-navbtn">›</button>
+
 
                     <div id="tm-status" class="tm-hint" style="display:none;"></div>
                     <div id="tm-help" class="tm-hint" style="display:block;">滚轮切换 · 点击主图：查看器 · ←/→ 切换 · Esc 关闭</div>
