@@ -2,7 +2,8 @@
 // @name         球鞋看图助手
 // @name:en      Sneaker Image Helper
 // @namespace    https://github.com/tlgj/Browser-Scripts
-// @version      1.5.2
+// @version      1.5.3
+
 // @description  提取页面图片并清洗到高清，支持多品牌URL规则。幻灯片浏览，内置独立查看器（拖动/缩放/滚轮切图）。支持保存/快速保存/全部保存/停止，自动创建子文件夹。链接信息显示/隐藏持久化。默认提取 JPEG/PNG/WebP/AVIF 格式。支持后缀名预设快速选择。
 // @author       tlgj
 // @license      MIT
@@ -509,8 +510,15 @@
   font-size: 16px !important;
   font-weight: 900;
   letter-spacing: 0.4px;
+  white-space: nowrap;
+  word-break: keep-all;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   transition: transform .15s ease, box-shadow .2s ease, background .15s ease;
 }
+
 
 #tm-img-slide-float-btn:hover {
   transform: scale(1.05);
@@ -2265,6 +2273,13 @@
         const pos = SETTINGS.btnPos;
         if (pos && typeof pos.left === 'number' && typeof pos.top === 'number') {
             setBtnPos(btn, pos.left, pos.top);
+
+            const r = btn.getBoundingClientRect();
+            const vw = window.innerWidth;
+            const vh = window.innerHeight;
+            const left = clamp(r.left, 6, vw - r.width - 6);
+            const top = clamp(r.top, 6, vh - r.height - 6);
+            if (left !== r.left || top !== r.top) setBtnPos(btn, left, top);
         } else {
             btn.style.left = 'auto';
             btn.style.top = 'auto';
@@ -2272,6 +2287,7 @@
             btn.style.bottom = '140px';
         }
     }
+
 
     function injectButton() {
         injectStyles();
@@ -2313,7 +2329,7 @@
             font-weight: 900;
             letter-spacing: .4px;
         `;
-        applyBtnPosition(btn);
+
 
         let dragging = false;
         let moved = false;
@@ -2373,7 +2389,9 @@
         });
 
         document.body.appendChild(btn);
+        applyBtnPosition(btn);
         updateFloatingButtonText();
+
     }
 
     // =========================================================
