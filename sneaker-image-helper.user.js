@@ -2,7 +2,7 @@
 // @name         球鞋看图助手
 // @name:en      Sneaker Image Helper
 // @namespace    https://github.com/tlgj/Browser-Scripts
-// @version      1.5.7
+// @version      1.5.8
 
 
 
@@ -2301,6 +2301,9 @@
 
 
     function injectButton() {
+        // 仅在顶层窗口注入，避免 iframe 内重复出现
+        if (window.top && window.top !== window) return;
+
         injectStyles();
 
         if (isBlacklisted()) {
@@ -2308,6 +2311,7 @@
             if (existed) existed.remove();
             return;
         }
+
 
         const existed = document.getElementById(BTN_ID);
         if (!SETTINGS.enableButton) {
