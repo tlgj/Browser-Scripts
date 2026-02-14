@@ -2,7 +2,7 @@
 // @name         球鞋看图助手
 // @name:en      Sneaker Image Helper
 // @namespace    https://github.com/tlgj/Browser-Scripts
-// @version      1.5.3
+// @version      1.5.4
 
 // @description  提取页面图片并清洗到高清，支持多品牌URL规则。幻灯片浏览，内置独立查看器（拖动/缩放/滚轮切图）。支持保存/快速保存/全部保存/停止，自动创建子文件夹。链接信息显示/隐藏持久化。默认提取 JPEG/PNG/WebP/AVIF 格式。支持后缀名预设快速选择。
 // @author       tlgj
@@ -182,18 +182,20 @@
 
 .tm-topbar{
   display:flex; align-items:center; gap: 14px; padding: 12px 14px;
+  flex-wrap: wrap;
 }
 
-.tm-top-left{ display:flex; align-items:center; gap:12px; }
+.tm-top-left{ display:flex; align-items:center; gap:12px; flex-wrap: wrap; }
 .tm-top-right{ display:flex; align-items:center; gap:10px; flex-wrap: wrap; justify-content:flex-end; }
 
 .tm-filename{
-  flex: 1; text-align: center; padding: 0 12px;
+  flex: 1 1 320px; min-width: 220px; text-align: center; padding: 0 12px;
   font-size: 20px; font-weight: 900; letter-spacing: 0.2px;
   color: rgba(255,255,255,0.94);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   user-select: text;
 }
+
 
 /* ===== 按钮样式（美化版） ===== */
 .tm-btn{
