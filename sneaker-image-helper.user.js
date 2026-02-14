@@ -2,7 +2,8 @@
 // @name         球鞋看图助手
 // @name:en      Sneaker Image Helper
 // @namespace    https://github.com/tlgj/Browser-Scripts
-// @version      1.5.5
+// @version      1.5.6
+
 
 // @description  提取页面图片并清洗到高清，支持多品牌URL规则。幻灯片浏览，内置独立查看器（拖动/缩放/滚轮切图）。支持保存/快速保存/全部保存/停止，自动创建子文件夹。链接信息显示/隐藏持久化。默认提取 JPEG/PNG/WebP/AVIF 格式。支持后缀名预设快速选择。
 // @author       tlgj
@@ -2073,7 +2074,8 @@
                     <button id="tm-save-stop" class="tm-btn tm-btn-danger" disabled>停止</button>
                     <button id="tm-open" class="tm-btn">新标签打开</button>
                     <button id="tm-refresh" class="tm-btn">重新扫描</button>
-                    <button id="tm-close" class="tm-btn tm-btn-danger">关闭 (Esc)</button>
+                    <button id="tm-close" class="tm-btn tm-btn-danger">关闭</button>
+
                 </div>
 
                 <div id="tm-filename" class="tm-filename"></div>
