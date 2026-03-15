@@ -2,7 +2,7 @@
 // @name         球鞋看图助手
 // @name:en      Sneaker Image Helper
 // @namespace    https://github.com/tlgj/Browser-Scripts
-// @version      1.5.10
+// @version      1.6.1
 
 // @description  提取页面图片并清洗到高清，支持多品牌URL规则。幻灯片浏览，内置独立查看器（拖动/缩放/滚轮切图）。支持保存/快速保存/全部保存/停止，自动创建子文件夹。链接信息显示/隐藏持久化。默认提取 JPEG/PNG/WebP/AVIF 格式。支持后缀名预设快速选择。
 // @author       tlgj
@@ -82,6 +82,8 @@
     FILTER: "sih_filter",
     BLACKLIST: "sih_blacklist",
     SAVE_ROOT_FOLDER: "sih_save_root_folder",
+    SLIDE_LOAD_MODE: "sih_slide_load_mode",
+    SLIDE_RAW_PREVIEW_DELAY_MS: "sih_slide_raw_preview_delay_ms",
   };
 
   const DEFAULTS = {
@@ -97,11 +99,26 @@
     preloadRadius: 2,
     blacklist: [],
     saveRootFolder: "TM_Images",
+    // 幻灯片主图加载模式：
+    // - clean：直接加载清洗后的高清链接（默认）
+    // - raw：直接加载原始链接（更省流/更快，但可能不清晰）
+    // - raw-then-clean：先原始预览，再切换到清洗后的高清（体验最好）
+    slideLoadMode: "raw-then-clean",
+    // raw-then-clean 模式下：raw 预览停留多久再切 clean（毫秒）
+    slideRawPreviewDelayMs: 120,
   };
 
   const SETTINGS = {
     enableButton: GM_getValue(STORE_KEYS.ENABLE_BUTTON, DEFAULTS.enableButton),
     btnPos: GM_getValue(STORE_KEYS.BTN_POS, DEFAULTS.btnPos),
+    slideLoadMode: GM_getValue(
+      STORE_KEYS.SLIDE_LOAD_MODE,
+      DEFAULTS.slideLoadMode
+    ),
+    slideRawPreviewDelayMs: GM_getValue(
+      STORE_KEYS.SLIDE_RAW_PREVIEW_DELAY_MS,
+      DEFAULTS.slideRawPreviewDelayMs
+    ),
     filter: (() => {
       const savedFilter = GM_getValue(STORE_KEYS.FILTER, {});
       return {
@@ -1937,17 +1954,78 @@
     imgEl.classList.add("loading");
     imgEl.style.opacity = "0";
 
-    imgEl.onload = () => {
+    // 用 token 防止快速切换时旧 onload/onerror 乱入
+    const token = String(Date.now()) + "_" + String(Math.random());
+    imgEl.dataset.tmToken = token;
+
+    const trySettleSuccess = () => {
+      if (imgEl.dataset.tmToken !== token) return;
       setStatus("");
       imgEl.style.opacity = "1";
       imgEl.classList.remove("loading");
     };
-    imgEl.onerror = () => {
+
+    const trySettleError = () => {
+      if (imgEl.dataset.tmToken !== token) return;
       setStatus("加载失败（可能防盗链/不存在）");
       imgEl.style.opacity = "0.5";
       imgEl.classList.remove("loading");
     };
-    imgEl.src = it.cleanUrl;
+
+    imgEl.onload = () => {
+      // raw-then-clean 时：raw 加载成功先显示（不去掉 loading），等 clean 成功再 settle
+      if (imgEl.dataset.tmToken !== token) return;
+      if (
+        SETTINGS.slideLoadMode === "raw-then-clean" &&
+        imgEl.dataset.tmPhase === "raw"
+      ) {
+        imgEl.style.opacity = "1";
+        // 保持 loading，等待 clean
+        return;
+      }
+      trySettleSuccess();
+    };
+
+    imgEl.onerror = () => {
+      if (imgEl.dataset.tmToken !== token) return;
+      // raw-then-clean：raw 失败就直接切 clean 再试一次
+      if (
+        SETTINGS.slideLoadMode === "raw-then-clean" &&
+        imgEl.dataset.tmPhase === "raw"
+      ) {
+        imgEl.dataset.tmPhase = "clean";
+        imgEl.src = it.cleanUrl;
+        return;
+      }
+      trySettleError();
+    };
+
+    // 根据设置选择加载策略
+    if (SETTINGS.slideLoadMode === "raw") {
+      imgEl.dataset.tmPhase = "raw";
+      imgEl.src = it.rawUrl || it.cleanUrl;
+    } else if (SETTINGS.slideLoadMode === "raw-then-clean") {
+      imgEl.dataset.tmPhase = "raw";
+      imgEl.src = it.rawUrl || it.cleanUrl;
+
+      // raw 已经开始加载；稍后无论如何都尝试切到 clean（若 raw 本身就是 clean，则不重复）
+      if (it.cleanUrl && it.rawUrl && it.cleanUrl !== it.rawUrl) {
+        const delay = clamp(
+          Number(SETTINGS.slideRawPreviewDelayMs || 0),
+          0,
+          5000
+        );
+        setTimeout(() => {
+          if (imgEl.dataset.tmToken !== token) return;
+          imgEl.dataset.tmPhase = "clean";
+          imgEl.src = it.cleanUrl;
+        }, delay);
+      }
+    } else {
+      // clean（默认）
+      imgEl.dataset.tmPhase = "clean";
+      imgEl.src = it.cleanUrl;
+    }
 
     preloadAround(current);
     updateActiveThumbnail();
@@ -2852,8 +2930,34 @@
                     <button class="tm-ext-preset tm-btn tm-btn-ghost" style="padding:6px 10px;font-size:13px;" data-value="jpeg,jpg,png,webp,avif">全部常见</button>
                     <button class="tm-ext-preset tm-btn tm-btn-ghost" style="padding:6px 10px;font-size:13px;" data-value="jpeg,jpg,png,webp">常用</button>
                     <button class="tm-ext-preset tm-btn tm-btn-ghost" style="padding:6px 10px;font-size:13px;" data-value="png,avif">高质量</button>
-                    <button class="tm-ext-preset tm-btn tm-btn-ghost" style="padding:6px 10px;font-size:13px;" data-value="jpeg,jpg">JPEG</button>
+                    <button class="tm-ext-preset tm-btn tm-btn-ghost" style="padding:6px  10px;font-size:13px;" data-value="jpeg,jpg">JPEG</button>
                     <button class="tm-ext-preset tm-btn tm-btn-ghost" style="padding:6px 10px;font-size:13px;" data-value="webp">WebP</button>
+                </div>
+            </div>
+
+            <div style="margin-top:10px;">
+                <div class="tm-label">幻灯片主图加载模式</div>
+                <select id="tm-slide-load-mode" style="width:100%;font-family:var(--tm-font);font-size:15px;padding:10px 10px;border-radius:12px;border:1px solid var(--tm-border);background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.94);outline:none;">
+                    <option value="raw-then-clean" ${
+                      SETTINGS.slideLoadMode === "raw-then-clean"
+                        ? "selected"
+                        : ""
+                    }>先原始预览，再切高清（推荐）</option>
+                    <option value="clean" ${
+                      SETTINGS.slideLoadMode === "clean" ? "selected" : ""
+                    }>直接高清（清洗后链接）</option>
+                    <option value="raw" ${
+                      SETTINGS.slideLoadMode === "raw" ? "selected" : ""
+                    }>直接原始（更省流/更快）</option>
+                </select>
+                <div style="margin-top:8px;">
+                  <div class="tm-label">raw→clean 切换延迟 (ms)（仅“先原始预览”生效）</div>
+                  <input id="tm-slide-raw-preview-delay" type="number" min="0" max="5000" value="${Number(
+                    SETTINGS.slideRawPreviewDelayMs || 0
+                  )}" />
+                </div>
+                <div style="margin-top:6px;font-size:12px;line-height:1.4;color:rgba(255,255,255,0.74);">
+                    “先原始预览”会先加载页面原图/缩略图以更快出图，随后自动切换到清洗后的高清链接。
                 </div>
             </div>
 
@@ -2893,9 +2997,30 @@
         parseInt(p.querySelector("#tm-minKB").value, 10) || 0
       );
       SETTINGS.filter.exts = String(p.querySelector("#tm-exts").value || "");
+
+      const modeEl = p.querySelector("#tm-slide-load-mode");
+      const newMode = modeEl ? String(modeEl.value || "") : "";
+      if (["clean", "raw", "raw-then-clean"].includes(newMode)) {
+        SETTINGS.slideLoadMode = newMode;
+        GM_setValue(STORE_KEYS.SLIDE_LOAD_MODE, SETTINGS.slideLoadMode);
+      }
+
+      const delayEl = p.querySelector("#tm-slide-raw-preview-delay");
+      const delayRaw = delayEl ? Number(delayEl.value) : NaN;
+      if (Number.isFinite(delayRaw)) {
+        SETTINGS.slideRawPreviewDelayMs = clamp(Math.floor(delayRaw), 0, 5000);
+        GM_setValue(
+          STORE_KEYS.SLIDE_RAW_PREVIEW_DELAY_MS,
+          SETTINGS.slideRawPreviewDelayMs
+        );
+      }
+
       GM_setValue(STORE_KEYS.SAVE_ROOT_FOLDER, SETTINGS.saveRootFolder);
       saveFilter();
-      if (overlay) rebuildAndOpen();
+      if (overlay) {
+        // 不需要重扫列表，直接刷新当前显示即可
+        show(current);
+      }
       p.remove();
     };
 
