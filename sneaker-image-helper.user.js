@@ -2881,6 +2881,8 @@
             bottom: 210px;
             width: 340px;
             max-width: calc(100vw - 36px);
+            max-height: 70vh;
+            overflow: auto;
             z-index: 2147483645;
             background: rgba(18,18,20,0.78);
             color: rgba(255,255,255,0.92);
@@ -2915,7 +2917,7 @@
             </div>
 
             <div style="margin-top:10px;">
-                <div class="tm-label">文件大小：Content-Length ≥ (KB)（0=不限）</div>
+                <div class="tm-label" style="line-height:1.35;">文件大小：Content-Length ≥ (KB)（0=不限）</div>
                 <input id="tm-minKB" type="number" min="0" value="${Number(
                   SETTINGS.filter.minSizeKB || 0
                 )}" />
