@@ -2,7 +2,7 @@
 // @name         球鞋看图助手
 // @name:en      Sneaker Image Helper
 // @namespace    https://github.com/tlgj/Browser-Scripts
-// @version      1.5.9
+// @version      1.5.10
 
 // @description  提取页面图片并清洗到高清，支持多品牌URL规则。幻灯片浏览，内置独立查看器（拖动/缩放/滚轮切图）。支持保存/快速保存/全部保存/停止，自动创建子文件夹。链接信息显示/隐藏持久化。默认提取 JPEG/PNG/WebP/AVIF 格式。支持后缀名预设快速选择。
 // @author       tlgj
@@ -647,8 +647,12 @@
   }
 
   // =========================================================
-  // 规则工具
+  // Rules（清洗规则 / host 映射）
+  // 说明：按“工具函数 → 可复用规则 → 品牌/站点规则 → host 映射”的结构集中放置，
+  //       仅做组织与注释分区，不改变任何规则/执行顺序/行为。
   // =========================================================
+
+  // ===== Rules: helpers =====
   const safeUrlParse = (urlStr) => {
     try {
       return new URL(urlStr);
@@ -656,13 +660,16 @@
       return null;
     }
   };
+
   const createRegexRule = (regex, replacement) => ({
     apply: (url) => url.replace(regex, replacement),
   });
+
   const createQueryReplaceRule = (newQuery) => ({
     apply: (url) => url.split("?")[0] + newQuery,
   });
 
+  // ===== Rules: reusable rules =====
   const REUSABLE_RULES = {
     REMOVE_ALL_QUERY: createRegexRule(/\?.*$/, ""),
     TO_PNG: createRegexRule(/\.(?:webp|jpe?g)(?=\?|$)/i, ".png"),
@@ -670,9 +677,7 @@
     REMOVE_SIZE_SUFFIX: createRegexRule(/_\d+x\d+(?=\.\w+$)/, ""),
   };
 
-  // =========================================================
-  // 1) 清洗规则（hostType → 规则链）
-  // =========================================================
+  // ===== Rules: brand/site rules =====
   const BRAND_RULES = {
     JD_360BUYIMG_REMOVE_AVIF: {
       apply: (url) =>
@@ -876,6 +881,7 @@
     },
   };
 
+  // ===== Rules: host maps =====
   const EXACT_HOST_MAP = new Map([
     ["image.goat.com", "goat"],
     ["cdn.flightclub.com", "flightclub"],
@@ -959,8 +965,8 @@
     { str: "t4s.cz", type: "t4s-cdn" },
   ];
 
+  // ===== Rules: hostType → rule chain =====
   const HOST_RULE_MAP = {
-    "jd-360buyimg": [BRAND_RULES.JD_360BUYIMG_REMOVE_AVIF],
     goat: [BRAND_RULES.GOAT_CLEAN],
     flightclub: [REUSABLE_RULES.REMOVE_ALL_QUERY],
     stockx: [BRAND_RULES.STOCKX_HIGH_RES],
@@ -2436,9 +2442,9 @@
 
                     <button id="tm-next" class="tm-navbtn">›</button>
 
+<div id="tm-status" class="tm-hint" style="display:none;"></div>
+                    <div id="tm-help" class="tm-hint" style="display:block; opacity: 1; transition: opacity .35s ease;">滚轮切换 · 点击主图：查看器 · ←/→ 切换 · Esc 关闭</div>
 
-                    <div id="tm-status" class="tm-hint" style="display:none;"></div>
-                    <div id="tm-help" class="tm-hint" style="display:block;">滚轮切换 · 点击主图：查看器 · ←/→ 切换 · Esc 关闭</div>
                 </div>
 
                 <div class="tm-strip-panel">
@@ -2456,10 +2462,22 @@
                 </div>
             </div>
         `;
-
     const $ = (sel) => overlay.querySelector(sel);
 
+    // 顶部操作提示：打开时短暂显示后自动淡出，避免遮挡看图
+    const helpEl = $("#tm-help");
+    if (helpEl) {
+      // 先确保可见
+      helpEl.style.opacity = "1";
+      // 3 秒后淡出
+      setTimeout(() => {
+        if (!overlay || !helpEl.isConnected) return;
+        helpEl.style.opacity = "0";
+      }, 3000);
+    }
+
     bindClick($("#tm-close"), closeSlideshow);
+
     bindClick($("#tm-prev"), () => show(current - 1));
     bindClick($("#tm-next"), () => show(current + 1));
     bindClick($("#tm-refresh"), rebuildAndOpen);
