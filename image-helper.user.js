@@ -3,8 +3,8 @@
 // @name:zh-CN   图片助手
 // @name:en      Image Helper
 // @namespace    https://github.com/tlgj/Browser-Scripts
-// @version      1.8.4
-// @description  提取页面图片并清洗到高清，支持多品牌 URL 规则、幻灯片浏览、独立查看器、保存/快速保存/全部保存，并支持脚本黑名单与幻灯片图片过滤。
+// @version      1.9.0
+// @description  提取页面图片并清洗到高清，支持多品牌 URL 规则、幻灯片浏览、独立查看器、保存/快速保存/全部保存，并支持脚本黑名单。
 // @author       tlgj
 // @license      MIT
 // @match        *://*/*
@@ -72,7 +72,6 @@
     BTN_POS: "sih_btn_pos",
     FILTER: "sih_filter",
     BLACKLIST: "sih_blacklist",
-    SLIDESHOW_BLACKLIST: "sih_slideshow_blacklist",
     SAVE_ROOT_FOLDER: "sih_save_root_folder",
     SLIDE_LOAD_MODE: "sih_slide_load_mode",
     SLIDE_RAW_PREVIEW_DELAY_MS: "sih_slide_raw_preview_delay_ms",
@@ -90,7 +89,6 @@
     maxElementsForBgScan: 8000,
     preloadRadius: 2,
     blacklist: [],
-    slideshowBlacklist: [],
     saveRootFolder: "TM_Images",
     // 幻灯片主图加载模式：
     // - clean：直接加载清洗后的高清链接（默认）
@@ -133,11 +131,6 @@
     maxElementsForBgScan: DEFAULTS.maxElementsForBgScan,
     preloadRadius: DEFAULTS.preloadRadius,
     blacklist: GM_getValue(STORE_KEYS.BLACKLIST, DEFAULTS.blacklist) || [],
-    slideshowBlacklist:
-      GM_getValue(
-        STORE_KEYS.SLIDESHOW_BLACKLIST,
-        DEFAULTS.slideshowBlacklist
-      ) || [],
     saveRootFolder: GM_getValue(
       STORE_KEYS.SAVE_ROOT_FOLDER,
       DEFAULTS.saveRootFolder
@@ -163,10 +156,6 @@
   }
   function saveBlacklist() {
     GM_setValue(STORE_KEYS.BLACKLIST, SETTINGS.blacklist);
-  }
-
-  function saveSlideshowBlacklist() {
-    GM_setValue(STORE_KEYS.SLIDESHOW_BLACKLIST, SETTINGS.slideshowBlacklist);
   }
 
   function normalizeBlacklistEntry(input) {
@@ -200,23 +189,6 @@
     return Array.from(variants).filter(Boolean);
   }
 
-  function isHostMatchedInList(hostname, list) {
-    if (!list || !list.length) return false;
-    const host = String(hostname || "")
-      .trim()
-      .toLowerCase();
-    if (!host) return false;
-    return list.some((site) => {
-      const pattern = normalizeBlacklistEntry(site);
-      if (!pattern) return false;
-      if (pattern.startsWith("*.")) {
-        const domain = pattern.slice(2);
-        return host === domain || host.endsWith("." + domain);
-      }
-      return host === pattern;
-    });
-  }
-
   function isHostExactMatchedInList(hostname, list) {
     if (!list || !list.length) return false;
     const host = String(hostname || "")
@@ -228,10 +200,6 @@
 
   function isBlacklisted(hostname = location.hostname) {
     return isHostExactMatchedInList(hostname, SETTINGS.blacklist);
-  }
-
-  function isSlideshowBlacklisted(hostname = location.hostname) {
-    return isHostMatchedInList(hostname, SETTINGS.slideshowBlacklist);
   }
 
   function refreshButtonVisibilityByBlacklist() {
@@ -2147,34 +2115,11 @@
       });
     }
 
-    const filtered = await applySizeFilter(tmp, (s) => setStatus(s));
-    const slideshowFiltered = isSlideshowBlacklisted();
-    const hiddenCount = slideshowFiltered
-      ? filtered.filter((item) =>
-          isHostMatchedInList(
-            urlHost(item.cleanUrl),
-            SETTINGS.slideshowBlacklist
-          )
-        ).length
-      : 0;
-
-    list = slideshowFiltered
-      ? filtered.filter(
-          (item) =>
-            !isHostMatchedInList(
-              urlHost(item.cleanUrl),
-              SETTINGS.slideshowBlacklist
-            )
-        )
-      : filtered;
+    list = await applySizeFilter(tmp, (s) => setStatus(s));
     current = 0;
 
     if (!list.length) {
-      setStatus(
-        slideshowFiltered
-          ? `当前站点启用了幻灯片图片过滤，已隐藏 ${hiddenCount} 张图片`
-          : "未提取到图片（可能被过滤条件筛掉）"
-      );
+      setStatus("未提取到图片（可能被过滤条件筛掉）");
       const els = cachedEls || {};
       if (els.hostType) els.hostType.textContent = "";
       if (els.filename) els.filename.textContent = "";
@@ -2187,9 +2132,7 @@
       return;
     }
 
-    setStatus(
-      hiddenCount > 0 ? `已隐藏 ${hiddenCount} 张命中过滤域名的图片` : ""
-    );
+    setStatus("");
     renderThumbnails();
     show(0);
   }
@@ -2960,9 +2903,6 @@
     const hostVariants = getCurrentHostVariants();
     const normalizedCurrentHost = normalizeBlacklistEntry(currentHost);
     const currentHostBlacklisted = isBlacklisted(currentHost);
-    const currentHostSlideshowBlacklisted = hostVariants.some((host) =>
-      isSlideshowBlacklisted(host)
-    );
 
     const p = document.createElement("div");
     p.id = PANEL_ID;
@@ -3074,30 +3014,6 @@
                 </div>
             </div>
 
-            <div style="margin-top:10px;">
-                <div class="tm-label">当前站点幻灯片图片过滤</div>
-                <div style="display:flex;gap:8px;align-items:center;">
-                    <input id="tm-slideshow-blacklist-current-host" type="text" value="${currentHost}"
-                        readonly style="flex:1;opacity:0.78;cursor:not-allowed;" />
-                    <button id="tm-toggle-current-host-slideshow-blacklist" class="tm-btn ${
-                      currentHostSlideshowBlacklisted
-                        ? "tm-btn-danger"
-                        : "tm-btn-primary"
-                    }" style="white-space:nowrap;">
-                      ${
-                        currentHostSlideshowBlacklisted
-                          ? "移出图片过滤"
-                          : "加入图片过滤"
-                      }
-                    </button>
-                </div>
-                <div style="margin-top:6px;font-size:12px;line-height:1.4;color:rgba(255,255,255,0.74);">
-                    当前站点命中后仍显示脚本按钮并允许打开幻灯片，但会在幻灯片中隐藏命中过滤域名的图片。支持自动识别 ${hostVariants.join(
-                      " / "
-                    )}。
-                </div>
-            </div>
-
             <div style="margin-top:12px;display:flex;gap:10px;">
                 <button id="tm-s-save" class="tm-btn tm-btn-primary" style="flex:1;">保存</button>
                 <button id="tm-s-resetpos" class="tm-btn" style="flex:1;">重置按钮位置</button>
@@ -3146,57 +3062,6 @@
 
         saveBlacklist();
         refreshButtonVisibilityByBlacklist();
-        p.remove();
-        openSettingsPanel();
-      };
-    }
-
-    const toggleCurrentHostSlideshowBtn = p.querySelector(
-      "#tm-toggle-current-host-slideshow-blacklist"
-    );
-    if (toggleCurrentHostSlideshowBtn) {
-      toggleCurrentHostSlideshowBtn.onclick = () => {
-        if (currentHostSlideshowBlacklisted) {
-          const slideshowEntries = new Set();
-          hostVariants.forEach((host) => {
-            SETTINGS.slideshowBlacklist.forEach((entry) => {
-              const normalizedEntry = normalizeBlacklistEntry(entry);
-              if (!normalizedEntry) return;
-              if (
-                normalizedEntry === normalizeBlacklistEntry(host) ||
-                normalizedEntry ===
-                  normalizeBlacklistEntry(host).replace(/^www\./, "") ||
-                normalizedEntry ===
-                  `*.${normalizeBlacklistEntry(host).replace(/^www\./, "")}`
-              ) {
-                slideshowEntries.add(entry);
-              }
-            });
-          });
-          SETTINGS.slideshowBlacklist = SETTINGS.slideshowBlacklist.filter(
-            (entry) => !slideshowEntries.has(entry)
-          );
-        } else {
-          const normalizedHost = normalizeBlacklistEntry(currentHost);
-          if (
-            normalizedHost &&
-            !SETTINGS.slideshowBlacklist.some(
-              (entry) => normalizeBlacklistEntry(entry) === normalizedHost
-            )
-          ) {
-            SETTINGS.slideshowBlacklist.push(normalizedHost);
-          }
-        }
-
-        SETTINGS.slideshowBlacklist = SETTINGS.slideshowBlacklist
-          .map((entry) => normalizeBlacklistEntry(entry))
-          .filter(Boolean)
-          .filter((entry, index, arr) => arr.indexOf(entry) === index);
-
-        saveSlideshowBlacklist();
-        if (overlay) {
-          rebuildAndOpen();
-        }
         p.remove();
         openSettingsPanel();
       };
@@ -3296,9 +3161,7 @@
             </div>
 
             <div style="margin-bottom:12px;font-size:14px;color:rgba(255,255,255,0.74);line-height:1.5;flex:0 0 auto;">
-                脚本域名黑名单：在这些网站上脚本按钮不会显示，仅按精确域名匹配。<br>
-                幻灯片图片域名过滤：在命中站点打开幻灯片时，会隐藏这些域名下的图片，但仍允许打开幻灯片。<br>
-                脚本域名黑名单不支持 *.example.com；幻灯片图片域名过滤支持 *.example.com 格式。
+                脚本域名黑名单：在这些网站上脚本按钮不会显示，仅按精确域名匹配，不支持 *.example.com。
             </div>
 
             <div style="flex:1;min-height:0;overflow:auto;padding-right:4px;">
@@ -3317,22 +3180,6 @@
                     </div>
                     <button id="tm-bl-clear" class="tm-btn tm-btn-danger" style="padding:8px 12px;flex:0 0 auto;">清空脚本黑名单</button>
                 </div>
-
-                <div style="margin-top:16px;padding:10px 0 6px;font-weight:800;">幻灯片图片域名过滤</div>
-                <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center;">
-                    <input id="tm-sbl-input" type="text" placeholder="输入域名（如 example.com）"
-                        style="flex:1;min-width:0;font-family:var(--tm-font);font-size:15px;padding:10px 12px;
-                        border-radius:12px;border:1px solid var(--tm-border);
-                        background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.94);outline:none;">
-                    <button id="tm-sbl-add" class="tm-btn tm-btn-primary" style="padding:10px 16px;flex:0 0 auto;white-space:nowrap;">添加</button>
-                </div>
-                <div id="tm-sbl-list" style="max-height:180px;overflow-y:auto;padding:8px 0;border-top:1px solid var(--tm-border);"></div>
-                <div style="margin-top:8px;display:flex;gap:8px;justify-content:space-between;align-items:center;flex-wrap:wrap;">
-                    <div style="color:rgba(255,255,255,0.74);font-size:13px;padding:8px 0;">
-                        共 <span id="tm-sbl-count">0</span> 个网站
-                    </div>
-                    <button id="tm-sbl-clear" class="tm-btn tm-btn-danger" style="padding:8px 12px;flex:0 0 auto;">清空幻灯片过滤</button>
-                </div>
             </div>
 
             <div style="margin-top:14px;display:flex;gap:8px;justify-content:flex-end;flex:0 0 auto;flex-wrap:wrap;">
@@ -3347,9 +3194,6 @@
     const listEl = p.querySelector("#tm-bl-list");
     const inputEl = p.querySelector("#tm-bl-input");
     const countEl = p.querySelector("#tm-bl-count");
-    const slideshowListEl = p.querySelector("#tm-sbl-list");
-    const slideshowInputEl = p.querySelector("#tm-sbl-input");
-    const slideshowCountEl = p.querySelector("#tm-sbl-count");
 
     function normalizeDomainList(list) {
       return (list || [])
@@ -3365,12 +3209,6 @@
         if (overlay) closeSlideshow();
       } else {
         injectButton();
-      }
-    }
-
-    function syncUiAfterSlideshowBlacklistChange() {
-      if (overlay) {
-        rebuildAndOpen();
       }
     }
 
@@ -3402,9 +3240,6 @@
 
     function renderList() {
       SETTINGS.blacklist = normalizeDomainList(SETTINGS.blacklist);
-      SETTINGS.slideshowBlacklist = normalizeDomainList(
-        SETTINGS.slideshowBlacklist
-      );
 
       renderSimpleList(
         listEl,
@@ -3412,15 +3247,8 @@
         "暂无脚本黑名单网站（在所有网站启用脚本）",
         "tm-bl-delete"
       );
-      renderSimpleList(
-        slideshowListEl,
-        SETTINGS.slideshowBlacklist,
-        "暂无幻灯片图片域名过滤网站（所有网站都允许显示全部幻灯片图片）",
-        "tm-sbl-delete"
-      );
 
       countEl.textContent = SETTINGS.blacklist.length;
-      slideshowCountEl.textContent = SETTINGS.slideshowBlacklist.length;
     }
 
     listEl.addEventListener("click", (e) => {
@@ -3430,16 +3258,6 @@
         saveBlacklist();
         renderList();
         syncUiAfterBlacklistChange();
-      }
-    });
-
-    slideshowListEl.addEventListener("click", (e) => {
-      if (e.target.classList.contains("tm-sbl-delete")) {
-        const idx = parseInt(e.target.dataset.idx, 10);
-        SETTINGS.slideshowBlacklist.splice(idx, 1);
-        saveSlideshowBlacklist();
-        renderList();
-        syncUiAfterSlideshowBlacklistChange();
       }
     });
 
@@ -3458,32 +3276,9 @@
       syncUiAfterBlacklistChange();
     };
 
-    p.querySelector("#tm-sbl-add").onclick = () => {
-      const input = normalizeBlacklistEntry(slideshowInputEl.value);
-      if (!input) return;
-      if (SETTINGS.slideshowBlacklist.includes(input)) {
-        alert("该网站已存在于幻灯片图片域名过滤中");
-        return;
-      }
-      SETTINGS.slideshowBlacklist.push(input);
-      SETTINGS.slideshowBlacklist = normalizeDomainList(
-        SETTINGS.slideshowBlacklist
-      );
-      saveSlideshowBlacklist();
-      slideshowInputEl.value = "";
-      renderList();
-      syncUiAfterSlideshowBlacklistChange();
-    };
-
     inputEl.addEventListener("keypress", (e) => {
       if (e.key === "Enter") {
         p.querySelector("#tm-bl-add").click();
-      }
-    });
-
-    slideshowInputEl.addEventListener("keypress", (e) => {
-      if (e.key === "Enter") {
-        p.querySelector("#tm-sbl-add").click();
       }
     });
 
@@ -3497,26 +3292,11 @@
       }
     };
 
-    p.querySelector("#tm-sbl-clear").onclick = () => {
-      if (SETTINGS.slideshowBlacklist.length === 0) return;
-      if (
-        confirm(
-          "确认清空幻灯片图片域名过滤吗？之后所有网站打开幻灯片时都将显示全部图片。"
-        )
-      ) {
-        SETTINGS.slideshowBlacklist = [];
-        saveSlideshowBlacklist();
-        renderList();
-        syncUiAfterSlideshowBlacklistChange();
-      }
-    };
-
     p.querySelector("#tm-bl-export").onclick = () => {
       const data = JSON.stringify(
         {
           blacklist: SETTINGS.blacklist,
-          slideshowBlacklist: SETTINGS.slideshowBlacklist,
-          version: "1.1",
+          version: "1.2",
         },
         null,
         2
@@ -3546,22 +3326,14 @@
           const importedBlacklist = Array.isArray(data.blacklist)
             ? normalizeDomainList(data.blacklist)
             : [];
-          const importedSlideshowBlacklist = Array.isArray(
-            data.slideshowBlacklist
-          )
-            ? normalizeDomainList(data.slideshowBlacklist)
-            : [];
 
-          if (
-            importedBlacklist.length === 0 &&
-            importedSlideshowBlacklist.length === 0
-          ) {
-            alert("导入的域名过滤配置为空");
+          if (importedBlacklist.length === 0) {
+            alert("导入的脚本黑名单配置为空");
             return;
           }
 
           const merge = confirm(
-            `检测到脚本黑名单 ${importedBlacklist.length} 项，幻灯片图片域名过滤 ${importedSlideshowBlacklist.length} 项。\n\n点击"确定"将合并到现有配置，点击"取消"将替换现有配置。`
+            `检测到脚本黑名单 ${importedBlacklist.length} 项。\n\n点击"确定"将合并到现有配置，点击"取消"将替换现有配置。`
           );
 
           if (merge) {
@@ -3569,22 +3341,15 @@
               ...SETTINGS.blacklist,
               ...importedBlacklist,
             ]);
-            SETTINGS.slideshowBlacklist = normalizeDomainList([
-              ...SETTINGS.slideshowBlacklist,
-              ...importedSlideshowBlacklist,
-            ]);
           } else {
             SETTINGS.blacklist = importedBlacklist;
-            SETTINGS.slideshowBlacklist = importedSlideshowBlacklist;
           }
 
           saveBlacklist();
-          saveSlideshowBlacklist();
           renderList();
           syncUiAfterBlacklistChange();
-          syncUiAfterSlideshowBlacklistChange();
           alert(
-            `导入成功！当前脚本黑名单共 ${SETTINGS.blacklist.length} 个网站，幻灯片图片域名过滤共 ${SETTINGS.slideshowBlacklist.length} 个网站。`
+            `导入成功！当前脚本黑名单共 ${SETTINGS.blacklist.length} 个网站。`
           );
         } catch (err) {
           console.error("导入域名过滤配置失败：", err);
