@@ -1,10 +1,10 @@
 // ==UserScript==
-// @name         球鞋看图助手
-// @name:en      Sneaker Image Helper
+// @name         Image Helper
+// @name:zh-CN   图片助手
+// @name:en      Image Helper
 // @namespace    https://github.com/tlgj/Browser-Scripts
-// @version      1.6.2
-
-// @description  提取页面图片并清洗到高清，支持多品牌URL规则。幻灯片浏览，内置独立查看器（拖动/缩放/滚轮切图）。支持保存/快速保存/全部保存/停止，自动创建子文件夹。链接信息显示/隐藏持久化。默认提取 JPEG/PNG/WebP/AVIF 格式。支持后缀名预设快速选择。
+// @version      1.7.0
+// @description  提取页面图片并清洗到高清，支持多品牌 URL 规则、幻灯片浏览、独立查看器、保存/快速保存/全部保存，并支持域名黑名单。
 // @author       tlgj
 // @license      MIT
 // @match        *://*/*
@@ -15,8 +15,8 @@
 // @grant        GM_xmlhttpRequest
 // @grant        GM_download
 // @connect      *
-// @downloadURL  https://github.com/tlgj/Browser-Scripts/raw/refs/heads/main/sneaker-image-helper.user.js
-// @updateURL    https://github.com/tlgj/Browser-Scripts/raw/refs/heads/main/sneaker-image-helper.user.js
+// @downloadURL  https://github.com/tlgj/Browser-Scripts/raw/refs/heads/main/image-helper.user.js
+// @updateURL    https://github.com/tlgj/Browser-Scripts/raw/refs/heads/main/image-helper.user.js
 // ==/UserScript==
 
 (function () {
@@ -167,18 +167,62 @@
     GM_setValue(STORE_KEYS.BLACKLIST, SETTINGS.blacklist);
   }
 
-  function isBlacklisted() {
+  function normalizeBlacklistEntry(input) {
+    const value = String(input || "")
+      .trim()
+      .toLowerCase()
+      .replace(/^https?:\/\//, "")
+      .replace(/^\.+/, "")
+      .replace(/\/+.*$/, "")
+      .replace(/:\d+$/, "");
+    if (!value) return "";
+    if (value === "*") return "";
+    if (value.startsWith("*.")) {
+      const domain = value.slice(2).replace(/^\.+/, "");
+      return domain ? `*.${domain}` : "";
+    }
+    return value;
+  }
+
+  function getCurrentHostVariants() {
+    const hostname = String(location.hostname || "")
+      .trim()
+      .toLowerCase();
+    if (!hostname) return [];
+    const variants = new Set([hostname]);
+    if (hostname.startsWith("www.")) {
+      variants.add(hostname.slice(4));
+    } else {
+      variants.add(`www.${hostname}`);
+    }
+    return Array.from(variants).filter(Boolean);
+  }
+
+  function isBlacklisted(hostname = location.hostname) {
     if (!SETTINGS.blacklist || !SETTINGS.blacklist.length) return false;
-    const hostname = location.hostname.toLowerCase();
+    const host = String(hostname || "")
+      .trim()
+      .toLowerCase();
+    if (!host) return false;
     return SETTINGS.blacklist.some((site) => {
-      const pattern = site.trim().toLowerCase();
+      const pattern = normalizeBlacklistEntry(site);
       if (!pattern) return false;
       if (pattern.startsWith("*.")) {
         const domain = pattern.slice(2);
-        return hostname === domain || hostname.endsWith("." + domain);
+        return host === domain || host.endsWith("." + domain);
       }
-      return hostname === pattern;
+      return host === pattern;
     });
+  }
+
+  function refreshButtonVisibilityByBlacklist() {
+    const existedBtn = document.getElementById(BTN_ID);
+    if (isBlacklisted()) {
+      if (overlay) closeSlideshow();
+      if (existedBtn) existedBtn.remove();
+      return;
+    }
+    injectButton();
   }
 
   // =========================================================
@@ -2851,27 +2895,45 @@
       GM_setValue(STORE_KEYS.BTN_POS, SETTINGS.btnPos);
     };
 
-    bindEvent(btn, "pointerup", endDrag);
-    bindEvent(btn, "pointercancel", endDrag);
-
     bindClick(btn, () => {
       if (moved) return;
-      toggleSlideshow();
+      openSettingsPanel();
     });
 
-    document.body.appendChild(btn);
     applyBtnPosition(btn);
-    updateFloatingButtonText();
+    document.body.appendChild(btn);
   }
 
-  // =========================================================
-  // 简化设置面板
-  // =========================================================
   const PANEL_ID = "tm-slide-settings-simple";
+
+  function getBlacklistEntriesForHost(hostname) {
+    const variants = [];
+    const normalizedHost = normalizeBlacklistEntry(hostname);
+    if (!normalizedHost) return variants;
+
+    const baseHost = normalizedHost.replace(/^www\./, "");
+    const wildcardHost = `*.${baseHost}`;
+
+    return SETTINGS.blacklist.filter((entry) => {
+      const normalized = normalizeBlacklistEntry(entry);
+      if (!normalized) return false;
+      return (
+        normalized === normalizedHost ||
+        normalized === baseHost ||
+        normalized === wildcardHost
+      );
+    });
+  }
 
   function openSettingsPanel() {
     injectStyles();
     if (document.getElementById(PANEL_ID)) return;
+
+    const currentHost = location.hostname || "当前站点";
+    const hostVariants = getCurrentHostVariants();
+    const currentHostBlacklisted = hostVariants.some((host) =>
+      isBlacklisted(host)
+    );
 
     const p = document.createElement("div");
     p.id = PANEL_ID;
@@ -2963,6 +3025,26 @@
                 </div>
             </div>
 
+            <div style="margin-top:10px;">
+                <div class="tm-label">当前站点黑名单</div>
+                <div style="display:flex;gap:8px;align-items:center;">
+                    <input id="tm-blacklist-current-host" type="text" value="${currentHost}"
+                        readonly style="flex:1;opacity:0.78;cursor:not-allowed;" />
+                    <button id="tm-toggle-current-host-blacklist" class="tm-btn ${
+                      currentHostBlacklisted
+                        ? "tm-btn-danger"
+                        : "tm-btn-primary"
+                    }" style="white-space:nowrap;">
+                      ${currentHostBlacklisted ? "移出黑名单" : "加入黑名单"}
+                    </button>
+                </div>
+                <div style="margin-top:6px;font-size:12px;line-height:1.4;color:rgba(255,255,255,0.74);">
+                    当前支持自动识别 ${hostVariants.join(
+                      " / "
+                    )}，可一键将当前域名加入或移出黑名单。
+                </div>
+            </div>
+
             <div style="margin-top:12px;display:flex;gap:10px;">
                 <button id="tm-s-save" class="tm-btn tm-btn-primary" style="flex:1;">保存</button>
                 <button id="tm-s-resetpos" class="tm-btn" style="flex:1;">重置按钮位置</button>
@@ -2985,6 +3067,45 @@
         if (input) input.value = value;
       };
     });
+
+    const toggleCurrentHostBtn = p.querySelector(
+      "#tm-toggle-current-host-blacklist"
+    );
+    if (toggleCurrentHostBtn) {
+      toggleCurrentHostBtn.onclick = () => {
+        if (currentHostBlacklisted) {
+          const blacklistEntries = new Set();
+          hostVariants.forEach((host) => {
+            getBlacklistEntriesForHost(host).forEach((entry) =>
+              blacklistEntries.add(entry)
+            );
+          });
+          SETTINGS.blacklist = SETTINGS.blacklist.filter(
+            (entry) => !blacklistEntries.has(entry)
+          );
+        } else {
+          const normalizedHost = normalizeBlacklistEntry(currentHost);
+          if (
+            normalizedHost &&
+            !SETTINGS.blacklist.some(
+              (entry) => normalizeBlacklistEntry(entry) === normalizedHost
+            )
+          ) {
+            SETTINGS.blacklist.push(normalizedHost);
+          }
+        }
+
+        SETTINGS.blacklist = SETTINGS.blacklist
+          .map((entry) => normalizeBlacklistEntry(entry))
+          .filter(Boolean)
+          .filter((entry, index, arr) => arr.indexOf(entry) === index);
+
+        saveBlacklist();
+        refreshButtonVisibilityByBlacklist();
+        p.remove();
+        openSettingsPanel();
+      };
+    }
 
     p.querySelector("#tm-s-save").onclick = () => {
       SETTINGS.saveRootFolder = String(
@@ -3020,7 +3141,6 @@
       GM_setValue(STORE_KEYS.SAVE_ROOT_FOLDER, SETTINGS.saveRootFolder);
       saveFilter();
       if (overlay) {
-        // 不需要重扫列表，直接刷新当前显示即可
         show(current);
       }
       p.remove();
