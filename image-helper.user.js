@@ -3,7 +3,7 @@
 // @name:zh-CN   图片助手
 // @name:en      Image Helper
 // @namespace    https://github.com/tlgj/Browser-Scripts
-// @version      1.9.0
+// @version      1.9.0.1
 // @description  提取页面图片并清洗到高清，支持多品牌 URL 规则、幻灯片浏览、独立查看器、保存/快速保存/全部保存，并支持脚本黑名单。
 // @author       tlgj
 // @license      MIT
@@ -2882,6 +2882,23 @@
       let newTop = clamp(startTop + dy, 6, vh - r.h - 6);
 
       setBtnPos(btn, newLeft, newTop);
+    });
+
+    const endDrag = (e) => {
+      if (!dragging) return;
+      dragging = false;
+      btn.releasePointerCapture?.(e.pointerId);
+
+      if (!moved) return;
+      const r = getRectLT();
+      SETTINGS.btnPos = { left: r.left, top: r.top };
+      GM_setValue(STORE_KEYS.BTN_POS, SETTINGS.btnPos);
+    };
+
+    bindEvent(btn, "pointerup", endDrag);
+    bindEvent(btn, "pointercancel", endDrag);
+    bindEvent(btn, "lostpointercapture", () => {
+      dragging = false;
     });
 
     bindClick(btn, () => {
