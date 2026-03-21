@@ -3,7 +3,7 @@
 // @name:zh-CN   图片助手
 // @name:en      Image Helper
 // @namespace    https://github.com/tlgj/Browser-Scripts
-// @version      1.8.3
+// @version      1.8.4
 // @description  提取页面图片并清洗到高清，支持多品牌 URL 规则、幻灯片浏览、独立查看器、保存/快速保存/全部保存，并支持脚本黑名单与幻灯片图片过滤。
 // @author       tlgj
 // @license      MIT
@@ -236,12 +236,27 @@
 
   function refreshButtonVisibilityByBlacklist() {
     const existedBtn = document.getElementById(BTN_ID);
+    const settingsPanel = document.getElementById(PANEL_ID);
+    const blacklistPanel = document.getElementById(BLACKLIST_PANEL_ID);
     if (isBlacklisted()) {
       if (overlay) closeSlideshow();
+      if (settingsPanel) settingsPanel.remove();
+      if (blacklistPanel) blacklistPanel.remove();
       if (existedBtn) existedBtn.remove();
-      return;
+      return false;
     }
     injectButton();
+    return true;
+  }
+
+  function canRunSlideshowScan(options = {}) {
+    const { silent = false } = options;
+    if (!isBlacklisted()) return true;
+    refreshButtonVisibilityByBlacklist();
+    if (!silent) {
+      alert("当前站点已在脚本黑名单中，已禁止打开幻灯片和扫描页面图片。");
+    }
+    return false;
   }
 
   // =========================================================
@@ -2100,6 +2115,7 @@
   }
 
   async function rebuildAndOpen() {
+    if (!canRunSlideshowScan({ silent: true })) return;
     // 每次重新扫描前清空探测缓存，避免缓存无限增长
     contentLengthProbeCache.clear();
 
@@ -2722,6 +2738,7 @@
 
   function openSlideshow() {
     if (overlay) return;
+    if (!canRunSlideshowScan()) return;
     buildOverlay();
     rebuildAndOpen();
     updateFloatingButtonText();
@@ -3240,15 +3257,22 @@
       return;
     }
 
+    const viewportMargin = 18;
+    const anchorBottom = 210;
+    const maxPanelHeight = Math.max(
+      320,
+      window.innerHeight - anchorBottom - viewportMargin
+    );
+
     const p = document.createElement("div");
     p.id = BLACKLIST_PANEL_ID;
     p.style.cssText = `
             position: fixed;
-            right: 18px;
-            bottom: 210px;
-            width: 420px;
-            max-width: calc(100vw - 36px);
-            max-height: 80vh;
+            right: ${viewportMargin}px;
+            bottom: ${anchorBottom}px;
+            width: min(520px, calc(100vw - ${viewportMargin * 2}px));
+            max-width: calc(100vw - ${viewportMargin * 2}px);
+            max-height: min(78vh, ${maxPanelHeight}px);
             z-index: 2147483645;
             background: rgba(18,18,20,0.78);
             color: rgba(255,255,255,0.92);
@@ -3261,6 +3285,7 @@
             -webkit-backdrop-filter: blur(10px);
             display: flex;
             flex-direction: column;
+            overflow: hidden;
         `;
 
     p.innerHTML = `
@@ -3270,45 +3295,47 @@
                 <button id="tm-bl-close" class="tm-btn tm-btn-ghost" style="padding:8px 10px;">关闭</button>
             </div>
 
-            <div style="margin-bottom:12px;font-size:14px;color:rgba(255,255,255,0.74);line-height:1.5;">
+            <div style="margin-bottom:12px;font-size:14px;color:rgba(255,255,255,0.74);line-height:1.5;flex:0 0 auto;">
                 脚本域名黑名单：在这些网站上脚本按钮不会显示，仅按精确域名匹配。<br>
                 幻灯片图片域名过滤：在命中站点打开幻灯片时，会隐藏这些域名下的图片，但仍允许打开幻灯片。<br>
                 脚本域名黑名单不支持 *.example.com；幻灯片图片域名过滤支持 *.example.com 格式。
             </div>
 
-            <div style="padding:10px 0 6px;font-weight:800;">脚本域名黑名单</div>
-            <div style="display:flex;gap:8px;margin-bottom:12px;">
-                <input id="tm-bl-input" type="text" placeholder="输入域名（如 example.com）"
-                    style="flex:1;font-family:var(--tm-font);font-size:15px;padding:10px 12px;
-                    border-radius:12px;border:1px solid var(--tm-border);
-                    background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.94);outline:none;">
-                <button id="tm-bl-add" class="tm-btn tm-btn-primary" style="padding:10px 16px;">添加</button>
-            </div>
-            <div id="tm-bl-list" style="max-height:180px;overflow-y:auto;padding:8px 0;border-top:1px solid var(--tm-border);"></div>
-            <div style="margin-top:8px;display:flex;gap:8px;justify-content:space-between;align-items:center;">
-                <div style="color:rgba(255,255,255,0.74);font-size:13px;padding:8px 0;">
-                    共 <span id="tm-bl-count">0</span> 个网站
+            <div style="flex:1;min-height:0;overflow:auto;padding-right:4px;">
+                <div style="padding:10px 0 6px;font-weight:800;">脚本域名黑名单</div>
+                <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center;">
+                    <input id="tm-bl-input" type="text" placeholder="输入域名（如 example.com）"
+                        style="flex:1;min-width:0;font-family:var(--tm-font);font-size:15px;padding:10px 12px;
+                        border-radius:12px;border:1px solid var(--tm-border);
+                        background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.94);outline:none;">
+                    <button id="tm-bl-add" class="tm-btn tm-btn-primary" style="padding:10px 16px;flex:0 0 auto;white-space:nowrap;">添加</button>
                 </div>
-                <button id="tm-bl-clear" class="tm-btn tm-btn-danger" style="padding:8px 12px;">清空脚本黑名单</button>
+                <div id="tm-bl-list" style="max-height:180px;overflow-y:auto;padding:8px 0;border-top:1px solid var(--tm-border);"></div>
+                <div style="margin-top:8px;display:flex;gap:8px;justify-content:space-between;align-items:center;flex-wrap:wrap;">
+                    <div style="color:rgba(255,255,255,0.74);font-size:13px;padding:8px 0;">
+                        共 <span id="tm-bl-count">0</span> 个网站
+                    </div>
+                    <button id="tm-bl-clear" class="tm-btn tm-btn-danger" style="padding:8px 12px;flex:0 0 auto;">清空脚本黑名单</button>
+                </div>
+
+                <div style="margin-top:16px;padding:10px 0 6px;font-weight:800;">幻灯片图片域名过滤</div>
+                <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center;">
+                    <input id="tm-sbl-input" type="text" placeholder="输入域名（如 example.com）"
+                        style="flex:1;min-width:0;font-family:var(--tm-font);font-size:15px;padding:10px 12px;
+                        border-radius:12px;border:1px solid var(--tm-border);
+                        background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.94);outline:none;">
+                    <button id="tm-sbl-add" class="tm-btn tm-btn-primary" style="padding:10px 16px;flex:0 0 auto;white-space:nowrap;">添加</button>
+                </div>
+                <div id="tm-sbl-list" style="max-height:180px;overflow-y:auto;padding:8px 0;border-top:1px solid var(--tm-border);"></div>
+                <div style="margin-top:8px;display:flex;gap:8px;justify-content:space-between;align-items:center;flex-wrap:wrap;">
+                    <div style="color:rgba(255,255,255,0.74);font-size:13px;padding:8px 0;">
+                        共 <span id="tm-sbl-count">0</span> 个网站
+                    </div>
+                    <button id="tm-sbl-clear" class="tm-btn tm-btn-danger" style="padding:8px 12px;flex:0 0 auto;">清空幻灯片过滤</button>
+                </div>
             </div>
 
-            <div style="margin-top:16px;padding:10px 0 6px;font-weight:800;">幻灯片图片域名过滤</div>
-            <div style="display:flex;gap:8px;margin-bottom:12px;">
-                <input id="tm-sbl-input" type="text" placeholder="输入域名（如 example.com）"
-                    style="flex:1;font-family:var(--tm-font);font-size:15px;padding:10px 12px;
-                    border-radius:12px;border:1px solid var(--tm-border);
-                    background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.94);outline:none;">
-                <button id="tm-sbl-add" class="tm-btn tm-btn-primary" style="padding:10px 16px;">添加</button>
-            </div>
-            <div id="tm-sbl-list" style="max-height:180px;overflow-y:auto;padding:8px 0;border-top:1px solid var(--tm-border);"></div>
-            <div style="margin-top:8px;display:flex;gap:8px;justify-content:space-between;align-items:center;">
-                <div style="color:rgba(255,255,255,0.74);font-size:13px;padding:8px 0;">
-                    共 <span id="tm-sbl-count">0</span> 个网站
-                </div>
-                <button id="tm-sbl-clear" class="tm-btn tm-btn-danger" style="padding:8px 12px;">清空幻灯片过滤</button>
-            </div>
-
-            <div style="margin-top:14px;display:flex;gap:8px;justify-content:flex-end;">
+            <div style="margin-top:14px;display:flex;gap:8px;justify-content:flex-end;flex:0 0 auto;flex-wrap:wrap;">
                 <button id="tm-bl-export" class="tm-btn" style="padding:8px 12px;">导出配置</button>
                 <button id="tm-bl-import" class="tm-btn tm-btn-primary" style="padding:8px 12px;">导入配置</button>
             </div>
