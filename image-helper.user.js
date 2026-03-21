@@ -3,8 +3,8 @@
 // @name:zh-CN   图片助手
 // @name:en      Image Helper
 // @namespace    https://github.com/tlgj/Browser-Scripts
-// @version      1.8.1
-// @description  提取页面图片并清洗到高清，支持多品牌 URL 规则、幻灯片浏览、独立查看器、保存/快速保存/全部保存，并支持脚本黑名单与幻灯片域名过滤。
+// @version      1.8.2
+// @description  提取页面图片并清洗到高清，支持多品牌 URL 规则、幻灯片浏览、独立查看器、保存/快速保存/全部保存，并支持脚本黑名单与幻灯片图片过滤。
 // @author       tlgj
 // @license      MIT
 // @match        *://*/*
@@ -2132,11 +2132,33 @@
     }
 
     const filtered = await applySizeFilter(tmp, (s) => setStatus(s));
-    list = filtered;
+    const slideshowFiltered = isSlideshowBlacklisted();
+    const hiddenCount = slideshowFiltered
+      ? filtered.filter((item) =>
+          isHostMatchedInList(
+            urlHost(item.cleanUrl),
+            SETTINGS.slideshowBlacklist
+          )
+        ).length
+      : 0;
+
+    list = slideshowFiltered
+      ? filtered.filter(
+          (item) =>
+            !isHostMatchedInList(
+              urlHost(item.cleanUrl),
+              SETTINGS.slideshowBlacklist
+            )
+        )
+      : filtered;
     current = 0;
 
     if (!list.length) {
-      setStatus("未提取到图片（可能被过滤条件筛掉）");
+      setStatus(
+        slideshowFiltered
+          ? `当前站点启用了幻灯片图片过滤，已隐藏 ${hiddenCount} 张图片`
+          : "未提取到图片（可能被过滤条件筛掉）"
+      );
       const els = cachedEls || {};
       if (els.hostType) els.hostType.textContent = "";
       if (els.filename) els.filename.textContent = "";
@@ -2149,7 +2171,9 @@
       return;
     }
 
-    setStatus("");
+    setStatus(
+      hiddenCount > 0 ? `已隐藏 ${hiddenCount} 张命中过滤域名的图片` : ""
+    );
     renderThumbnails();
     show(0);
   }
@@ -2698,10 +2722,6 @@
 
   function openSlideshow() {
     if (overlay) return;
-    if (isSlideshowBlacklisted()) {
-      alert("当前站点已被加入幻灯片页面域名过滤列表，不能打开幻灯片。");
-      return;
-    }
     buildOverlay();
     rebuildAndOpen();
     updateFloatingButtonText();
@@ -3089,7 +3109,7 @@
                     </button>
                 </div>
                 <div style="margin-top:6px;font-size:12px;line-height:1.4;color:rgba(255,255,255,0.74);">
-                    当前站点命中后仍显示脚本按钮，但会禁止打开幻灯片。支持自动识别 ${hostVariants.join(
+                    当前站点命中后仍显示脚本按钮并允许打开幻灯片，但会在幻灯片中隐藏命中过滤域名的图片。支持自动识别 ${hostVariants.join(
                       " / "
                     )}。
                 </div>
@@ -3200,8 +3220,8 @@
           .filter((entry, index, arr) => arr.indexOf(entry) === index);
 
         saveSlideshowBlacklist();
-        if (overlay && isSlideshowBlacklisted()) {
-          closeSlideshow();
+        if (overlay) {
+          rebuildAndOpen();
         }
         p.remove();
         openSettingsPanel();
@@ -3293,7 +3313,7 @@
 
             <div style="margin-bottom:12px;font-size:14px;color:rgba(255,255,255,0.74);line-height:1.5;">
                 脚本域名黑名单：在这些网站上脚本按钮不会显示。<br>
-                幻灯片页面域名过滤：在这些网站上仍可保留脚本按钮，但禁止打开幻灯片页面。<br>
+                幻灯片图片域名过滤：在命中站点打开幻灯片时，会隐藏这些域名下的图片，但不会阻止打开幻灯片。<br>
                 两者都支持 *.example.com 格式。
             </div>
 
@@ -3313,7 +3333,7 @@
                 <button id="tm-bl-clear" class="tm-btn tm-btn-danger" style="padding:8px 12px;">清空脚本黑名单</button>
             </div>
 
-            <div style="margin-top:16px;padding:10px 0 6px;font-weight:800;">幻灯片页面域名过滤</div>
+            <div style="margin-top:16px;padding:10px 0 6px;font-weight:800;">幻灯片图片域名过滤</div>
             <div style="display:flex;gap:8px;margin-bottom:12px;">
                 <input id="tm-sbl-input" type="text" placeholder="输入域名（如 example.com）"
                     style="flex:1;font-family:var(--tm-font);font-size:15px;padding:10px 12px;
@@ -3363,8 +3383,8 @@
     }
 
     function syncUiAfterSlideshowBlacklistChange() {
-      if (overlay && isSlideshowBlacklisted()) {
-        closeSlideshow();
+      if (overlay) {
+        rebuildAndOpen();
       }
     }
 
@@ -3409,7 +3429,7 @@
       renderSimpleList(
         slideshowListEl,
         SETTINGS.slideshowBlacklist,
-        "暂无幻灯片页面域名过滤网站（所有网站都允许打开幻灯片）",
+        "暂无幻灯片图片域名过滤网站（所有网站都允许显示全部幻灯片图片）",
         "tm-sbl-delete"
       );
 
