@@ -3,7 +3,7 @@
 // @name:zh-CN   图片助手
 // @name:en      Image Helper
 // @namespace    https://github.com/tlgj/Browser-Scripts
-// @version      1.8.2
+// @version      1.8.3
 // @description  提取页面图片并清洗到高清，支持多品牌 URL 规则、幻灯片浏览、独立查看器、保存/快速保存/全部保存，并支持脚本黑名单与幻灯片图片过滤。
 // @author       tlgj
 // @license      MIT
@@ -32,15 +32,6 @@
   // 说明：GM_download 的 name 支持 "folder/file.ext" 时才会创建文件夹；
   // 若环境不支持，本脚本会自动降级为"平铺文件名"继续下载。
   // =========================================================
-
-  function sanitizePathPart(input, maxLen = 60) {
-    const s = String(input || "")
-      .trim()
-      .replace(/[\\/:*?"<>|]+/g, "_")
-      .replace(/\s+/g, " ")
-      .replace(/[\u0000-\u001f]+/g, "_");
-    return (s || "untitled").slice(0, maxLen);
-  }
 
   // 专门用于清理文件名的函数
   // 处理更多可能导致保存失败的特殊字符
@@ -226,8 +217,17 @@
     });
   }
 
+  function isHostExactMatchedInList(hostname, list) {
+    if (!list || !list.length) return false;
+    const host = String(hostname || "")
+      .trim()
+      .toLowerCase();
+    if (!host) return false;
+    return list.some((site) => normalizeBlacklistEntry(site) === host);
+  }
+
   function isBlacklisted(hostname = location.hostname) {
-    return isHostMatchedInList(hostname, SETTINGS.blacklist);
+    return isHostExactMatchedInList(hostname, SETTINGS.blacklist);
   }
 
   function isSlideshowBlacklisted(hostname = location.hostname) {
@@ -766,7 +766,7 @@
 
     NEWBALANCE_CN_CLEAN: {
       apply: (url) =>
-        url.replace(/([?&])image_process=[^&]*(&?)/, (match, p1, p2) => {
+        url.replace(/([?&])image_process=[^&]*(&?)/, (_match, p1, p2) => {
           if (p1 === "?") return p2 === "&" ? "?" : "";
           return p2;
         }),
@@ -2806,11 +2806,6 @@
     return `${y}${m}${d}`;
   }
 
-  function setVisibility(el, visible) {
-    el.style.visibility = visible ? "visible" : "hidden";
-    el.style.pointerEvents = visible ? "auto" : "none";
-  }
-
   function setBtnPos(btn, left, top) {
     btn.style.left = `${left}px`;
     btn.style.top = `${top}px`;
@@ -2929,15 +2924,6 @@
       setBtnPos(btn, newLeft, newTop);
     });
 
-    const endDrag = (e) => {
-      if (!dragging) return;
-      dragging = false;
-
-      const r = btn.getBoundingClientRect();
-      SETTINGS.btnPos = { left: Math.round(r.left), top: Math.round(r.top) };
-      GM_setValue(STORE_KEYS.BTN_POS, SETTINGS.btnPos);
-    };
-
     bindClick(btn, () => {
       if (moved) return;
       toggleSlideshow();
@@ -2949,34 +2935,14 @@
 
   const PANEL_ID = "tm-slide-settings-simple";
 
-  function getBlacklistEntriesForHost(hostname) {
-    const variants = [];
-    const normalizedHost = normalizeBlacklistEntry(hostname);
-    if (!normalizedHost) return variants;
-
-    const baseHost = normalizedHost.replace(/^www\./, "");
-    const wildcardHost = `*.${baseHost}`;
-
-    return SETTINGS.blacklist.filter((entry) => {
-      const normalized = normalizeBlacklistEntry(entry);
-      if (!normalized) return false;
-      return (
-        normalized === normalizedHost ||
-        normalized === baseHost ||
-        normalized === wildcardHost
-      );
-    });
-  }
-
   function openSettingsPanel() {
     injectStyles();
     if (document.getElementById(PANEL_ID)) return;
 
     const currentHost = location.hostname || "当前站点";
     const hostVariants = getCurrentHostVariants();
-    const currentHostBlacklisted = hostVariants.some((host) =>
-      isBlacklisted(host)
-    );
+    const normalizedCurrentHost = normalizeBlacklistEntry(currentHost);
+    const currentHostBlacklisted = isBlacklisted(currentHost);
     const currentHostSlideshowBlacklisted = hostVariants.some((host) =>
       isSlideshowBlacklisted(host)
     );
@@ -3092,7 +3058,7 @@
             </div>
 
             <div style="margin-top:10px;">
-                <div class="tm-label">当前站点幻灯片过滤</div>
+                <div class="tm-label">当前站点幻灯片图片过滤</div>
                 <div style="display:flex;gap:8px;align-items:center;">
                     <input id="tm-slideshow-blacklist-current-host" type="text" value="${currentHost}"
                         readonly style="flex:1;opacity:0.78;cursor:not-allowed;" />
@@ -3103,8 +3069,8 @@
                     }" style="white-space:nowrap;">
                       ${
                         currentHostSlideshowBlacklisted
-                          ? "移出过滤"
-                          : "加入过滤"
+                          ? "移出图片过滤"
+                          : "加入图片过滤"
                       }
                     </button>
                 </div>
@@ -3144,30 +3110,21 @@
     if (toggleCurrentHostBtn) {
       toggleCurrentHostBtn.onclick = () => {
         if (currentHostBlacklisted) {
-          const blacklistEntries = new Set();
-          hostVariants.forEach((host) => {
-            getBlacklistEntriesForHost(host).forEach((entry) =>
-              blacklistEntries.add(entry)
-            );
-          });
           SETTINGS.blacklist = SETTINGS.blacklist.filter(
-            (entry) => !blacklistEntries.has(entry)
+            (entry) => normalizeBlacklistEntry(entry) !== normalizedCurrentHost
           );
-        } else {
-          const normalizedHost = normalizeBlacklistEntry(currentHost);
-          if (
-            normalizedHost &&
-            !SETTINGS.blacklist.some(
-              (entry) => normalizeBlacklistEntry(entry) === normalizedHost
-            )
-          ) {
-            SETTINGS.blacklist.push(normalizedHost);
-          }
+        } else if (
+          normalizedCurrentHost &&
+          !SETTINGS.blacklist.some(
+            (entry) => normalizeBlacklistEntry(entry) === normalizedCurrentHost
+          )
+        ) {
+          SETTINGS.blacklist.push(normalizedCurrentHost);
         }
 
         SETTINGS.blacklist = SETTINGS.blacklist
           .map((entry) => normalizeBlacklistEntry(entry))
-          .filter(Boolean)
+          .filter((entry) => entry && !entry.startsWith("*."))
           .filter((entry, index, arr) => arr.indexOf(entry) === index);
 
         saveBlacklist();
@@ -3273,6 +3230,8 @@
   // =========================================================
   // 黑名单设置面板
   // =========================================================
+  const BLACKLIST_PANEL_ID = "tm-blacklist-panel";
+
   function openBlacklistPanel() {
     injectStyles();
     const existingPanel = document.getElementById(BLACKLIST_PANEL_ID);
@@ -3312,9 +3271,9 @@
             </div>
 
             <div style="margin-bottom:12px;font-size:14px;color:rgba(255,255,255,0.74);line-height:1.5;">
-                脚本域名黑名单：在这些网站上脚本按钮不会显示。<br>
-                幻灯片图片域名过滤：在命中站点打开幻灯片时，会隐藏这些域名下的图片，但不会阻止打开幻灯片。<br>
-                两者都支持 *.example.com 格式。
+                脚本域名黑名单：在这些网站上脚本按钮不会显示，仅按精确域名匹配。<br>
+                幻灯片图片域名过滤：在命中站点打开幻灯片时，会隐藏这些域名下的图片，但仍允许打开幻灯片。<br>
+                脚本域名黑名单不支持 *.example.com；幻灯片图片域名过滤支持 *.example.com 格式。
             </div>
 
             <div style="padding:10px 0 6px;font-weight:800;">脚本域名黑名单</div>
@@ -3476,7 +3435,7 @@
       const input = normalizeBlacklistEntry(slideshowInputEl.value);
       if (!input) return;
       if (SETTINGS.slideshowBlacklist.includes(input)) {
-        alert("该网站已存在于幻灯片页面域名过滤中");
+        alert("该网站已存在于幻灯片图片域名过滤中");
         return;
       }
       SETTINGS.slideshowBlacklist.push(input);
@@ -3514,7 +3473,9 @@
     p.querySelector("#tm-sbl-clear").onclick = () => {
       if (SETTINGS.slideshowBlacklist.length === 0) return;
       if (
-        confirm("确认清空幻灯片页面域名过滤吗？之后所有网站都允许打开幻灯片。")
+        confirm(
+          "确认清空幻灯片图片域名过滤吗？之后所有网站打开幻灯片时都将显示全部图片。"
+        )
       ) {
         SETTINGS.slideshowBlacklist = [];
         saveSlideshowBlacklist();
@@ -3573,7 +3534,7 @@
           }
 
           const merge = confirm(
-            `检测到脚本黑名单 ${importedBlacklist.length} 项，幻灯片页面域名过滤 ${importedSlideshowBlacklist.length} 项。\n\n点击"确定"将合并到现有配置，点击"取消"将替换现有配置。`
+            `检测到脚本黑名单 ${importedBlacklist.length} 项，幻灯片图片域名过滤 ${importedSlideshowBlacklist.length} 项。\n\n点击"确定"将合并到现有配置，点击"取消"将替换现有配置。`
           );
 
           if (merge) {
@@ -3596,7 +3557,7 @@
           syncUiAfterBlacklistChange();
           syncUiAfterSlideshowBlacklistChange();
           alert(
-            `导入成功！当前脚本黑名单共 ${SETTINGS.blacklist.length} 个网站，幻灯片页面域名过滤共 ${SETTINGS.slideshowBlacklist.length} 个网站。`
+            `导入成功！当前脚本黑名单共 ${SETTINGS.blacklist.length} 个网站，幻灯片图片域名过滤共 ${SETTINGS.slideshowBlacklist.length} 个网站。`
           );
         } catch (err) {
           console.error("导入域名过滤配置失败：", err);
