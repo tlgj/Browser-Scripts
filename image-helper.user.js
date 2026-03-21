@@ -3,7 +3,7 @@
 // @name:zh-CN   图片助手
 // @name:en      Image Helper
 // @namespace    https://github.com/tlgj/Browser-Scripts
-// @version      1.9.0.1
+// @version      1.9.1
 // @description  提取页面图片并清洗到高清，支持多品牌 URL 规则、幻灯片浏览、独立查看器、保存/快速保存/全部保存，并支持脚本黑名单。
 // @author       tlgj
 // @license      MIT
@@ -70,6 +70,7 @@
   const STORE_KEYS = {
     ENABLE_BUTTON: "sih_enable_button",
     BTN_POS: "sih_btn_pos",
+    BTN_POS_LOCKED: "sih_btn_pos_locked",
     FILTER: "sih_filter",
     BLACKLIST: "sih_blacklist",
     SAVE_ROOT_FOLDER: "sih_save_root_folder",
@@ -80,6 +81,7 @@
   const DEFAULTS = {
     enableButton: true,
     btnPos: null,
+    btnPosLocked: false,
     filter: {
       minSidePx: 100,
       minSizeKB: 0,
@@ -102,6 +104,7 @@
   const SETTINGS = {
     enableButton: GM_getValue(STORE_KEYS.ENABLE_BUTTON, DEFAULTS.enableButton),
     btnPos: GM_getValue(STORE_KEYS.BTN_POS, DEFAULTS.btnPos),
+    btnPosLocked: GM_getValue(STORE_KEYS.BTN_POS_LOCKED, DEFAULTS.btnPosLocked),
     slideLoadMode: GM_getValue(
       STORE_KEYS.SLIDE_LOAD_MODE,
       DEFAULTS.slideLoadMode
@@ -2789,7 +2792,11 @@
       const vh = window.innerHeight;
       const left = clamp(r.left, 6, vw - r.width - 6);
       const top = clamp(r.top, 6, vh - r.height - 6);
-      if (left !== r.left || top !== r.top) setBtnPos(btn, left, top);
+      if (left !== r.left || top !== r.top) {
+        setBtnPos(btn, left, top);
+        SETTINGS.btnPos = { left, top };
+        GM_setValue(STORE_KEYS.BTN_POS, SETTINGS.btnPos);
+      }
     } else {
       btn.style.left = "auto";
       btn.style.top = "auto";
@@ -2818,29 +2825,96 @@
     if (existed || !document.body) return;
 
     const btn = document.createElement("button");
+    const setBtnInteractiveStyle = (state) => {
+      const isLocked = SETTINGS.btnPosLocked;
+      const nextState = isLocked ? state === "active" : state;
+      const styleMap = {
+        idle: isLocked
+          ? {
+              background: "rgba(28,52,86,0.82)",
+              borderColor: "rgba(120,190,255,0.34)",
+              boxShadow:
+                "0 0 0 1px rgba(120,190,255,0.14), 0 10px 26px rgba(8,20,40,0.26)",
+              transform: "translateY(0)",
+            }
+          : {
+              background: "rgba(18,18,20,0.72)",
+              borderColor: "rgba(255,255,255,0.14)",
+              boxShadow: "none",
+              transform: "translateY(0)",
+            },
+        hover: isLocked
+          ? {
+              background: "rgba(34,62,102,0.86)",
+              borderColor: "rgba(144,205,255,0.46)",
+              boxShadow:
+                "0 0 0 1px rgba(120,190,255,0.18), 0 12px 28px rgba(10,24,48,0.30)",
+              transform: "translateY(-1px)",
+            }
+          : {
+              background: "rgba(28,28,32,0.82)",
+              borderColor: "rgba(255,255,255,0.22)",
+              boxShadow: "0 10px 24px rgba(0,0,0,0.22)",
+              transform: "translateY(-1px)",
+            },
+        active: {
+          background: isLocked ? "rgba(32,58,96,0.88)" : "rgba(36,36,42,0.9)",
+          borderColor: isLocked
+            ? "rgba(144,205,255,0.52)"
+            : "rgba(255,255,255,0.28)",
+          boxShadow: isLocked
+            ? "0 0 0 1px rgba(120,190,255,0.22), 0 8px 20px rgba(10,24,48,0.24)"
+            : "0 6px 16px rgba(0,0,0,0.26)",
+          transform: "translateY(0)",
+        },
+      };
+      const style = styleMap[nextState] || styleMap.idle;
+      btn.style.background = style.background;
+      btn.style.borderColor = style.borderColor;
+      btn.style.boxShadow = style.boxShadow;
+      btn.style.transform = style.transform;
+    };
+
     btn.id = BTN_ID;
     btn.type = "button";
     btn.textContent = "图片";
+    btn.title = SETTINGS.btnPosLocked
+      ? "图片按钮位置已锁定：可点击打开，但不可拖动"
+      : "可拖动图片按钮位置";
+    btn.setAttribute("aria-label", btn.title);
     btn.style.cssText = `
             position: fixed;
             z-index: 2147483645;
             padding: 12px 16px;
-            border: 1px solid rgba(255,255,255,0.14);
+            border: 1px solid ${
+              SETTINGS.btnPosLocked
+                ? "rgba(120,190,255,0.34)"
+                : "rgba(255,255,255,0.14)"
+            };
             border-radius: 14px;
-            background: rgba(18,18,20,0.72);
+            background: ${
+              SETTINGS.btnPosLocked
+                ? "rgba(28,52,86,0.82)"
+                : "rgba(18,18,20,0.72)"
+            };
             color: rgba(255,255,255,0.92);
-            cursor: pointer;
-            box-shadow: none;
+            cursor: ${SETTINGS.btnPosLocked ? "default" : "pointer"};
+            box-shadow: ${
+              SETTINGS.btnPosLocked
+                ? "0 0 0 1px rgba(120,190,255,0.14), 0 10px 26px rgba(8,20,40,0.26)"
+                : "none"
+            };
             user-select: none;
             touch-action: none;
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
-            transition: transform .15s ease, box-shadow .2s ease, background .15s ease;
+            transition: transform .15s ease, box-shadow .2s ease, background .15s ease, border-color .15s ease;
             font-family: var(--tm-font);
             font-size: 16px;
             font-weight: 900;
             letter-spacing: .4px;
         `;
+    setBtnInteractiveStyle("idle");
 
     let dragging = false;
     let moved = false;
@@ -2854,8 +2928,19 @@
       return { left: r.left, top: r.top, w: r.width, h: r.height };
     };
 
+    bindEvent(btn, "pointerenter", () => {
+      if (dragging) return;
+      setBtnInteractiveStyle("hover");
+    });
+    bindEvent(btn, "pointerleave", () => {
+      if (dragging) return;
+      setBtnInteractiveStyle("idle");
+    });
+
     bindEvent(btn, "pointerdown", (e) => {
       if (e.button !== 0 && e.pointerType !== "touch") return;
+      setBtnInteractiveStyle("active");
+      if (SETTINGS.btnPosLocked) return;
       btn.setPointerCapture?.(e.pointerId);
 
       dragging = true;
@@ -2885,10 +2970,14 @@
     });
 
     const endDrag = (e) => {
-      if (!dragging) return;
-      dragging = false;
-      btn.releasePointerCapture?.(e.pointerId);
+      const hadPointerCapture = dragging;
+      if (hadPointerCapture) {
+        dragging = false;
+        btn.releasePointerCapture?.(e.pointerId);
+      }
 
+      setBtnInteractiveStyle("idle");
+      if (!hadPointerCapture) return;
       if (!moved) return;
       const r = getRectLT();
       SETTINGS.btnPos = { left: r.left, top: r.top };
@@ -2899,6 +2988,7 @@
     bindEvent(btn, "pointercancel", endDrag);
     bindEvent(btn, "lostpointercapture", () => {
       dragging = false;
+      setBtnInteractiveStyle("idle");
     });
 
     bindClick(btn, () => {
@@ -3031,11 +3121,25 @@
                 </div>
             </div>
 
+            <div style="margin-top:10px;">
+                <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;user-select:none;">
+                    <input id="tm-btn-pos-locked" type="checkbox" ${
+                      SETTINGS.btnPosLocked ? "checked" : ""
+                    } style="margin-top:3px;" />
+                    <span>
+                        <div class="tm-label" style="margin:0;">锁定图片按钮位置</div>
+                        <div style="margin-top:4px;font-size:12px;line-height:1.4;color:rgba(255,255,255,0.74);">
+                            锁定后将禁止拖动右下角“图片”按钮；按钮会显示锁定态高亮与悬浮提示。重置按钮位置会恢复到默认右下角。
+                        </div>
+
+                </label>
+            </div>
+
             <div style="margin-top:12px;display:flex;gap:10px;">
                 <button id="tm-s-save" class="tm-btn tm-btn-primary" style="flex:1;">保存</button>
                 <button id="tm-s-resetpos" class="tm-btn" style="flex:1;">重置按钮位置</button>
             </div>
-        `;
+`;
 
     p.querySelector("#tm-s-close").onclick = () => p.remove();
 
@@ -3045,6 +3149,8 @@
       const btn = document.getElementById(BTN_ID);
       if (btn) applyBtnPosition(btn);
     };
+
+    const btnPosLockedInput = p.querySelector("#tm-btn-pos-locked");
 
     p.querySelectorAll(".tm-ext-preset").forEach((btn) => {
       btn.onclick = () => {
@@ -3097,6 +3203,7 @@
         parseInt(p.querySelector("#tm-minKB").value, 10) || 0
       );
       SETTINGS.filter.exts = String(p.querySelector("#tm-exts").value || "");
+      SETTINGS.btnPosLocked = !!btnPosLockedInput?.checked;
 
       const modeEl = p.querySelector("#tm-slide-load-mode");
       const newMode = modeEl ? String(modeEl.value || "") : "";
@@ -3115,6 +3222,7 @@
         );
       }
 
+      GM_setValue(STORE_KEYS.BTN_POS_LOCKED, SETTINGS.btnPosLocked);
       GM_setValue(STORE_KEYS.SAVE_ROOT_FOLDER, SETTINGS.saveRootFolder);
       saveFilter();
       if (overlay) {
