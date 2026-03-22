@@ -3,7 +3,7 @@
 // @name:zh-CN   图片助手
 // @name:en      Image Helper
 // @namespace    https://github.com/tlgj/Browser-Scripts
-// @version      1.10.0
+// @version      1.10.2
 // @description  提取页面图片并清洗到高清，支持多品牌 URL 规则、幻灯片浏览、独立查看器、保存/快速保存/全部保存，并支持脚本黑名单。
 // @author       tlgj
 // @license      MIT
@@ -58,11 +58,13 @@
     const root = sanitizeFilename(SETTINGS.saveRootFolder || "TM_Images", 30);
     const title = sanitizeFilename(document.title || "page", 60);
     const now = new Date();
-    const localTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
-    const hh = String(localTime.getUTCHours()).padStart(2, "0");
-    const mm = String(localTime.getUTCMinutes()).padStart(2, "0");
-    const ss = String(localTime.getUTCSeconds()).padStart(2, "0");
-    const timeStr = `${hh}${mm}${ss}`;
+    const yyyy = String(now.getFullYear());
+    const mo = String(now.getMonth() + 1).padStart(2, "0");
+    const dd = String(now.getDate()).padStart(2, "0");
+    const hh = String(now.getHours()).padStart(2, "0");
+    const mm = String(now.getMinutes()).padStart(2, "0");
+    const ss = String(now.getSeconds()).padStart(2, "0");
+    const timeStr = `${yyyy}-${mo}-${dd}_${hh}${mm}${ss}`;
     return `${root}/${title}_${timeStr}`;
   }
 
