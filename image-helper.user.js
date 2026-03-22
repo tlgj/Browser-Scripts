@@ -3,7 +3,7 @@
 // @name:zh-CN   图片助手
 // @name:en      Image Helper
 // @namespace    https://github.com/tlgj/Browser-Scripts
-// @version      1.9.2
+// @version      1.9.4
 // @description  提取页面图片并清洗到高清，支持多品牌 URL 规则、幻灯片浏览、独立查看器、保存/快速保存/全部保存，并支持脚本黑名单。
 // @author       tlgj
 // @license      MIT
@@ -77,6 +77,9 @@
     SLIDE_LOAD_MODE: "sih_slide_load_mode",
     SLIDE_RAW_PREVIEW_DELAY_MS: "sih_slide_raw_preview_delay_ms",
   };
+
+  const DEFAULT_BTN_OFFSET = 18;
+  const DEFAULT_BTN_PANEL_GAP = 12;
 
   const DEFAULTS = {
     enableButton: true,
@@ -2776,6 +2779,48 @@
     btn.style.bottom = "auto";
   }
 
+  function resetBtnPositionStorage() {
+    SETTINGS.btnPos = null;
+    GM_setValue(STORE_KEYS.BTN_POS, SETTINGS.btnPos);
+  }
+
+  function clearAllButtonPositionStorage() {
+    resetBtnPositionStorage();
+    SETTINGS.btnPosLocked = DEFAULTS.btnPosLocked;
+    GM_setValue(STORE_KEYS.BTN_POS_LOCKED, SETTINGS.btnPosLocked);
+  }
+
+  function restoreButtonAfterPositionReset(btn) {
+    if (!btn) return;
+    btn.title = SETTINGS.btnPosLocked
+      ? "图片按钮位置已锁定：可点击打开，但不可拖动"
+      : "可拖动图片按钮位置";
+    btn.setAttribute("aria-label", btn.title);
+    btn.style.cursor = SETTINGS.btnPosLocked ? "default" : "pointer";
+    applyBtnPosition(btn);
+  }
+
+  function clearAndResetGlobalButtonPosition() {
+    clearAllButtonPositionStorage();
+    restoreButtonAfterPositionReset(document.getElementById(BTN_ID));
+  }
+
+  function getDefaultBtnRect() {
+    return {
+      right: DEFAULT_BTN_OFFSET,
+      bottom: DEFAULT_BTN_OFFSET,
+      left: Math.max(6, window.innerWidth - DEFAULT_BTN_OFFSET),
+      top: Math.max(6, window.innerHeight - DEFAULT_BTN_OFFSET),
+    };
+  }
+
+  function applyDefaultBtnPosition(btn) {
+    btn.style.left = "auto";
+    btn.style.top = "auto";
+    btn.style.right = `${DEFAULT_BTN_OFFSET}px`;
+    btn.style.bottom = `${DEFAULT_BTN_OFFSET}px`;
+  }
+
   // 右下角可拖动按钮
   // =========================================================
   function clamp(n, min, max) {
@@ -2798,10 +2843,7 @@
         GM_setValue(STORE_KEYS.BTN_POS, SETTINGS.btnPos);
       }
     } else {
-      btn.style.left = "auto";
-      btn.style.top = "auto";
-      btn.style.right = "18px";
-      btn.style.bottom = "18px";
+      applyDefaultBtnPosition(btn);
     }
   }
 
@@ -3013,10 +3055,11 @@
 
     const p = document.createElement("div");
     p.id = PANEL_ID;
+    const defaultBtnRect = getDefaultBtnRect();
     p.style.cssText = `
             position: fixed;
             right: 18px;
-            bottom: 210px;
+            bottom: ${defaultBtnRect.bottom + 180 + DEFAULT_BTN_PANEL_GAP}px;
             width: 340px;
             max-width: calc(100vw - 36px);
             max-height: 70vh;
@@ -3139,15 +3182,23 @@
                 <button id="tm-s-save" class="tm-btn tm-btn-primary" style="flex:1;">保存</button>
                 <button id="tm-s-resetpos" class="tm-btn" style="flex:1;">重置按钮位置</button>
             </div>
+            <div style="margin-top:10px;display:flex;gap:10px;">
+                <button id="tm-s-clear-global-btn-pos" class="tm-btn tm-btn-danger" style="flex:1;">清理并重置全局按钮位置</button>
+            </div>
 `;
 
     p.querySelector("#tm-s-close").onclick = () => p.remove();
 
     p.querySelector("#tm-s-resetpos").onclick = () => {
-      SETTINGS.btnPos = null;
-      GM_setValue(STORE_KEYS.BTN_POS, SETTINGS.btnPos);
+      resetBtnPositionStorage();
       const btn = document.getElementById(BTN_ID);
       if (btn) applyBtnPosition(btn);
+    };
+
+    p.querySelector("#tm-s-clear-global-btn-pos").onclick = () => {
+      clearAndResetGlobalButtonPosition();
+      p.remove();
+      openSettingsPanel();
     };
 
     const btnPosLockedInput = p.querySelector("#tm-btn-pos-locked");
@@ -3507,6 +3558,10 @@
       }
     );
 
+    GM_registerMenuCommand(
+      "清理并重置全局按钮位置",
+      clearAndResetGlobalButtonPosition
+    );
     GM_registerMenuCommand("设置：根目录/分辨率/大小/后缀", openSettingsPanel);
     GM_registerMenuCommand("黑名单设置", openBlacklistPanel);
   }
