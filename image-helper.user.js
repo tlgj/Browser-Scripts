@@ -3,7 +3,7 @@
 // @name:zh-CN   图片助手
 // @name:en      Image Helper
 // @namespace    https://github.com/tlgj/Browser-Scripts
-// @version      1.9.4
+// @version      1.10.0
 // @description  提取页面图片并清洗到高清，支持多品牌 URL 规则、幻灯片浏览、独立查看器、保存/快速保存/全部保存，并支持脚本黑名单。
 // @author       tlgj
 // @license      MIT
@@ -58,9 +58,11 @@
     const root = sanitizeFilename(SETTINGS.saveRootFolder || "TM_Images", 30);
     const title = sanitizeFilename(document.title || "page", 60);
     const now = new Date();
-    const timeStr = `${String(now.getHours()).padStart(2, "0")}${String(
-      now.getMinutes()
-    ).padStart(2, "0")}${String(now.getSeconds()).padStart(2, "0")}`;
+    const localTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
+    const hh = String(localTime.getUTCHours()).padStart(2, "0");
+    const mm = String(localTime.getUTCMinutes()).padStart(2, "0");
+    const ss = String(localTime.getUTCSeconds()).padStart(2, "0");
+    const timeStr = `${hh}${mm}${ss}`;
     return `${root}/${title}_${timeStr}`;
   }
 
@@ -76,6 +78,7 @@
     SAVE_ROOT_FOLDER: "sih_save_root_folder",
     SLIDE_LOAD_MODE: "sih_slide_load_mode",
     SLIDE_RAW_PREVIEW_DELAY_MS: "sih_slide_raw_preview_delay_ms",
+    ENHANCED_IMAGE_DISCOVERY: "sih_enhanced_image_discovery",
   };
 
   const DEFAULT_BTN_OFFSET = 18;
@@ -92,6 +95,7 @@
     },
     scanBackgroundImages: false,
     maxElementsForBgScan: 8000,
+    enhancedImageDiscovery: false,
     preloadRadius: 2,
     blacklist: [],
     saveRootFolder: "TM_Images",
@@ -135,6 +139,10 @@
     })(),
     scanBackgroundImages: DEFAULTS.scanBackgroundImages,
     maxElementsForBgScan: DEFAULTS.maxElementsForBgScan,
+    enhancedImageDiscovery: GM_getValue(
+      STORE_KEYS.ENHANCED_IMAGE_DISCOVERY,
+      DEFAULTS.enhancedImageDiscovery
+    ),
     preloadRadius: DEFAULTS.preloadRadius,
     blacklist: GM_getValue(STORE_KEYS.BLACKLIST, DEFAULTS.blacklist) || [],
     saveRootFolder: GM_getValue(
@@ -1285,6 +1293,113 @@
       list.push({ rawUrl: abs, minSideHint: minSideHint || 0 });
     };
 
+    const addUrlsFromCssText = (cssText) => {
+      if (!cssText || cssText === "none") return;
+
+      const urlMatches = cssText.matchAll(/url\(["']?(.*?)["']?\)/gi);
+      for (const m of urlMatches) add(m[1], 0);
+
+      const imageSetMatches = cssText.matchAll(/image-set\((.*?)\)/gi);
+      for (const match of imageSetMatches) {
+        const body = match[1] || "";
+        const candidates = Array.from(
+          body.matchAll(
+            /(?:url\()?["']?([^"')\s,]+)["']?\)?\s*(\d+(?:\.\d+)?x|\d+w)?/gi
+          )
+        )
+          .map((m) => {
+            const url = m[1];
+            const descriptor = (m[2] || "").toLowerCase();
+            let score = 0;
+            if (/w$/.test(descriptor)) score = parseInt(descriptor, 10) || 0;
+            else if (/x$/.test(descriptor))
+              score = (parseFloat(descriptor) || 0) * 10000;
+            return { url, score };
+          })
+          .filter((item) => item.url && !/^type$/i.test(item.url));
+
+        if (!candidates.length) continue;
+        candidates.sort((a, b) => b.score - a.score);
+        add(candidates[0].url, 0);
+      }
+    };
+
+    const addBestSrcset = (srcset) => {
+      if (!srcset) return;
+      const best = pickBestFromSrcset(srcset);
+      if (best?.url) add(best.url, best.wHint || 0);
+    };
+
+    const addJsonImageValues = (value, depth = 0) => {
+      if (depth > 4 || value == null) return;
+      if (typeof value === "string") {
+        const trimmed = value.trim();
+        if (!trimmed) return;
+        if (
+          /\.(?:jpe?g|png|gif|webp|avif|bmp|svg)(?:[?#]|$)/i.test(trimmed) ||
+          /[?&](?:image|img|format)=/i.test(trimmed)
+        ) {
+          add(trimmed, 0);
+          return;
+        }
+        if (/^https?:\/\//i.test(trimmed) || /^(?:\/\/|\/)/.test(trimmed)) {
+          if (
+            /\/(?:images?|media|product|gallery|content|uploads?)\//i.test(
+              trimmed
+            )
+          ) {
+            add(trimmed, 0);
+          }
+        }
+        return;
+      }
+      if (Array.isArray(value)) {
+        for (const item of value) addJsonImageValues(item, depth + 1);
+        return;
+      }
+      if (typeof value !== "object") return;
+
+      for (const [key, val] of Object.entries(value)) {
+        const lowerKey = String(key || "").toLowerCase();
+        if (
+          /(^|[_-])(image|img|thumb|thumbnail|picture|zoom|src|srcset|avatar)([_-]|$)/.test(
+            lowerKey
+          ) ||
+          /(^|[_-])(gallery|images|media)([_-]|$)/.test(lowerKey)
+        ) {
+          addJsonImageValues(val, depth + 1);
+        }
+      }
+    };
+
+    const addJsonStringIfLikelyImagePayload = (raw, sourceHint = "") => {
+      if (!raw) return;
+      const trimmed = raw.trim();
+      if (!trimmed) return;
+
+      const lowerSource = String(sourceHint || "").toLowerCase();
+      const lowerRaw = trimmed.slice(0, 400).toLowerCase();
+      const looksLikeImagePayload =
+        /(?:image|img|thumb|thumbnail|gallery|media|picture|zoom|src|srcset)/.test(
+          lowerSource
+        ) ||
+        /(?:image|img|thumb|thumbnail|gallery|media|picture|zoom|src|srcset)/.test(
+          lowerRaw
+        );
+      if (!looksLikeImagePayload) return;
+
+      try {
+        addJsonImageValues(JSON.parse(trimmed));
+      } catch {
+        if (
+          /\.(?:jpe?g|png|gif|webp|avif|bmp|svg)(?:[?#]|$)/i.test(trimmed) ||
+          /[?&](?:image|img|format)=/i.test(trimmed)
+        ) {
+          add(trimmed, 0);
+        }
+      }
+    };
+
     const LAZY_URL_ATTRS = [
       "data-src",
       "data-original",
@@ -1300,17 +1415,20 @@
       "data-hires",
       "data-full",
       "data-full-url",
+      "data-image-src",
+      "data-original-src",
+      "data-fullsize",
+      "data-src-large",
+      "data-media",
+      "data-thumb",
+      "data-fancybox",
     ];
     const LAZY_SRCSET_ATTRS = ["data-srcset", "data-lazy-srcset"];
 
     document.querySelectorAll("img, source").forEach((el) => {
       const tagName = el.tagName.toLowerCase();
 
-      const srcset = el.getAttribute("srcset");
-      if (srcset) {
-        const best = pickBestFromSrcset(srcset);
-        if (best?.url) add(best.url, best.wHint || 0);
-      }
+      addBestSrcset(el.getAttribute("srcset"));
 
       if (tagName === "img") {
         const src = el.currentSrc || el.src;
@@ -1322,11 +1440,7 @@
         if (v) add(v, 0);
       }
       for (const a of LAZY_SRCSET_ATTRS) {
-        const ss = el.getAttribute(a);
-        if (ss) {
-          const best = pickBestFromSrcset(ss);
-          if (best?.url) add(best.url, best.wHint || 0);
-        }
+        addBestSrcset(el.getAttribute(a));
       }
     });
 
@@ -1345,20 +1459,68 @@
       if (href && IMG_EXT_RE.test(href)) add(href, 0);
     });
 
-    document.querySelectorAll('[style*="url("]').forEach((el) => {
-      const s = el.getAttribute("style") || "";
-      const matches = s.matchAll(/url\(["']?(.*?)["']?\)/gi);
-      for (const m of matches) add(m[1], 0);
-    });
+    document
+      .querySelectorAll('[style*="url("], [style*="image-set("]')
+      .forEach((el) => {
+        addUrlsFromCssText(el.getAttribute("style") || "");
+      });
+
+    if (SETTINGS.enhancedImageDiscovery) {
+      document
+        .querySelectorAll("[data-gallery], [data-images], [data-media]")
+        .forEach((el) => {
+          for (const attrName of [
+            "data-gallery",
+            "data-images",
+            "data-media",
+          ]) {
+            addJsonStringIfLikelyImagePayload(
+              el.getAttribute(attrName),
+              attrName
+            );
+          }
+        });
+
+      document
+        .querySelectorAll(
+          'script[type="application/ld+json"], script[type="application/json"], script#__NEXT_DATA__'
+        )
+        .forEach((script) => {
+          const raw = script.textContent || "";
+          if (!raw) return;
+
+          const lowerId = String(script.id || "").toLowerCase();
+          const lowerClass = String(script.className || "").toLowerCase();
+          const lowerType = String(script.type || "").toLowerCase();
+          const hintText = `${lowerId} ${lowerClass} ${lowerType}`;
+          const isNextData = lowerId === "__next_data__";
+          const isLdJson = lowerType === "application/ld+json";
+          const shouldParseJson =
+            isNextData ||
+            isLdJson ||
+            /(?:image|img|gallery|media|product)/.test(hintText) ||
+            /(?:image|img|gallery|media|product)/.test(
+              raw.slice(0, 400).toLowerCase()
+            );
+
+          if (!shouldParseJson) return;
+
+          try {
+            addJsonImageValues(JSON.parse(raw));
+          } catch {
+            const matches = raw.matchAll(
+              /https?:\/\/[^\s"'<>]+(?:jpe?g|png|gif|webp|avif|bmp|svg)(?:[^\s"'<>]*)/gi
+            );
+            for (const m of matches) add(m[0], 0);
+          }
+        });
+    }
 
     if (SETTINGS.scanBackgroundImages) {
       const all = document.getElementsByTagName("*");
       if (all.length <= SETTINGS.maxElementsForBgScan) {
         for (let i = 0; i < all.length; i++) {
-          const bg = getComputedStyle(all[i]).backgroundImage;
-          if (!bg || bg === "none") continue;
-          const matches = bg.matchAll(/url\(["']?(.*?)["']?\)/gi);
-          for (const m of matches) add(m[1], 0);
+          addUrlsFromCssText(getComputedStyle(all[i]).backgroundImage);
         }
       }
     }
@@ -3166,6 +3328,20 @@
 
             <div style="margin-top:10px;">
                 <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;user-select:none;">
+                    <input id="tm-enhanced-image-discovery" type="checkbox" ${
+                      SETTINGS.enhancedImageDiscovery ? "checked" : ""
+                    } style="margin-top:3px;" />
+                    <span>
+                        <div class="tm-label" style="margin:0;">加强图片挖掘模式</div>
+                        <div style="margin-top:4px;font-size:12px;line-height:1.4;color:rgba(255,255,255,0.74);">
+                            额外扫描常见图库 data 属性、JSON-LD / application/json / __NEXT_DATA__ 中的图片字段，提升商品页和 SPA 页命中率；关闭时保持当前轻量扫描。
+                        </div>
+                    </span>
+                </label>
+            </div>
+
+            <div style="margin-top:10px;">
+                <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;user-select:none;">
                     <input id="tm-btn-pos-locked" type="checkbox" ${
                       SETTINGS.btnPosLocked ? "checked" : ""
                     } style="margin-top:3px;" />
@@ -3174,7 +3350,7 @@
                         <div style="margin-top:4px;font-size:12px;line-height:1.4;color:rgba(255,255,255,0.74);">
                             锁定后将禁止拖动右下角“图片”按钮；按钮会显示锁定态高亮与悬浮提示。重置按钮位置会恢复到默认右下角。
                         </div>
-
+                    </span>
                 </label>
             </div>
 
@@ -3201,6 +3377,9 @@
       openSettingsPanel();
     };
 
+    const enhancedImageDiscoveryInput = p.querySelector(
+      "#tm-enhanced-image-discovery"
+    );
     const btnPosLockedInput = p.querySelector("#tm-btn-pos-locked");
 
     p.querySelectorAll(".tm-ext-preset").forEach((btn) => {
@@ -3254,6 +3433,7 @@
         parseInt(p.querySelector("#tm-minKB").value, 10) || 0
       );
       SETTINGS.filter.exts = String(p.querySelector("#tm-exts").value || "");
+      SETTINGS.enhancedImageDiscovery = !!enhancedImageDiscoveryInput?.checked;
       SETTINGS.btnPosLocked = !!btnPosLockedInput?.checked;
 
       const modeEl = p.querySelector("#tm-slide-load-mode");
@@ -3273,6 +3453,10 @@
         );
       }
 
+      GM_setValue(
+        STORE_KEYS.ENHANCED_IMAGE_DISCOVERY,
+        SETTINGS.enhancedImageDiscovery
+      );
       GM_setValue(STORE_KEYS.BTN_POS_LOCKED, SETTINGS.btnPosLocked);
       GM_setValue(STORE_KEYS.SAVE_ROOT_FOLDER, SETTINGS.saveRootFolder);
       saveFilter();
