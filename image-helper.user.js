@@ -3,7 +3,7 @@
 // @name:zh-CN   图片助手
 // @name:en      Image Helper
 // @namespace    https://github.com/tlgj/Browser-Scripts
-// @version      1.10.2
+// @version      1.10.3
 // @description  提取页面图片并清洗到高清，支持多品牌 URL 规则、幻灯片浏览、独立查看器、保存/快速保存/全部保存，并支持脚本黑名单。
 // @author       tlgj
 // @license      MIT
@@ -2189,14 +2189,15 @@
     };
 
     imgEl.onload = () => {
-      // raw-then-clean 时：raw 加载成功先显示（不去掉 loading），等 clean 成功再 settle
+      // raw-then-clean 时：raw 加载成功先显示，并清掉“加载中”避免用户误判卡死；clean 成功后再静默收口一次
       if (imgEl.dataset.tmToken !== token) return;
       if (
         SETTINGS.slideLoadMode === "raw-then-clean" &&
         imgEl.dataset.tmPhase === "raw"
       ) {
         imgEl.style.opacity = "1";
-        // 保持 loading，等待 clean
+        imgEl.classList.remove("loading");
+        setStatus("");
         return;
       }
       trySettleSuccess();
