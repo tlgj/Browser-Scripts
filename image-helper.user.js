@@ -3,7 +3,7 @@
 // @name:zh-CN   图片助手
 // @name:en      Image Helper
 // @namespace    https://github.com/tlgj/Browser-Scripts
-// @version      1.10.3
+// @version      1.10.4
 // @description  提取页面图片并清洗到高清，支持多品牌 URL 规则、幻灯片浏览、独立查看器、保存/快速保存/全部保存，并支持脚本黑名单。
 // @author       tlgj
 // @license      MIT
@@ -918,6 +918,10 @@
     ALICDN_REMOVE_SUFFIX: {
       apply: (url) => url.replace(/(\.(jpg|jpeg|png|webp|gif))_[^/]*$/i, "$1"),
     },
+    FARFETCH_CONTENTS_REMOVE_SIZE_SUFFIX: createRegexRule(
+      /_\d+(?=\.(?:jpg|jpeg|png|webp|gif|avif)(?:$|[?#]))/i,
+      ""
+    ),
     AMAZON_MEDIA_CLEAN: createRegexRule(
       /^(https:\/\/m\.media-amazon\.com\/images\/I\/[^._]+)\._[^.]*_\.(\w+)$/,
       "$1.$2"
@@ -1025,6 +1029,7 @@
     ["gw.alicdn.com", "alicdn"],
     ["img.alicdn.com", "alicdn"],
     ["assets.footlocker.com", "footlocker-scene7"],
+    ["cdn-images.farfetch-contents.com", "farfetch-contents"],
     ["www.stadiumgoods.com", "stadiumgoods-shopify"],
   ]);
 
@@ -1125,6 +1130,10 @@
     "t4s-cdn": [BRAND_RULES.T4S_TO_ORIGINAL],
     alicdn: [BRAND_RULES.ALICDN_REMOVE_SUFFIX],
     "footlocker-scene7": [BRAND_RULES.FOOTLOCKER_SCENE7_FORCE_ZOOM2000PNG],
+    "farfetch-contents": [
+      BRAND_RULES.FARFETCH_CONTENTS_REMOVE_SIZE_SUFFIX,
+      REUSABLE_RULES.REMOVE_ALL_QUERY,
+    ],
     "stadiumgoods-shopify": [
       BRAND_RULES.SHOPIFY_REMOVE_SIZE,
       REUSABLE_RULES.REMOVE_ALL_QUERY,
