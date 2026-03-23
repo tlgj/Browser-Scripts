@@ -3,7 +3,7 @@
 // @name:zh-CN   图片助手
 // @name:en      Image Helper
 // @namespace    https://github.com/tlgj/Browser-Scripts
-// @version      1.10.4
+// @version      1.10.6
 // @description  提取页面图片并清洗到高清，支持多品牌 URL 规则、幻灯片浏览、独立查看器、保存/快速保存/全部保存，并支持脚本黑名单。
 // @author       tlgj
 // @license      MIT
@@ -373,6 +373,27 @@
 
 .tm-kv{ font-size: 16px; color: rgba(255,255,255,0.94); letter-spacing: .2px; }
 .tm-kv small{ font-size: 14px; color: rgba(255,255,255,0.74); font-weight: 800; }
+
+.tm-link-row{
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.tm-link-main{
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.tm-copy-btn{
+  flex: 0 0 auto;
+  min-width: 72px;
+  padding: 8px 10px;
+  font-size: 14px;
+  font-weight: 800;
+  align-self: stretch;
+}
 
 /* 文件夹区域样式 */
 #tm-folder-pill{
@@ -2759,10 +2780,20 @@
             <div class="tm-glassfooter" style="padding:12px 14px; height:${FOOTER_HEIGHT_PX}px; overflow:auto;">
                 <div id="tm-link-block" style="margin-top:8px;">
                     <div class="tm-label">当前链接（已清洗）</div>
-                    <div id="tm-url-clean" class="tm-url" style="margin-bottom:10px;"></div>
+                    <div class="tm-link-row">
+                        <div class="tm-link-main">
+                            <div id="tm-url-clean" class="tm-url"></div>
+                        </div>
+                        <button id="tm-copy-clean" class="tm-btn tm-copy-btn" type="button">复制</button>
+                    </div>
 
                     <div class="tm-label">原始链接</div>
-                    <div id="tm-url-raw" class="tm-url"></div>
+                    <div class="tm-link-row" style="margin-bottom:0;">
+                        <div class="tm-link-main">
+                            <div id="tm-url-raw" class="tm-url"></div>
+                        </div>
+                        <button id="tm-copy-raw" class="tm-btn tm-copy-btn" type="button">复制</button>
+                    </div>
                 </div>
             </div>
         `;
@@ -2789,6 +2820,71 @@
     bindClick($("#tm-open"), () => {
       if (!list.length) return;
       window.open(list[current].cleanUrl, "_blank", "noopener,noreferrer");
+    });
+
+    const copyBtnTimers = new WeakMap();
+    function flashCopiedButton(btn) {
+      if (!btn) return;
+      const timer = copyBtnTimers.get(btn);
+      if (timer) clearTimeout(timer);
+      if (!btn.dataset.originalText) {
+        btn.dataset.originalText = btn.textContent || "复制";
+      }
+      btn.textContent = "已复制";
+      btn.disabled = true;
+      const resetTimer = setTimeout(() => {
+        btn.textContent = btn.dataset.originalText || "复制";
+        btn.disabled = false;
+        copyBtnTimers.delete(btn);
+      }, 1200);
+      copyBtnTimers.set(btn, resetTimer);
+    }
+
+    async function copyTextToClipboard(text, successText, btn) {
+      const value = String(text || "").trim();
+      if (!value) {
+        setStatus("无可复制的链接");
+        return;
+      }
+      try {
+        if (navigator.clipboard?.writeText) {
+          await navigator.clipboard.writeText(value);
+        } else {
+          const ta = document.createElement("textarea");
+          ta.value = value;
+          ta.setAttribute("readonly", "readonly");
+          ta.style.position = "fixed";
+          ta.style.opacity = "0";
+          ta.style.pointerEvents = "none";
+          document.body.appendChild(ta);
+          ta.focus();
+          ta.select();
+          document.execCommand("copy");
+          ta.remove();
+        }
+        flashCopiedButton(btn);
+        setStatus(successText);
+      } catch (err) {
+        console.error("复制链接失败：", err);
+        setStatus("复制失败，请手动复制");
+      }
+    }
+
+    bindClick($("#tm-copy-clean"), (e) => {
+      if (!list.length) return;
+      copyTextToClipboard(
+        list[current]?.cleanUrl,
+        "已复制当前链接",
+        e.currentTarget
+      );
+    });
+    bindClick($("#tm-copy-raw"), (e) => {
+      if (!list.length) return;
+      copyTextToClipboard(
+        list[current]?.rawUrl,
+        "已复制原始链接",
+        e.currentTarget
+      );
     });
 
     bindClick($("#tm-save"), saveCurrentImage);
