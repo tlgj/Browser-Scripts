@@ -188,61 +188,61 @@
 
 ### 1. Sneaker / 球鞋交易与垂直零售
 
-- GOAT：`image.goat.com` → `goat`
-- Flight Club：`cdn.flightclub.com` → `flightclub`
-- StockX：`images.stockx.com` → `stockx`
-- Foot Locker：`assets.footlocker.com` → `footlocker-scene7`
-- Finish Line：`media.finishline.com` → `finishline-media`
-- Sneaker News：`sneakernews.com` → `sneakernews-wp`
-- Novelship：`images.novelship.com` → `novelship-img`
-- Stadium Goods：`www.stadiumgoods.com` → `stadiumgoods-shopify`
-- SNIPES：`www.snipesusa.com` → `snipes-demandware`
-- KicksCrew（URL 片段命中）：`cdn.shopify.com/s/files/1/0603/3031/1875/files` → `kickscrew-shopify`
+- GOAT：商品图片域 `image.goat.com` → `goat`
+- Flight Club：站内 CDN `cdn.flightclub.com` → `flightclub`
+- StockX：商品图片域 `images.stockx.com` → `stockx`
+- Foot Locker：Scene7 资源域 `assets.footlocker.com` → `footlocker-scene7`
+- Finish Line：站内媒体资源 `media.finishline.com` → `finishline-media`
+- Sneaker News：媒体站图片域 `sneakernews.com` → `sneakernews-wp`
+- Novelship：商品图片域 `images.novelship.com` → `novelship-img`
+- Stadium Goods：Shopify 站点 `www.stadiumgoods.com` → `stadiumgoods-shopify`
+- SNIPES：Demandware 站点 `www.snipesusa.com` → `snipes-demandware`
+- KicksCrew（URL 片段命中）：Shopify 文件片段 `cdn.shopify.com/s/files/1/0603/3031/1875/files` → `kickscrew-shopify`
 
 ### 2. 运动品牌官方 / 区域站
 
-- Nike：`static.nike.com.cn`、`static.nike.com`、`c.static-nike.com`、`www.nike.ae`、`www.nike.com.kw`、`www.nike.qa`、`www.nike.sa`
-- Adidas：`assets.adidas.com`
-- ASICS：`images.asics.com`、`img.cdn.91app.hk`、`img.91app.com`
-- Brooks：`www.brooksrunning.com`
+- Nike：中国站静态资源 `static.nike.com.cn`；国际站静态资源 `static.nike.com`、`c.static-nike.com`；中东区域站系 `www.nike.ae`、`www.nike.com.kw`、`www.nike.qa`、`www.nike.sa`
+- Adidas：国际站资源 `assets.adidas.com`
+- ASICS：国际站 `images.asics.com`；区域站 `img.cdn.91app.hk`、`img.91app.com`
+- Brooks：国际站 `www.brooksrunning.com`
 - Converse：中国站 `res-converse.baozun.com`、`dam-converse.baozun.com`
-- HOKA：`dms.deckers.com`、`b2c.hoka.wishetin.com`
-- Li-Ning：`lining-goods-online-1302115263.file.myqcloud.com`
-- Mizuno：`i1.adis.ws`
-- New Balance：`nb.scene7.com`、`itg-tezign-files.tezign.com`
-- On：`images.ctfassets.net`、`oss.on-running.cn`
-- Puma：`images.puma.com`、`itg-tezign-files-tx.tezign.com`
-- Salomon：`cdn.dam.salomon.com`
-- Saucony：`s7d4.scene7.com`
-- Skechers：`images.skechers.com`、`www.skechers.com.hk`、`www.skechers.com.sg`
-- The North Face：`assets.thenorthface.com`、`img2.thenorthface.com.cn`
-- Under Armour：`underarmour.scene7.com`
-- Vans：`assets.vans.com`
-- FILA：`img.myshopline.com`、`shoplineimg.com`、`d31xv78q8gnfco.cloudfront.net`
-- MLB Korea：`static-resource.mlb-korea.com`、`en.mlb-korea.com`
+- HOKA：国际站 `dms.deckers.com`；中国站 `b2c.hoka.wishetin.com`
+- Li-Ning：中国站资源 `lining-goods-online-1302115263.file.myqcloud.com`
+- Mizuno：国际资源域 `i1.adis.ws`
+- New Balance：国际站 Scene7 `nb.scene7.com`；中国站 `itg-tezign-files.tezign.com`
+- On：国际站 `images.ctfassets.net`；中国站 `oss.on-running.cn`
+- Puma：国际站 `images.puma.com`；中国站 `itg-tezign-files-tx.tezign.com`
+- Salomon：国际站 `cdn.dam.salomon.com`
+- Saucony：国际站 Scene7 `s7d4.scene7.com`
+- Skechers：国际站 `images.skechers.com`；区域站 `www.skechers.com.hk`、`www.skechers.com.sg`
+- The North Face：国际站 `assets.thenorthface.com`；中国站 `img2.thenorthface.com.cn`
+- Under Armour：国际站 Scene7 `underarmour.scene7.com`
+- Vans：国际站 `assets.vans.com`
+- FILA：区域站资源 `img.myshopline.com`、`shoplineimg.com`、`d31xv78q8gnfco.cloudfront.net`
+- MLB Korea：静态资源 `static-resource.mlb-korea.com`；站内文件 `en.mlb-korea.com`
 
 ### 3. 综合运动零售 / 户外 / 通用电商
 
-- Decathlon：`www.decathlon.com`、`pixl.decathlon.com.cn`、`contents.mediadecathlon.com`
-- Amazon：`m.media-amazon.com`
-- eBay：`i.ebayimg.com`
-- END. Clothing：`media.endclothing.com`
-- Old Order：`old-order.com`
-- Runnmore / Extra Sports / Sport Vision：`www.runnmore.com`、`www.extrasports.com`、`www.sportvision.mk`
-- OpenCart 示例站：`gnk-store.ru`
-- Shiekh：`static.shiekh.com`
-- Farfetch Contents CDN：`cdn-images.farfetch-contents.com`
-- Complex Images：`images.complex.com`
-- T4S（URL 片段命中）：`t4s.cz`
-- Reebok（URL 片段命中）：`cdn.shopify.com/s/files/1/0862/7834/0912/files`
+- Decathlon：国际站 `www.decathlon.com`；中国站 `pixl.decathlon.com.cn`；通用媒体资源 `contents.mediadecathlon.com`
+- Amazon：商品媒体资源 `m.media-amazon.com`
+- eBay：商品图片 CDN `i.ebayimg.com`
+- END. Clothing：站内媒体资源 `media.endclothing.com`
+- Old Order：品牌站 `old-order.com`
+- Runnmore / Extra Sports / Sport Vision：区域零售站 `www.runnmore.com`、`www.extrasports.com`、`www.sportvision.mk`
+- OpenCart 示例站：示例商店 `gnk-store.ru`
+- Shiekh：站内静态资源 `static.shiekh.com`
+- Farfetch Contents CDN：内容资源域 `cdn-images.farfetch-contents.com`
+- Complex Images：编辑内容图片域 `images.complex.com`
+- T4S（URL 片段命中）：站点片段 `t4s.cz`
+- Reebok（URL 片段命中）：Shopify 文件片段 `cdn.shopify.com/s/files/1/0862/7834/0912/files`
 
 ### 4. 时尚 / 平台 / 通用图片 CDN
 
-- Shein / LTWebStatic：`img.ltwebstatic.com`、`img.shein.com`
-- Poizon：`cdn.poizon.com`
-- 识货：`static.shihuocdn.cn`、`eimage.shihuocdn.cn`
-- AliCDN：`gw.alicdn.com`、`img.alicdn.com`
-- Sanity CDN：`cdn.sanity.io`
+- Shein / LTWebStatic：站内图片域 `img.ltwebstatic.com`、`img.shein.com`
+- Poizon：平台图片 CDN `cdn.poizon.com`
+- 识货：站内图片 CDN `static.shihuocdn.cn`、`eimage.shihuocdn.cn`
+- AliCDN：通用图片 CDN `gw.alicdn.com`、`img.alicdn.com`
+- Sanity CDN：Sanity 内容图片域 `cdn.sanity.io`
 
 ## 基于 URL 片段的补充支持（PARTIAL_MATCH_RULES）
 
