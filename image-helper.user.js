@@ -3,7 +3,7 @@
 // @name:zh-CN   图片助手
 // @name:en      Image Helper
 // @namespace    https://github.com/tlgj/Browser-Scripts
-// @version      1.10.6
+// @version      1.10.7
 // @description  提取页面图片并清洗到高清，支持多品牌 URL 规则、幻灯片浏览、独立查看器、保存/快速保存/全部保存，并支持脚本黑名单。
 // @author       tlgj
 // @license      MIT
@@ -775,6 +775,10 @@
     TO_PNG: createRegexRule(/\.(?:webp|jpe?g)(?=\?|$)/i, ".png"),
     REMOVE_VERSION_QUERY: createRegexRule(/\?v=\d+$/, ""),
     REMOVE_SIZE_SUFFIX: createRegexRule(/_\d+x\d+(?=\.\w+$)/, ""),
+    SHEIN_LTWEBSTATIC_REMOVE_THUMBNAIL_SUFFIX: createRegexRule(
+      /_thumbnail_\d+x\d+(?=\.(?:jpg|jpeg|png|webp|gif|avif)(?:$|[?#]))/i,
+      ""
+    ),
   };
 
   // ===== Rules: brand/site rules =====
@@ -1051,6 +1055,7 @@
     ["img.alicdn.com", "alicdn"],
     ["assets.footlocker.com", "footlocker-scene7"],
     ["cdn-images.farfetch-contents.com", "farfetch-contents"],
+    ["img.ltwebstatic.com", "shein-ltwebstatic"],
     ["www.stadiumgoods.com", "stadiumgoods-shopify"],
   ]);
 
@@ -1153,6 +1158,10 @@
     "footlocker-scene7": [BRAND_RULES.FOOTLOCKER_SCENE7_FORCE_ZOOM2000PNG],
     "farfetch-contents": [
       BRAND_RULES.FARFETCH_CONTENTS_REMOVE_SIZE_SUFFIX,
+      REUSABLE_RULES.REMOVE_ALL_QUERY,
+    ],
+    "shein-ltwebstatic": [
+      REUSABLE_RULES.SHEIN_LTWEBSTATIC_REMOVE_THUMBNAIL_SUFFIX,
       REUSABLE_RULES.REMOVE_ALL_QUERY,
     ],
     "stadiumgoods-shopify": [
