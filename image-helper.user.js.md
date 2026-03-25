@@ -7,7 +7,7 @@
 当前脚本头信息：
 
 - 名称：Image Helper / 图片助手
-- 版本：`1.10.8`
+- 版本：`1.10.10`
 - 运行时机：`document-idle`
 - 匹配范围：`*://*/*`
 
@@ -87,6 +87,7 @@
 - `static.nike.com` → `nike-global`
 - `media.finishline.com` → `finishline-media`
 - `img.shein.com` → `shein-ltwebstatic`
+- `images.complex.com` → `complex-cloudinary`
 
 ### 4. `PARTIAL_MATCH_RULES`
 
@@ -106,6 +107,8 @@
 - `nike-cn`：先中国站转全局域名，再清理路径，再转 png
 - `shein-ltwebstatic`：先移除 `_thumbnail_(宽x高|x高)` 后缀，再去 query
 - `finishline-media`：仅保守去 query
+- `complex-cloudinary`：复用通用 Cloudinary upload 清洗 helper，移除 `/complex/image/upload/` 后连续的 transform path，保留真实资源路径
+- `puma-intl`：复用同一 helper，但要求真实资源路径必须以 `global/` 开头
 
 ## 当前支持的网站与规则
 
@@ -127,6 +130,7 @@
 | asics-tw             | `img.91app.com`                                                 | 删除版本 query                                                     |
 | brooks-intl          | `www.brooksrunning.com`                                         | 去 query，转 PNG                                                   |
 | converse-cn          | `res-converse.baozun.com`, `dam-converse.baozun.com`            | 去 query                                                           |
+| complex-cloudinary   | `images.complex.com`                                            | 去掉 `/complex/image/upload/` 后连续 transform path，保留真实资源  |
 | decathlon-cn         | `pixl.decathlon.com.cn`                                         | 去 query，转 PNG                                                   |
 | decathlon-hk         | `contents.mediadecathlon.com`                                   | 去 query，转 PNG                                                   |
 | decathlon-intl       | `www.decathlon.com`                                             | 去 query                                                           |
@@ -159,7 +163,7 @@
 | opencart-generic     | `gnk-store.ru`                                                  | OpenCart 缓存图转原图                                              |
 | poizon-cdn           | `cdn.poizon.com`                                                | 强制 PNG 参数                                                      |
 | puma-cn              | `itg-tezign-files-tx.tezign.com`                                | 清理中国站图片处理参数                                             |
-| puma-intl            | `images.puma.com`                                               | 清理 upload 变换路径                                               |
+| puma-intl            | `images.puma.com`                                               | 复用通用 Cloudinary upload 清洗 helper，清理 upload 变换路径       |
 | runnmore-like        | `www.runnmore.com`, `www.extrasports.com`, `www.sportvision.mk` | thumbs 路径回原图                                                  |
 | salomon-intl         | `cdn.dam.salomon.com`                                           | 去 query                                                           |
 | sanity-cdn           | `cdn.sanity.io`                                                 | 保留 Sanity 原始资源主路径                                         |
@@ -228,6 +232,7 @@
 - OpenCart 示例站：`gnk-store.ru`
 - Shiekh：`static.shiekh.com`
 - Farfetch Contents CDN：`cdn-images.farfetch-contents.com`
+- Complex Images：`images.complex.com`
 - T4S（URL 片段命中）：`t4s.cz`
 - Reebok（URL 片段命中）：`cdn.shopify.com/s/files/1/0862/7834/0912/files`
 
@@ -328,6 +333,9 @@
   - `_thumbnail_220x293`
   - `_thumbnail_x460`
 - Finish Line 当前仅基于样例做了保守 query 清理，后续如发现更明确的尺寸升级策略，可再扩展。
+- Complex Images 当前通过通用 Cloudinary upload helper 处理：会剥离 `/complex/image/upload/` 后连续的 transform segment，并仅在真实资源路径以 `sanity-new/` 开头时生效；若后续出现非下划线命名的 transform token，需先核对样本再扩展识别模式。
+- Puma International 当前也复用同一 helper，但额外限制真实资源路径必须以 `global/` 开头，避免把非目标 upload 路径误清洗。
+- 2026-03-26 进一步复查后，当前未再发现第三个可以安全并入该 Cloudinary upload helper 的明确候选；像 GOAT、Nike、MLB Korea、Scene7 系规则虽然也涉及 transform / 图像处理，但路径语义与资源边界不同，强行抽象更容易误伤。
 - 复制功能仍包含 `document.execCommand('copy')` 兼容性回退，因此 IDE 可能提示 deprecated hint，属预期。
 
 ## 文档维护原则

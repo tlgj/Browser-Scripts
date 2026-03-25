@@ -3,7 +3,7 @@
 // @name:zh-CN   图片助手
 // @name:en      Image Helper
 // @namespace    https://github.com/tlgj/Browser-Scripts
-// @version      1.10.8
+// @version      1.10.10
 // @description  提取页面图片并清洗到高清，支持多品牌 URL 规则、幻灯片浏览、独立查看器、保存/快速保存/全部保存，并支持脚本黑名单。
 // @author       tlgj
 // @license      MIT
@@ -769,6 +769,52 @@
     apply: (url) => url.split("?")[0] + newQuery,
   });
 
+  const CLOUINARY_TRANSFORM_SEGMENT_RE =
+    /^[a-z]{1,3}_[^/]+(?:,[a-z]{1,3}_[^/]+)*$/i;
+
+  function isCloudinaryTransformSegment(segment) {
+    return CLOUINARY_TRANSFORM_SEGMENT_RE.test(String(segment || ""));
+  }
+
+  function stripCloudinaryUploadTransforms(urlStr, uploadPrefix, options = {}) {
+    const { assetPathStartsWith = null } = options;
+    const u = safeUrlParse(urlStr);
+    if (!u) return urlStr;
+    if (!u.pathname.startsWith(uploadPrefix)) return urlStr;
+
+    const segments = u.pathname
+      .slice(uploadPrefix.length)
+      .split("/")
+      .filter(Boolean);
+    if (!segments.length) return urlStr;
+
+    let firstAssetIndex = 0;
+    while (
+      firstAssetIndex < segments.length &&
+      isCloudinaryTransformSegment(segments[firstAssetIndex])
+    ) {
+      firstAssetIndex += 1;
+    }
+
+    if (firstAssetIndex <= 0 || firstAssetIndex >= segments.length)
+      return urlStr;
+
+    const assetPath = segments.slice(firstAssetIndex).join("/");
+    if (
+      assetPathStartsWith &&
+      !String(assetPath || "").startsWith(assetPathStartsWith)
+    ) {
+      return urlStr;
+    }
+
+    return `${u.origin}${uploadPrefix}${assetPath}`;
+  }
+
+  const createCloudinaryUploadStripRule = (uploadPrefix, options = {}) => ({
+    apply: (urlStr) =>
+      stripCloudinaryUploadTransforms(urlStr, uploadPrefix, options),
+  });
+
   // ===== Rules: reusable rules =====
   const REUSABLE_RULES = {
     REMOVE_ALL_QUERY: createRegexRule(/\?.*$/, ""),
@@ -898,10 +944,9 @@
       /\?(?:v=\d+&width=\d+|width=\d+&v=\d+|v=\d+|width=\d+)/,
       ""
     ),
-    PUMA_INTL_UPLOAD_PARAMS: createRegexRule(
-      /(\/upload\/)[^/]+\/(global\/.+)/,
-      "$1$2"
-    ),
+    PUMA_INTL_UPLOAD_PARAMS: createCloudinaryUploadStripRule("/upload/", {
+      assetPathStartsWith: "global/",
+    }),
     PUMA_CN_IMAGE_PROCESSING: createRegexRule(/([?&]imageMogr2\/[^&]*)/, ""),
     SKECHERS_USA_PATH: createRegexRule(/(\/image);[^/]+/, "$1"),
     SKECHERS_SG_SUFFIX: createRegexRule(
@@ -987,6 +1032,12 @@
         return `${base}?$zoom2000png$`;
       },
     },
+    COMPLEX_CLOUDINARY_CLEAN: createCloudinaryUploadStripRule(
+      "/complex/image/upload/",
+      {
+        assetPathStartsWith: "sanity-new/",
+      }
+    ),
   };
 
   // ===== Rules: host maps =====
@@ -1058,6 +1109,7 @@
     ["cdn-images.farfetch-contents.com", "farfetch-contents"],
     ["img.ltwebstatic.com", "shein-ltwebstatic"],
     ["img.shein.com", "shein-ltwebstatic"],
+    ["images.complex.com", "complex-cloudinary"],
     ["www.stadiumgoods.com", "stadiumgoods-shopify"],
   ]);
 
@@ -1167,6 +1219,7 @@
       REUSABLE_RULES.SHEIN_LTWEBSTATIC_REMOVE_THUMBNAIL_SUFFIX,
       REUSABLE_RULES.REMOVE_ALL_QUERY,
     ],
+    "complex-cloudinary": [BRAND_RULES.COMPLEX_CLOUDINARY_CLEAN],
     "stadiumgoods-shopify": [
       BRAND_RULES.SHOPIFY_REMOVE_SIZE,
       REUSABLE_RULES.REMOVE_ALL_QUERY,
