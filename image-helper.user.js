@@ -776,7 +776,7 @@
     REMOVE_VERSION_QUERY: createRegexRule(/\?v=\d+$/, ""),
     REMOVE_SIZE_SUFFIX: createRegexRule(/_\d+x\d+(?=\.\w+$)/, ""),
     SHEIN_LTWEBSTATIC_REMOVE_THUMBNAIL_SUFFIX: createRegexRule(
-      /_thumbnail_\d+x\d+(?=\.(?:jpg|jpeg|png|webp|gif|avif)(?:$|[?#]))/i,
+      /_thumbnail_(?:\d+x\d+|x\d+)(?=\.(?:jpg|jpeg|png|webp|gif|avif)(?:$|[?#]))/i,
       ""
     ),
   };
@@ -1056,6 +1056,7 @@
     ["assets.footlocker.com", "footlocker-scene7"],
     ["cdn-images.farfetch-contents.com", "farfetch-contents"],
     ["img.ltwebstatic.com", "shein-ltwebstatic"],
+    ["img.shein.com", "shein-ltwebstatic"],
     ["www.stadiumgoods.com", "stadiumgoods-shopify"],
   ]);
 
