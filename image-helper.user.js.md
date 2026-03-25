@@ -7,7 +7,7 @@
 当前脚本头信息：
 
 - 名称：Image Helper / 图片助手
-- 版本：`1.10.10`
+- 版本：`1.10.11`
 - 运行时机：`document-idle`
 - 匹配范围：`*://*/*`
 
@@ -296,6 +296,7 @@
 6. 执行：
    ```powershell
    node --check image-helper.user.js
+   node image-helper.regression.js
    ```
 7. 同步更新本文档中的：
    - “当前支持的网站与规则”
@@ -322,9 +323,10 @@
 3. 若品牌有特殊路径/参数语义，再新增 `BRAND_RULES`
 4. 在 `EXACT_HOST_MAP` 或 `PARTIAL_MATCH_RULES` 中登记入口
 5. 在 `HOST_RULE_MAP` 中配置规则链顺序
-6. 变更后执行语法检查：
+6. 变更后执行基础校验：
    ```powershell
    node --check image-helper.user.js
+   node image-helper.regression.js
    ```
 
 ### 当前已知注意事项
