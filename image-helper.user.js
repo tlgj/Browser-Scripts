@@ -3,7 +3,7 @@
 // @name:zh-CN   图片助手
 // @name:en      Image Helper
 // @namespace    https://github.com/tlgj/Browser-Scripts
-// @version      1.10.7
+// @version      1.10.8
 // @description  提取页面图片并清洗到高清，支持多品牌 URL 规则、幻灯片浏览、独立查看器、保存/快速保存/全部保存，并支持脚本黑名单。
 // @author       tlgj
 // @license      MIT
@@ -1047,6 +1047,7 @@
     ["m.media-amazon.com", "amazon-media"],
     ["i.ebayimg.com", "ebay-img-force-png"],
     ["media.endclothing.com", "end-clothing"],
+    ["media.finishline.com", "finishline-media"],
     ["www.runnmore.com", "runnmore-like"],
     ["www.extrasports.com", "runnmore-like"],
     ["www.sportvision.mk", "runnmore-like"],
@@ -1152,6 +1153,7 @@
     "amazon-media": [BRAND_RULES.AMAZON_MEDIA_CLEAN],
     "ebay-img-force-png": [BRAND_RULES.EBAY_TO_PNG_2000],
     "end-clothing": [BRAND_RULES.END_CLOTHING_CLEAN],
+    "finishline-media": [REUSABLE_RULES.REMOVE_ALL_QUERY],
     "runnmore-like": [BRAND_RULES.RUNNMORE_LIKE_TO_ORIGINAL],
     "opencart-generic": [BRAND_RULES.OPENCART_TO_ORIGINAL],
     "t4s-cdn": [BRAND_RULES.T4S_TO_ORIGINAL],
