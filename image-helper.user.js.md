@@ -1,133 +1,154 @@
-# Image Helper / 图片助手
+# 🖼️ Image Helper / 图片助手
 
-> 脚本文件：`image-helper.user.js`
+> **脚本文件**：[`image-helper.user.js`](./image-helper.user.js)
 
-![version](https://img.shields.io/badge/version-1.10.15-blue)
-![match](https://img.shields.io/badge/match-*://*/*-green)
-![run](https://img.shields.io/badge/run-document--idle-yellow)
-
-## 概述
-
-`image-helper.user.js`（展示名：`Image Helper / 图片助手`）是一个浏览器用户脚本，用于扫描当前页面中的图片资源。
-
-文档当前整理时会优先着重关注 sneaker 类网站及其常见品牌、电商与内容站图片链路，同时兼顾其他服饰、综合零售与通用图片 CDN 场景。
-
-它尽可能将图片链接清洗为更高清的原图地址，并提供统一的浏览、复制与保存能力。
-
-| 属性     | 值                      |
-| -------- | ----------------------- |
-| 名称     | Image Helper / 图片助手 |
-| 版本     | `1.10.15`               |
-| 运行时机 | `document-idle`         |
-| 匹配范围 | `*://*/*`               |
-
-## 目录
-
-- [支持站点速览](#支持站点速览)
-- [核心功能](#核心功能)
-- [规则系统设计](#规则系统设计)
-- [当前支持的网站与规则](#当前支持的网站与规则)
-- [基于 URL 片段的补充支持](#基于-url-片段的补充支持partial_match_rules)
-- [图片清洗流程](#图片清洗流程)
-- [新增站点与维护模板](#新增站点与维护模板)
-- [文档维护原则](#文档维护原则)
+![version](https://img.shields.io/badge/version-1.10.15-blue?style=flat-square)
+![match](https://img.shields.io/badge/match-*://*/*-green?style=flat-square)
+![run](https://img.shields.io/badge/run-document--idle-yellow?style=flat-square)
+![license](https://img.shields.io/badge/license-MIT-orange?style=flat-square)
 
 ---
 
-## 支持站点速览
+## 📋 概述
 
-> 这一节用于快速查看“当前大致支持哪些站点 / 品牌 / 平台”，优先保留品牌与区域层面的阅读友好性，不展开 host、规则链与实现细节；具体映射关系请继续查看后文的规则明细表与 `PARTIAL_MATCH_RULES` 补充表。
+`image-helper.user.js`（展示名：**Image Helper / 图片助手**）是一个强大的浏览器用户脚本，专为扫描和提取当前页面中的图片资源而设计。
 
-### 球鞋交易与垂直零售
+### ✨ 核心特性
 
-- Goat
-- FlightClub
-- StockX
-- Foot Locker
-- Finish Line
-- Sneaker News
-- Sneaker Freaker
-- Novelship
-- Stadium Goods
-- Snipes
+- 🎯 **智能清洗**：自动将缩略图、带参数图片转换为高清原图
+- 🌐 **广泛支持**：覆盖主流球鞋、运动品牌、电商平台及图片 CDN
+- 🖼️ **幻灯片浏览**：全屏 overlay 方式流畅浏览所有提取图片
+- 💾 **批量保存**：支持单张/快速/全部保存，自动创建子文件夹
+- ⚙️ **高度可配**：黑名单、过滤条件、加载模式等持久化设置
 
-### 运动品牌官方 / 区域站
-
-- Adidas 全球
-- Asics 全球 / 香港 / 台湾
-- Brooks 全球
-- Converse 中国
-- Hoka 全球 / 中国
-- Li-Ning 中国
-- Mizuno 美国
-- New Balance 全球 / 中国
-- On 全球 / 中国
-- Puma 全球 / 中国
-- Salomon 全球
-- Saucony 全球
-- Skechers 美国 / 香港 / 新加坡
-- The North Face 全球 / 中国
-- Under Armour 全球
-- Vans 全球
-- Nike 中国 / 全球 / 中东
-- Fila 香港 / 东南亚
-- MLB 韩国
-
-### 综合运动零售 / 户外 / 通用电商
-
-- Decathlon 全球 / 中国 / 香港
-- Amazon
-- eBay
-- END. Clothing
-- Old Order
-- Runnmore
-- Extra Sports
-- Sport Vision
-- GNK Store
-- Shiekh Shoes
-- Farfetch
-- Complex
-- Zalora 香港
-
-### 时尚 / 平台 / 通用图片 CDN
-
-- Shein
-- Poizon
-- 识货
-- AliCDN
-- Sanity
-
-### URL 片段补充支持
-
-- Decathlon 全球（Shopify 文件路径）
-- Reebok 全球（Shopify 文件路径）
-- KicksCrew 全球（Shopify 文件路径）
-- T4S Czechia
+| 属性 | 值 |
+| :--- | :--- |
+| **名称** | Image Helper / 图片助手 |
+| **版本** | `1.10.15` |
+| **运行时机** | `document-idle` |
+| **匹配范围** | `*://*/*` |
+| **作者** | tlgj |
+| **许可证** | MIT |
 
 ---
 
-## 核心功能
+## 📑 目录
 
-### 1. 页面图片提取与清洗
+<details open>
+<summary><strong>点击展开/收起目录</strong></summary>
+
+- [🌐 支持站点速览](#-支持站点速览)
+- [⚡ 核心功能](#-核心功能)
+- [🔧 规则系统设计](#-规则系统设计)
+- [📊 当前支持的网站与规则](#-当前支持的网站与规则)
+- [🔍 基于 URL 片段的补充支持](#-基于-url-片段的补充支持partial_match_rules)
+- [🔄 图片清洗流程](#-图片清洗流程)
+- [➕ 新增站点与维护模板](#-新增站点与维护模板)
+- [📝 文档维护原则](#-文档维护原则)
+- [⚠️ 当前已知注意事项](#-当前已知注意事项)
+
+</details>
+
+---
+
+## 🌐 支持站点速览
+
+> 💡 **提示**：本节提供品牌/平台层面的快速索引，详细 host 映射与规则链请查看后文[规则明细表](#-当前支持的网站与规则)。
+
+### 👟 球鞋交易与垂直零售
+
+| 品牌/平台 | 状态 |
+| :--- | :---: |
+| Goat | ✅ |
+| FlightClub | ✅ |
+| StockX | ✅ |
+| Foot Locker | ✅ |
+| Finish Line | ✅ |
+| Sneaker News | ✅ |
+| Sneaker Freaker | ✅ |
+| Novelship | ✅ |
+| Stadium Goods | ✅ |
+| Snipes | ✅ |
+
+### 🏃 运动品牌官方 / 区域站
+
+| 品牌 | 覆盖区域 |
+| :--- | :--- |
+| **Adidas** | 全球 |
+| **Asics** | 全球 / 香港 / 台湾 |
+| **Brooks** | 全球 |
+| **Converse** | 中国 |
+| **Hoka** | 全球 / 中国 |
+| **Li-Ning** | 中国 |
+| **Mizuno** | 美国 |
+| **New Balance** | 全球 / 中国 |
+| **On** | 全球 / 中国 |
+| **Puma** | 全球 / 中国 |
+| **Salomon** | 全球 |
+| **Saucony** | 全球 |
+| **Skechers** | 美国 / 香港 / 新加坡 |
+| **The North Face** | 全球 / 中国 |
+| **Under Armour** | 全球 |
+| **Vans** | 全球 |
+| **Nike** | 中国 / 全球 / 中东 |
+| **Fila** | 香港 / 东南亚 |
+| **MLB** | 韩国 |
+
+### 🛒 综合运动零售 / 户外 / 通用电商
+
+| 平台 | 类型 |
+| :--- | :--- |
+| Decathlon | 全球 / 中国 / 香港 |
+| Amazon | 综合电商 |
+| eBay | 拍卖电商 |
+| END. Clothing | 潮流零售 |
+| Farfetch | 奢侈品电商 |
+| Complex | 媒体内容 |
+| Zalora | 东南亚电商 |
+
+### 🎨 时尚 / 平台 / 通用图片 CDN
+
+| 平台 | 说明 |
+| :--- | :--- |
+| Shein | 快时尚 |
+| Poizon (得物) | 潮流社区 |
+| 识货 | 导购平台 |
+| AliCDN | 阿里系 CDN |
+| Sanity | Headless CMS |
+
+### 🔗 URL 片段补充支持
+
+> 不依赖精确 host，通过 URL 路径片段识别
+
+- **Decathlon 全球** — Shopify 文件路径
+- **Reebok 全球** — Shopify 文件路径
+- **KicksCrew 全球** — Shopify 文件路径
+- **T4S Czechia** — `t4s.cz` 域名
+
+---
+
+## ⚡ 核心功能
+
+### 1️⃣ 页面图片提取与清洗
 
 - 扫描页面中的图片候选资源
 - 支持从常见图片 URL、`srcset` 等来源中提取候选图
 - 对已识别站点应用专用清洗规则，将缩略图、带尺寸参数图、带渲染 query 的图片尽量转换成更高清版本
 - 未命中规则时，保留原始链接
 
-### 2. 幻灯片浏览
+### 2️⃣ 幻灯片浏览
 
 - 以全屏 overlay 方式浏览已提取图片
 - 支持上一张 / 下一张切换
 - 显示当前图片计数、命中的规则类型（hostType）、保存目录、文件名、清洗后链接与原始链接
 - 支持滚轮切换、键盘切换与 Esc 关闭
 
-### 3. 图片查看器
+### 3️⃣ 图片查看器
 
 - 点击主图可进入独立查看器
 - 适合对当前图片做更聚焦的预览
 
-### 4. 复制链接
+### 4️⃣ 复制链接
 
 - 可分别复制：
   - 当前链接（已清洗）
@@ -135,7 +156,7 @@
 - 优先使用 `navigator.clipboard.writeText`
 - 不可用时回退到 `document.execCommand('copy')`
 
-### 5. 保存能力
+### 5️⃣ 保存能力
 
 - 支持：
   - 保存当前图片
@@ -146,7 +167,7 @@
 - 对文件名进行安全清洗，减少 Windows/macOS/Linux 上保存失败风险
 - 若运行环境不支持带目录的下载名，会自动降级为平铺文件名
 
-### 6. 黑名单与设置
+### 6️⃣ 黑名单与设置
 
 - 支持站点黑名单，命中后禁止打开幻灯片与扫描图片
 - 支持保存目录、按钮位置、过滤条件等配置持久化
@@ -157,11 +178,11 @@
 
 ---
 
-## 规则系统设计
+## 🔧 规则系统设计
 
 脚本采用"host 路由 + 规则链"的结构，由以下 5 个模块组成。
 
-### 1. `REUSABLE_RULES`
+### 1️⃣ `REUSABLE_RULES`
 
 通用复用规则，适合多个站点共享，例如：
 
@@ -171,11 +192,11 @@
 - 去通用尺寸后缀：`REMOVE_SIZE_SUFFIX`
 - 去 Shein / LTWebStatic 缩略图后缀：`SHEIN_LTWEBSTATIC_REMOVE_THUMBNAIL_SUFFIX`
 
-### 2. `BRAND_RULES`
+### 2️⃣ `BRAND_RULES`
 
 站点/品牌定制规则，封装更强的路径重写、参数替换、Scene7 规则、Shopify 尺寸清洗等行为。
 
-### 3. `EXACT_HOST_MAP`
+### 3️⃣ `EXACT_HOST_MAP`
 
 将精确 host 映射到某个规则组类型（hostType）。
 
@@ -190,7 +211,7 @@
 - `catalog.hkstore.com` → `hkstore-catalog`
 - `dynamic.zacdn.com` → `zalora-dynamic-cdn`
 
-### 4. `PARTIAL_MATCH_RULES`
+### 4️⃣ `PARTIAL_MATCH_RULES`
 
 用于处理无法仅靠 host 精确识别、需要按 URL 片段命中的规则。
 
@@ -199,7 +220,7 @@
 - 指定 Shopify 文件路径的 Decathlon / Reebok / KicksCrew
 - `t4s.cz`
 
-### 5. `HOST_RULE_MAP`
+### 5️⃣ `HOST_RULE_MAP`
 
 将规则组类型映射为一串规则链；清洗时会按顺序依次执行。
 
@@ -217,7 +238,7 @@
 
 ---
 
-## 当前支持的网站与规则
+## 📊 当前支持的网站与规则
 
 以下清单基于当前 `image-helper.user.js` 中的 `EXACT_HOST_MAP` 与 `HOST_RULE_MAP` 整理，按品类分组。
 
@@ -225,9 +246,9 @@
 >
 > - "规则摘要"展示的是规则链意图，不逐字复制完整源码实现。
 > - 同一规则组可能对应多个 host。
-> - 此表不含 `PARTIAL_MATCH_RULES` 中的 URL 片段命中项，详见[后文补充](#基于-url-片段的补充支持partial_match_rules)。
+> - 此表不含 `PARTIAL_MATCH_RULES` 中的 URL 片段命中项，详见[后文补充](#-基于-url-片段的补充支持partial_match_rules)。
 
-### 球鞋交易与垂直零售
+### 👟 球鞋交易与垂直零售
 
 | 区域            | 规则组               | 支持 host                   | 规则摘要                                       |
 | --------------- | -------------------- | --------------------------- | ---------------------------------------------- |
@@ -242,7 +263,7 @@
 | Stadium Goods   | stadiumgoods-shopify | `www.stadiumgoods.com`      | Shopify 尺寸后缀清理，再去 query               |
 | Snipes          | snipes-demandware    | `www.snipesusa.com`         | 去 query                                       |
 
-### 运动品牌官方 / 区域站
+### 🏃 运动品牌官方 / 区域站
 
 | 区域                 | 规则组             | 支持 host                                                      | 规则摘要                           |
 | -------------------- | ------------------ | -------------------------------------------------------------- | ---------------------------------- |
@@ -282,7 +303,7 @@
 | MLB 韩国             | mlb-korea          | `static-resource.mlb-korea.com`                                | 调整 CDN-CGI 图片参数              |
 | MLB 韩国             | mlb-korea-shop     | `en.mlb-korea.com`                                             | 清理 shop 文件的版本/宽度参数      |
 
-### 综合运动零售 / 户外 / 通用电商
+### 🛒 综合运动零售 / 户外 / 通用电商
 
 | 区域           | 规则组             | 支持 host                          | 规则摘要                                       |
 | -------------- | ------------------ | ---------------------------------- | ---------------------------------------------- |
@@ -305,7 +326,7 @@
 | Hypebeast CDN  | hypebeast-cdn      | `image-cdn.hypb.st`                | decode 包装 CDN 路径并提取 pathname 中原图 URL |
 | Hypebeast CDN  | hypebeast-cdn      | `www.hypebeast.com`                | decode 包装 CDN 路径并提取 pathname 中原图 URL |
 
-### 时尚 / 平台 / 通用图片 CDN
+### 🎨 时尚 / 平台 / 通用图片 CDN
 
 | 区域   | 规则组            | 支持 host             | 规则摘要                          |
 | ------ | ----------------- | --------------------- | --------------------------------- |
@@ -320,7 +341,7 @@
 
 ---
 
-## 基于 URL 片段的补充支持（PARTIAL_MATCH_RULES）
+## 🔍 基于 URL 片段的补充支持（PARTIAL_MATCH_RULES）
 
 以下规则不依赖精确 host，而依赖 URL 片段识别；展示顺序也与主表保持一致，优先从区域/归属视角阅读：
 
@@ -333,7 +354,7 @@
 
 ---
 
-## 图片清洗流程
+## 🔄 图片清洗流程
 
 脚本的 URL 清洗主流程为：
 
@@ -347,9 +368,9 @@
 
 ---
 
-## 新增站点与维护模板
+## ➕ 新增站点与维护模板
 
-### 1. 收集样本
+### 1️⃣ 收集样本
 
 - 页面 URL：`https://www.example.com/product/xxx`
 - 原始图片 URL（至少 2~3 条，最好覆盖列表图/详情图/缩略图）：
@@ -358,7 +379,7 @@
 - 目标高清 URL 预期：`https://cdn.example.com/img/a.jpg`
 - 是否存在多个图片 host：是 / 否
 
-### 2. 判断接入方式
+### 2️⃣ 判断接入方式
 
 - 是否可直接复用 `REUSABLE_RULES`：是 / 否
 - 是否需要新增 `BRAND_RULES`：是 / 否
@@ -366,7 +387,7 @@
   - `EXACT_HOST_MAP`
   - `PARTIAL_MATCH_RULES`
 
-### 3. 实施清单
+### 3️⃣ 实施清单
 
 1. 先确认图片 host 是否稳定
 2. 优先复用 `REUSABLE_RULES`；若品牌有特殊路径/参数语义，再新增 `BRAND_RULES`
@@ -380,11 +401,11 @@
    node image-helper.regression.js
    ```
 8. 同步更新本文档中的：
-   - [当前支持的网站与规则](#当前支持的网站与规则)
-   - [基于 URL 片段的补充支持](#基于-url-片段的补充支持partial_match_rules)
-   - [当前已知注意事项](#当前已知注意事项)（如有边界条件）
+   - [当前支持的网站与规则](#-当前支持的网站与规则)
+   - [基于 URL 片段的补充支持](#-基于-url-片段的补充支持partial_match_rules)
+   - [当前已知注意事项](#-当前已知注意事项)（如有边界条件）
 
-### 4. 规则摘要写法建议
+### 4️⃣ 规则摘要写法建议
 
 文档里建议写"规则效果"，不要堆完整实现。摘要措辞也尽量保持统一：优先使用“去 query”“去尺寸后缀”“清理图片处理参数/变换路径”等结果导向表达，避免在同类规则中混用“删除 query”“清路径”“改参数”等粒度不一致的描述。例如：
 
@@ -395,49 +416,3 @@
 - 缓存图转原图路径
 
 ---
-
-## 文档维护原则
-
-本文件定位为：
-
-- 功能概览
-- 规则架构说明
-- 支持站点索引
-- 新增站点时的维护模板
-
-不追求逐条复制完整源码细节。若后续规则新增或 host 映射变化，建议同步更新：
-
-- "当前支持的网站与规则"
-- "基于 URL 片段的补充支持"
-- "当前已知注意事项"
-
-### 规则组命名规范（品牌 / 区域 / 服务）
-
-规则组命名默认采用“品牌-区域-服务”结构，但实际执行遵循“最小但充分信息量”原则：
-
-1. 若 `品牌-区域` 已足够唯一，可保留两段式命名，如 `adidas-intl`、`newbalance-cn`、`skechers-sg`
-2. 若同一品牌或同类链路下存在多个服务商 / CDN / 图片协议，应显式补第三段，如 `footlocker-scene7`、`snipes-demandware`、`shein-ltwebstatic`
-3. 文档中的“规则组”列必须严格映射源码真实 key，不可只改文档展示名而不改源码
-4. 速览章节优先承担“品牌 / 区域 / 平台”的轻量导航职责，避免混入过多 host、服务商或实现细节
-5. 主表与 `PARTIAL_MATCH_RULES` 补充表优先承担工程映射职责；若速览与明细表出现表达层级差异，以后者为准
-6. 若仅调整展示层品牌写法（如官方大小写、标题式可读名），不得影响规则 key、host 映射与脚本行为
-7. 涉及真实规则 key 重命名时，必须同步检查 `EXACT_HOST_MAP`、`HOST_RULE_MAP`、相关脚本引用、回归结果，并按 SemVer 重新评估版本号
-8. 已明确保留的历史决策（如 `adidas-intl`）不再为追求形式统一而继续改名
-
----
-
-## 当前已知注意事项
-
-<details>
-<summary>点击展开</summary>
-
-- Shein / LTWebStatic 规则当前明确兼容：
-  - `_thumbnail_220x293`
-  - `_thumbnail_x460`
-- Finish Line 当前仅基于样例做了保守 query 清理，后续如发现更明确的尺寸升级策略，可再扩展。
-- Complex Images 当前通过通用 Cloudinary upload helper 处理：会剥离 `/complex/image/upload/` 后连续的 transform segment，并仅在真实资源路径以 `sanity-new/` 开头时生效；若后续出现非下划线命名的 transform token，需先核对样本再扩展识别模式。
-- Puma International 当前也复用同一 helper，但额外限制真实资源路径必须以 `global/` 开头，避免把非目标 upload 路径误清洗。
-- 2026-03-26 进一步复查后，当前未再发现第三个可以安全并入该 Cloudinary upload helper 的明确候选；像 GOAT、Nike、MLB Korea、Scene7 系规则虽然也涉及 transform / 图像处理，但路径语义与资源边界不同，强行抽象更容易误伤。
-- 复制功能仍包含 `document.execCommand('copy')` 兼容性回退，因此 IDE 可能提示 deprecated hint，属预期。
-
-</details>
