@@ -2,7 +2,7 @@
 
 > **脚本文件**：[`image-helper.user.js`](./image-helper.user.js)
 
-![version](https://img.shields.io/badge/version-1.10.16-blue?style=flat-square)
+![version](https://img.shields.io/badge/version-1.10.17-blue?style=flat-square)
 ![match](https://img.shields.io/badge/match-*://*/*-green?style=flat-square)
 ![run](https://img.shields.io/badge/run-document--idle-yellow?style=flat-square)
 ![license](https://img.shields.io/badge/license-MIT-orange?style=flat-square)
@@ -24,7 +24,7 @@
 | 属性         | 值                      |
 | :----------- | :---------------------- |
 | **名称**     | Image Helper / 图片助手 |
-| **版本**     | `1.10.16`               |
+| **版本**     | `1.10.17`               |
 | **运行时机** | `document-idle`         |
 | **匹配范围** | `*://*/*`               |
 | **作者**     | tlgj                    |
@@ -296,7 +296,7 @@
 | Nike 中国            | nike-cn            | `static.nike.com.cn`                                           | 保留中国站域名、清路径、转 PNG     |
 | Nike 全球            | nike-global        | `static.nike.com`                                              | 清路径、转 PNG                     |
 | Nike 全球            | nike-global        | `c.static-nike.com`                                            | 清路径、转 PNG                     |
-| Nike 中东            | nike-ae-like       | `www.nike.ae`, `www.nike.com.kw`, `www.nike.qa`, `www.nike.sa` | 中东站系路径/格式处理              |
+| Nike 中东            | nike-ae-like       | `www.nike.ae`, `www.nike.com.kw`, `www.nike.qa`, `www.nike.sa` | 保留原始图片格式并去展示参数       |
 | Fila 香港            | fila-hk            | `shoplineimg.com`                                              | 转换到 CloudFront 原图地址         |
 | Fila 香港 CloudFront | fila-hk-cloudfront | `d31xv78q8gnfco.cloudfront.net`                                | 提取 CloudFront 原图               |
 | Fila 东南亚          | fila-sg            | `img.myshopline.com`                                           | 按条件清理尺寸/质量 query          |
