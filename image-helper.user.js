@@ -1052,7 +1052,7 @@
     ["www.nike.com.kw", "nike-ae-like"],
     ["www.nike.qa", "nike-ae-like"],
     ["www.nike.sa", "nike-ae-like"],
-    ["assets.adidas.com", "adidas-assets"],
+    ["assets.adidas.com", "adidas-intl"],
     ["images.asics.com", "asics-intl"],
     ["img.cdn.91app.hk", "asics-hk"],
     ["img.91app.com", "asics-tw"],
@@ -1141,7 +1141,7 @@
     ],
     "nike-global": [BRAND_RULES.NIKE_CLEAN_PATH, REUSABLE_RULES.TO_PNG],
     "nike-ae-like": [BRAND_RULES.NIKE_AE_LIKE],
-    "adidas-assets": [
+    "adidas-intl": [
       BRAND_RULES.ADIDAS_ASSETS_PATH,
       BRAND_RULES.ADIDAS_JPG_TO_PNG,
     ],
