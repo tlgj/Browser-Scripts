@@ -2,7 +2,7 @@
 
 > **脚本文件**：[`image-helper.user.js`](./image-helper.user.js)
 
-![version](https://img.shields.io/badge/version-1.10.15-blue?style=flat-square)
+![version](https://img.shields.io/badge/version-1.10.16-blue?style=flat-square)
 ![match](https://img.shields.io/badge/match-*://*/*-green?style=flat-square)
 ![run](https://img.shields.io/badge/run-document--idle-yellow?style=flat-square)
 ![license](https://img.shields.io/badge/license-MIT-orange?style=flat-square)
@@ -21,14 +21,14 @@
 - 💾 **批量保存**：支持单张/快速/全部保存，自动创建子文件夹
 - ⚙️ **高度可配**：黑名单、过滤条件、加载模式等持久化设置
 
-| 属性 | 值 |
-| :--- | :--- |
-| **名称** | Image Helper / 图片助手 |
-| **版本** | `1.10.15` |
-| **运行时机** | `document-idle` |
-| **匹配范围** | `*://*/*` |
-| **作者** | tlgj |
-| **许可证** | MIT |
+| 属性         | 值                      |
+| :----------- | :---------------------- |
+| **名称**     | Image Helper / 图片助手 |
+| **版本**     | `1.10.16`               |
+| **运行时机** | `document-idle`         |
+| **匹配范围** | `*://*/*`               |
+| **作者**     | tlgj                    |
+| **许可证**   | MIT                     |
 
 ---
 
@@ -57,64 +57,64 @@
 
 ### 👟 球鞋交易与垂直零售
 
-| 品牌/平台 | 状态 |
-| :--- | :---: |
-| Goat | ✅ |
-| FlightClub | ✅ |
-| StockX | ✅ |
-| Foot Locker | ✅ |
-| Finish Line | ✅ |
-| Sneaker News | ✅ |
-| Sneaker Freaker | ✅ |
-| Novelship | ✅ |
-| Stadium Goods | ✅ |
-| Snipes | ✅ |
+| 品牌/平台       | 状态 |
+| :-------------- | :--: |
+| Goat            |  ✅  |
+| FlightClub      |  ✅  |
+| StockX          |  ✅  |
+| Foot Locker     |  ✅  |
+| Finish Line     |  ✅  |
+| Sneaker News    |  ✅  |
+| Sneaker Freaker |  ✅  |
+| Novelship       |  ✅  |
+| Stadium Goods   |  ✅  |
+| Snipes          |  ✅  |
 
 ### 🏃 运动品牌官方 / 区域站
 
-| 品牌 | 覆盖区域 |
-| :--- | :--- |
-| **Adidas** | 全球 |
-| **Asics** | 全球 / 香港 / 台湾 |
-| **Brooks** | 全球 |
-| **Converse** | 中国 |
-| **Hoka** | 全球 / 中国 |
-| **Li-Ning** | 中国 |
-| **Mizuno** | 美国 |
-| **New Balance** | 全球 / 中国 |
-| **On** | 全球 / 中国 |
-| **Puma** | 全球 / 中国 |
-| **Salomon** | 全球 |
-| **Saucony** | 全球 |
-| **Skechers** | 美国 / 香港 / 新加坡 |
-| **The North Face** | 全球 / 中国 |
-| **Under Armour** | 全球 |
-| **Vans** | 全球 |
-| **Nike** | 中国 / 全球 / 中东 |
-| **Fila** | 香港 / 东南亚 |
-| **MLB** | 韩国 |
+| 品牌               | 覆盖区域             |
+| :----------------- | :------------------- |
+| **Adidas**         | 全球                 |
+| **Asics**          | 全球 / 香港 / 台湾   |
+| **Brooks**         | 全球                 |
+| **Converse**       | 中国                 |
+| **Hoka**           | 全球 / 中国          |
+| **Li-Ning**        | 中国                 |
+| **Mizuno**         | 美国                 |
+| **New Balance**    | 全球 / 中国          |
+| **On**             | 全球 / 中国          |
+| **Puma**           | 全球 / 中国          |
+| **Salomon**        | 全球                 |
+| **Saucony**        | 全球                 |
+| **Skechers**       | 美国 / 香港 / 新加坡 |
+| **The North Face** | 全球 / 中国          |
+| **Under Armour**   | 全球                 |
+| **Vans**           | 全球                 |
+| **Nike**           | 中国 / 全球 / 中东   |
+| **Fila**           | 香港 / 东南亚        |
+| **MLB**            | 韩国                 |
 
 ### 🛒 综合运动零售 / 户外 / 通用电商
 
-| 平台 | 类型 |
-| :--- | :--- |
-| Decathlon | 全球 / 中国 / 香港 |
-| Amazon | 综合电商 |
-| eBay | 拍卖电商 |
-| END. Clothing | 潮流零售 |
-| Farfetch | 奢侈品电商 |
-| Complex | 媒体内容 |
-| Zalora | 东南亚电商 |
+| 平台          | 类型               |
+| :------------ | :----------------- |
+| Decathlon     | 全球 / 中国 / 香港 |
+| Amazon        | 综合电商           |
+| eBay          | 拍卖电商           |
+| END. Clothing | 潮流零售           |
+| Farfetch      | 奢侈品电商         |
+| Complex       | 媒体内容           |
+| Zalora        | 东南亚电商         |
 
 ### 🎨 时尚 / 平台 / 通用图片 CDN
 
-| 平台 | 说明 |
-| :--- | :--- |
-| Shein | 快时尚 |
-| Poizon (得物) | 潮流社区 |
-| 识货 | 导购平台 |
-| AliCDN | 阿里系 CDN |
-| Sanity | Headless CMS |
+| 平台          | 说明         |
+| :------------ | :----------- |
+| Shein         | 快时尚       |
+| Poizon (得物) | 潮流社区     |
+| 识货          | 导购平台     |
+| AliCDN        | 阿里系 CDN   |
+| Sanity        | Headless CMS |
 
 ### 🔗 URL 片段补充支持
 
@@ -226,7 +226,7 @@
 
 示例：
 
-- `nike-cn`：先中国站转全局域名，再清理路径，再转 png
+- `nike-cn`：保留中国站原始域名，只清理路径，再转 png
 - `shein-ltwebstatic`：先移除 `_thumbnail_(宽x高|x高)` 后缀，再去 query
 - `finishline-media`：仅保守去 query
 - `complex-cloudinary`：复用通用 Cloudinary upload 清洗 helper，移除 `/complex/image/upload/` 后连续的 transform path，保留真实资源路径
@@ -293,7 +293,7 @@
 | The North Face 中国  | thenorthface-cn    | `img2.thenorthface.com.cn`                                     | 去中国站 query                     |
 | Under Armour 全球    | underarmour-scene7 | `underarmour.scene7.com`                                       | 统一重写为高质量 PNG 参数          |
 | Vans 全球            | vans-intl          | `assets.vans.com`                                              | 清理国际站图片参数路径             |
-| Nike 中国            | nike-cn            | `static.nike.com.cn`                                           | 中国站域名转全球、清路径、转 PNG   |
+| Nike 中国            | nike-cn            | `static.nike.com.cn`                                           | 保留中国站域名、清路径、转 PNG     |
 | Nike 全球            | nike-global        | `static.nike.com`                                              | 清路径、转 PNG                     |
 | Nike 全球            | nike-global        | `c.static-nike.com`                                            | 清路径、转 PNG                     |
 | Nike 中东            | nike-ae-like       | `www.nike.ae`, `www.nike.com.kw`, `www.nike.qa`, `www.nike.sa` | 中东站系路径/格式处理              |

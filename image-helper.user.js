@@ -3,7 +3,7 @@
 // @name:zh-CN   图片助手
 // @name:en      Image Helper
 // @namespace    https://github.com/tlgj/Browser-Scripts
-// @version      1.10.15
+// @version      1.10.16
 // @description  提取页面图片并清洗到高清，支持多品牌 URL 规则、幻灯片浏览、独立查看器、保存/快速保存/全部保存，并支持脚本黑名单。
 // @author       tlgj
 // @license      MIT
@@ -865,10 +865,6 @@
           return p2;
         }),
     },
-    NIKE_CN_TO_GLOBAL: createRegexRule(
-      /\/\/static\.nike\.com\.cn\//,
-      "//static.nike.com/"
-    ),
     NIKE_CLEAN_PATH: {
       apply: (urlStr) => {
         if (!urlStr.includes("/a/images/")) return urlStr;
@@ -1189,11 +1185,7 @@
     goat: [BRAND_RULES.GOAT_CLEAN],
     flightclub: [REUSABLE_RULES.REMOVE_ALL_QUERY],
     stockx: [BRAND_RULES.STOCKX_HIGH_RES],
-    "nike-cn": [
-      BRAND_RULES.NIKE_CN_TO_GLOBAL,
-      BRAND_RULES.NIKE_CLEAN_PATH,
-      REUSABLE_RULES.TO_PNG,
-    ],
+    "nike-cn": [BRAND_RULES.NIKE_CLEAN_PATH, REUSABLE_RULES.TO_PNG],
     "nike-global": [BRAND_RULES.NIKE_CLEAN_PATH, REUSABLE_RULES.TO_PNG],
     "nike-ae-like": [BRAND_RULES.NIKE_AE_LIKE],
     "adidas-intl": [
