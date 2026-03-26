@@ -3,7 +3,7 @@
 // @name:zh-CN   图片助手
 // @name:en      Image Helper
 // @namespace    https://github.com/tlgj/Browser-Scripts
-// @version      1.10.11
+// @version      1.10.15
 // @description  提取页面图片并清洗到高清，支持多品牌 URL 规则、幻灯片浏览、独立查看器、保存/快速保存/全部保存，并支持脚本黑名单。
 // @author       tlgj
 // @license      MIT
@@ -769,6 +769,30 @@
     apply: (url) => url.split("?")[0] + newQuery,
   });
 
+  function extractEncodedOriginFromPath(pathname) {
+    const path = String(pathname || "").replace(/^\/+/, "");
+    if (!path) return null;
+
+    const decodedPath = (() => {
+      try {
+        return decodeURIComponent(path);
+      } catch {
+        return path;
+      }
+    })();
+
+    const originMatch = decodedPath.match(/^https?:\/\/[^?#]+/i);
+    return originMatch ? originMatch[0] : null;
+  }
+
+  function extractPlainOriginFromWrappedPath(pathname) {
+    const path = String(pathname || "");
+    if (!path) return null;
+
+    const plainMatch = path.match(/https?:\/\/[^?#]+/i);
+    return plainMatch ? plainMatch[0] : null;
+  }
+
   const CLOUINARY_TRANSFORM_SEGMENT_RE =
     /^[a-z]{1,3}_[^/]+(?:,[a-z]{1,3}_[^/]+)*$/i;
 
@@ -1038,6 +1062,33 @@
         assetPathStartsWith: "sanity-new/",
       }
     ),
+    HYPEBEAST_CDN_ORIGINAL: {
+      apply: (urlStr) => {
+        const u = safeUrlParse(urlStr);
+        if (!u || u.hostname !== "image-cdn.hypb.st") return urlStr;
+
+        const extracted = extractEncodedOriginFromPath(u.pathname);
+        return extracted || urlStr;
+      },
+    },
+    SNEAKER_FREAKER_BCDN_ORIGINAL: {
+      apply: (urlStr) => {
+        const u = safeUrlParse(urlStr);
+        if (!u || u.hostname !== "sneaker-freaker.b-cdn.net") return urlStr;
+
+        const extracted = extractEncodedOriginFromPath(u.pathname);
+        return extracted || urlStr;
+      },
+    },
+    ZALORA_DYNAMIC_ORIGINAL: {
+      apply: (urlStr) => {
+        const u = safeUrlParse(urlStr);
+        if (!u || u.hostname !== "dynamic.zacdn.com") return urlStr;
+
+        const extracted = extractPlainOriginFromWrappedPath(u.pathname);
+        return extracted || urlStr;
+      },
+    },
   };
 
   // ===== Rules: host maps =====
@@ -1110,6 +1161,10 @@
     ["img.ltwebstatic.com", "shein-ltwebstatic"],
     ["img.shein.com", "shein-ltwebstatic"],
     ["images.complex.com", "complex-cloudinary"],
+    ["image-cdn.hypb.st", "hypebeast-cdn"],
+    ["sneaker-freaker.b-cdn.net", "sneaker-freaker-bcdn"],
+    ["catalog.hkstore.com", "hkstore-catalog"],
+    ["dynamic.zacdn.com", "zalora-dynamic-cdn"],
     ["www.stadiumgoods.com", "stadiumgoods-shopify"],
   ]);
 
@@ -1220,6 +1275,10 @@
       REUSABLE_RULES.REMOVE_ALL_QUERY,
     ],
     "complex-cloudinary": [BRAND_RULES.COMPLEX_CLOUDINARY_CLEAN],
+    "hypebeast-cdn": [BRAND_RULES.HYPEBEAST_CDN_ORIGINAL],
+    "sneaker-freaker-bcdn": [BRAND_RULES.SNEAKER_FREAKER_BCDN_ORIGINAL],
+    "hkstore-catalog": [REUSABLE_RULES.REMOVE_ALL_QUERY],
+    "zalora-dynamic-cdn": [BRAND_RULES.ZALORA_DYNAMIC_ORIGINAL],
     "stadiumgoods-shopify": [
       BRAND_RULES.SHOPIFY_REMOVE_SIZE,
       REUSABLE_RULES.REMOVE_ALL_QUERY,
