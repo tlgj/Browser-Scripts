@@ -146,89 +146,89 @@
 
 ### 球鞋交易与垂直零售
 
-| 规则组               | 支持 host               | 区域          | 规则摘要                         |
-| -------------------- | ----------------------- | ------------- | -------------------------------- |
-| goat                 | `image.goat.com`        | Goat          | 清理 transform 路径或去 query    |
-| flightclub           | `cdn.flightclub.com`    | FlightClub    | 去 query                         |
-| stockx               | `images.stockx.com`     | StockX        | 强制高分辨率 query               |
-| footlocker-scene7    | `assets.footlocker.com` | Foot Locker   | Scene7 强制 zoom2000 png         |
-| finishline-media     | `media.finishline.com`  | Finish Line   | 保守去 query                     |
-| sneakernews-wp       | `sneakernews.com`       | Sneaker News  | 去 query                         |
-| novelship-img        | `images.novelship.com`  | Novelship     | 去 query                         |
-| stadiumgoods-shopify | `www.stadiumgoods.com`  | Stadium Goods | Shopify 尺寸后缀清理，再去 query |
-| snipes-demandware    | `www.snipesusa.com`     | Snipes        | 去 query                         |
+| 区域          | 规则组               | 支持 host               | 规则摘要                         |
+| ------------- | -------------------- | ----------------------- | -------------------------------- |
+| Goat          | goat                 | `image.goat.com`        | 清理 transform 路径或去 query    |
+| FlightClub    | flightclub           | `cdn.flightclub.com`    | 去 query                         |
+| StockX        | stockx               | `images.stockx.com`     | 强制高分辨率 query               |
+| Foot Locker   | footlocker-scene7    | `assets.footlocker.com` | Scene7 强制 zoom2000 png         |
+| Finish Line   | finishline-media     | `media.finishline.com`  | 保守去 query                     |
+| Sneaker News  | sneakernews-wp       | `sneakernews.com`       | 去 query                         |
+| Novelship     | novelship-img        | `images.novelship.com`  | 去 query                         |
+| Stadium Goods | stadiumgoods-shopify | `www.stadiumgoods.com`  | Shopify 尺寸后缀清理，再去 query |
+| Snipes        | snipes-demandware    | `www.snipesusa.com`     | 去 query                         |
 
 ### 运动品牌官方 / 区域站
 
-| 规则组             | 支持 host                                                      | 区域                 | 规则摘要                           |
-| ------------------ | -------------------------------------------------------------- | -------------------- | ---------------------------------- |
-| adidas-intl        | `assets.adidas.com`                                            | Adidas 全球          | 清理变换路径，JPG 转 PNG           |
-| asics-intl         | `images.asics.com`                                             | Asics 全球           | 强制高分辨率参数                   |
-| asics-hk           | `img.cdn.91app.hk`                                             | Asics 香港           | 删除版本 query                     |
-| asics-tw           | `img.91app.com`                                                | Asics 台湾           | 删除版本 query                     |
-| brooks-intl        | `www.brooksrunning.com`                                        | Brooks 全球          | 去 query，转 PNG                   |
-| converse-cn        | `res-converse.baozun.com`                                      | Converse 中国        | 去 query                           |
-| converse-cn        | `dam-converse.baozun.com`                                      | Converse 中国        | 去 query                           |
-| hoka-intl          | `dms.deckers.com`                                              | Hoka 全球            | 去 query                           |
-| hoka-cn            | `b2c.hoka.wishetin.com`                                        | Hoka 中国            | 删除中国站 query                   |
-| lining-cn          | `lining-goods-online-1302115263.file.myqcloud.com`             | Li-Ning 中国         | 去 query                           |
-| mizuno-usa         | `i1.adis.ws`                                                   | Mizuno 美国          | 去 query                           |
-| newbalance-intl    | `nb.scene7.com`                                                | New Balance 全球     | 去 query                           |
-| newbalance-cn      | `itg-tezign-files.tezign.com`                                  | New Balance 中国     | 清理 `image_process` 参数          |
-| on-intl            | `images.ctfassets.net`                                         | On 全球              | 去 query                           |
-| on-cn              | `oss.on-running.cn`                                            | On 中国              | 去 OSS 图片处理参数                |
-| puma-intl          | `images.puma.com`                                              | Puma 全球            | Cloudinary upload 变换路径清理     |
-| puma-cn            | `itg-tezign-files-tx.tezign.com`                               | Puma 中国            | 清理中国站图片处理参数             |
-| salomon-intl       | `cdn.dam.salomon.com`                                          | Salomon 全球         | 去 query                           |
-| saucony-intl       | `s7d4.scene7.com`                                              | Saucony 全球         | 先去 Scene7 `$...$` 段，再去 query |
-| skechers-usa       | `images.skechers.com`                                          | Skechers 美国        | 清理 `/image;...` 风格路径         |
-| skechers-hk        | `www.skechers.com.hk`                                          | Skechers 香港        | 删除版本 query                     |
-| skechers-sg        | `www.skechers.com.sg`                                          | Skechers 新加坡      | 去尺寸后缀，再删版本 query         |
-| thenorthface-intl  | `assets.thenorthface.com`                                      | The North Face 全球  | 清理 `t_img/.../v...` 变换路径     |
-| thenorthface-cn    | `img2.thenorthface.com.cn`                                     | The North Face 中国  | 删除中国站 query                   |
-| underarmour-scene7 | `underarmour.scene7.com`                                       | Under Armour 全球    | 统一重写为高质量 PNG 参数          |
-| vans-intl          | `assets.vans.com`                                              | Vans 全球            | 清理国际站图片参数路径             |
-| nike-cn            | `static.nike.com.cn`                                           | Nike 中国            | 中国站域名转全球、清路径、转 PNG   |
-| nike-global        | `static.nike.com`                                              | Nike 全球            | 清路径、转 PNG                     |
-| nike-global        | `c.static-nike.com`                                            | Nike 全球            | 清路径、转 PNG                     |
-| nike-ae-like       | `www.nike.ae`, `www.nike.com.kw`, `www.nike.qa`, `www.nike.sa` | Nike 中东            | 中东站系路径/格式处理              |
-| fila-hk            | `shoplineimg.com`                                              | Fila 香港            | 转换到 CloudFront 原图地址         |
-| fila-hk-cloudfront | `d31xv78q8gnfco.cloudfront.net`                                | Fila 香港 CloudFront | 提取 CloudFront 原图               |
-| fila-sg            | `img.myshopline.com`                                           | Fila 东南亚          | 按条件清理尺寸/质量 query          |
-| mlb-korea          | `static-resource.mlb-korea.com`                                | Mlb 韩国             | 调整 CDN-CGI 图片参数              |
-| mlb-korea-shop     | `en.mlb-korea.com`                                             | Mlb 韩国             | 清理 shop 文件的版本/宽度参数      |
+| 区域                 | 规则组             | 支持 host                                                      | 规则摘要                           |
+| -------------------- | ------------------ | -------------------------------------------------------------- | ---------------------------------- |
+| Adidas 全球          | adidas-intl        | `assets.adidas.com`                                            | 清理变换路径，JPG 转 PNG           |
+| Asics 全球           | asics-intl         | `images.asics.com`                                             | 强制高分辨率参数                   |
+| Asics 香港           | asics-hk           | `img.cdn.91app.hk`                                             | 删除版本 query                     |
+| Asics 台湾           | asics-tw           | `img.91app.com`                                                | 删除版本 query                     |
+| Brooks 全球          | brooks-intl        | `www.brooksrunning.com`                                        | 去 query，转 PNG                   |
+| Converse 中国        | converse-cn        | `res-converse.baozun.com`                                      | 去 query                           |
+| Converse 中国        | converse-cn        | `dam-converse.baozun.com`                                      | 去 query                           |
+| Hoka 全球            | hoka-intl          | `dms.deckers.com`                                              | 去 query                           |
+| Hoka 中国            | hoka-cn            | `b2c.hoka.wishetin.com`                                        | 删除中国站 query                   |
+| Li-Ning 中国         | lining-cn          | `lining-goods-online-1302115263.file.myqcloud.com`             | 去 query                           |
+| Mizuno 美国          | mizuno-usa         | `i1.adis.ws`                                                   | 去 query                           |
+| New Balance 全球     | newbalance-intl    | `nb.scene7.com`                                                | 去 query                           |
+| New Balance 中国     | newbalance-cn      | `itg-tezign-files.tezign.com`                                  | 清理 `image_process` 参数          |
+| On 全球              | on-intl            | `images.ctfassets.net`                                         | 去 query                           |
+| On 中国              | on-cn              | `oss.on-running.cn`                                            | 去 OSS 图片处理参数                |
+| Puma 全球            | puma-intl          | `images.puma.com`                                              | Cloudinary upload 变换路径清理     |
+| Puma 中国            | puma-cn            | `itg-tezign-files-tx.tezign.com`                               | 清理中国站图片处理参数             |
+| Salomon 全球         | salomon-intl       | `cdn.dam.salomon.com`                                          | 去 query                           |
+| Saucony 全球         | saucony-intl       | `s7d4.scene7.com`                                              | 先去 Scene7 `$...$` 段，再去 query |
+| Skechers 美国        | skechers-usa       | `images.skechers.com`                                          | 清理 `/image;...` 风格路径         |
+| Skechers 香港        | skechers-hk        | `www.skechers.com.hk`                                          | 删除版本 query                     |
+| Skechers 新加坡      | skechers-sg        | `www.skechers.com.sg`                                          | 去尺寸后缀，再删版本 query         |
+| The North Face 全球  | thenorthface-intl  | `assets.thenorthface.com`                                      | 清理 `t_img/.../v...` 变换路径     |
+| The North Face 中国  | thenorthface-cn    | `img2.thenorthface.com.cn`                                     | 删除中国站 query                   |
+| Under Armour 全球    | underarmour-scene7 | `underarmour.scene7.com`                                       | 统一重写为高质量 PNG 参数          |
+| Vans 全球            | vans-intl          | `assets.vans.com`                                              | 清理国际站图片参数路径             |
+| Nike 中国            | nike-cn            | `static.nike.com.cn`                                           | 中国站域名转全球、清路径、转 PNG   |
+| Nike 全球            | nike-global        | `static.nike.com`                                              | 清路径、转 PNG                     |
+| Nike 全球            | nike-global        | `c.static-nike.com`                                            | 清路径、转 PNG                     |
+| Nike 中东            | nike-ae-like       | `www.nike.ae`, `www.nike.com.kw`, `www.nike.qa`, `www.nike.sa` | 中东站系路径/格式处理              |
+| Fila 香港            | fila-hk            | `shoplineimg.com`                                              | 转换到 CloudFront 原图地址         |
+| Fila 香港 CloudFront | fila-hk-cloudfront | `d31xv78q8gnfco.cloudfront.net`                                | 提取 CloudFront 原图               |
+| Fila 东南亚          | fila-sg            | `img.myshopline.com`                                           | 按条件清理尺寸/质量 query          |
+| Mlb 韩国             | mlb-korea          | `static-resource.mlb-korea.com`                                | 调整 CDN-CGI 图片参数              |
+| Mlb 韩国             | mlb-korea-shop     | `en.mlb-korea.com`                                             | 清理 shop 文件的版本/宽度参数      |
 
 ### 综合运动零售 / 户外 / 通用电商
 
-| 规则组             | 支持 host                          | 区域           | 规则摘要                                          |
-| ------------------ | ---------------------------------- | -------------- | ------------------------------------------------- |
-| decathlon-intl     | `www.decathlon.com`                | Decathlon 全球 | 去 query                                          |
-| decathlon-cn       | `pixl.decathlon.com.cn`            | Decathlon 中国 | 去 query，转 PNG                                  |
-| decathlon-hk       | `contents.mediadecathlon.com`      | Decathlon 全球 | 去 query，转 PNG                                  |
-| amazon-media       | `m.media-amazon.com`               | Amazon         | 清理媒体图尺寸/格式片段                           |
-| ebay-img-force-png | `i.ebayimg.com`                    | eBay           | 强制改为 `s-l2000.png`                            |
-| end-clothing       | `media.endclothing.com`            | END. Clothing  | 清理媒体路径                                      |
-| old-order-shopify  | `old-order.com`                    | Old Order      | Shopify 尺寸后缀清理，再去 query                  |
-| runnmore-like      | `www.runnmore.com`                 | Runnmore       | thumbs 路径回原图                                 |
-| runnmore-like      | `www.extrasports.com`              | Extra Sports   | thumbs 路径回原图                                 |
-| runnmore-like      | `www.sportvision.mk`               | Sport Vision   | thumbs 路径回原图                                 |
-| opencart-generic   | `gnk-store.ru`                     | GNK Store      | 缓存图转原图                                      |
-| magento-shiekh     | `static.shiekh.com`                | Shiekh Shoes   | Magento 缓存图转原图路径                          |
-| farfetch-contents  | `cdn-images.farfetch-contents.com` | Farfetch       | 去文件名末尾尺寸后缀，再去 query                  |
-| complex-cloudinary | `images.complex.com`               | Complex        | 去 `/complex/image/upload/` 后连续 transform path |
+| 区域           | 规则组             | 支持 host                          | 规则摘要                                          |
+| -------------- | ------------------ | ---------------------------------- | ------------------------------------------------- |
+| Decathlon 全球 | decathlon-intl     | `www.decathlon.com`                | 去 query                                          |
+| Decathlon 中国 | decathlon-cn       | `pixl.decathlon.com.cn`            | 去 query，转 PNG                                  |
+| Decathlon 全球 | decathlon-hk       | `contents.mediadecathlon.com`      | 去 query，转 PNG                                  |
+| Amazon         | amazon-media       | `m.media-amazon.com`               | 清理媒体图尺寸/格式片段                           |
+| eBay           | ebay-img-force-png | `i.ebayimg.com`                    | 强制改为 `s-l2000.png`                            |
+| END. Clothing  | end-clothing       | `media.endclothing.com`            | 清理媒体路径                                      |
+| Old Order      | old-order-shopify  | `old-order.com`                    | Shopify 尺寸后缀清理，再去 query                  |
+| Runnmore       | runnmore-like      | `www.runnmore.com`                 | thumbs 路径回原图                                 |
+| Extra Sports   | runnmore-like      | `www.extrasports.com`              | thumbs 路径回原图                                 |
+| Sport Vision   | runnmore-like      | `www.sportvision.mk`               | thumbs 路径回原图                                 |
+| GNK Store      | opencart-generic   | `gnk-store.ru`                     | 缓存图转原图                                      |
+| Shiekh Shoes   | magento-shiekh     | `static.shiekh.com`                | Magento 缓存图转原图路径                          |
+| Farfetch       | farfetch-contents  | `cdn-images.farfetch-contents.com` | 去文件名末尾尺寸后缀，再去 query                  |
+| Complex        | complex-cloudinary | `images.complex.com`               | 去 `/complex/image/upload/` 后连续 transform path |
 
 ### 时尚 / 平台 / 通用图片 CDN
 
-| 规则组            | 支持 host             | 区域   | 规则摘要                            |
-| ----------------- | --------------------- | ------ | ----------------------------------- |
-| shein-ltwebstatic | `img.ltwebstatic.com` | Shein  | 移除 `_thumbnail_` 后缀，再去 query |
-| shein-ltwebstatic | `img.shein.com`       | Shein  | 移除 `_thumbnail_` 后缀，再去 query |
-| poizon-cdn        | `cdn.poizon.com`      | Poizon | 强制 PNG 参数                       |
-| shihuo-cdn        | `static.shihuocdn.cn` | 识货   | 去尺寸后缀，再去 query              |
-| shihuo-cdn        | `eimage.shihuocdn.cn` | 识货   | 去尺寸后缀，再去 query              |
-| alicdn            | `gw.alicdn.com`       | AliCDN | 移除文件名尾部阿里系后缀            |
-| alicdn            | `img.alicdn.com`      | AliCDN | 移除文件名尾部阿里系后缀            |
-| sanity-cdn        | `cdn.sanity.io`       | Sanity | 保留原始资源主路径                  |
+| 区域   | 规则组            | 支持 host             | 规则摘要                            |
+| ------ | ----------------- | --------------------- | ----------------------------------- |
+| Shein  | shein-ltwebstatic | `img.ltwebstatic.com` | 移除 `_thumbnail_` 后缀，再去 query |
+| Shein  | shein-ltwebstatic | `img.shein.com`       | 移除 `_thumbnail_` 后缀，再去 query |
+| Poizon | poizon-cdn        | `cdn.poizon.com`      | 强制 PNG 参数                       |
+| 识货   | shihuo-cdn        | `static.shihuocdn.cn` | 去尺寸后缀，再去 query              |
+| 识货   | shihuo-cdn        | `eimage.shihuocdn.cn` | 去尺寸后缀，再去 query              |
+| AliCDN | alicdn            | `gw.alicdn.com`       | 移除文件名尾部阿里系后缀            |
+| AliCDN | alicdn            | `img.alicdn.com`      | 移除文件名尾部阿里系后缀            |
+| Sanity | sanity-cdn        | `cdn.sanity.io`       | 保留原始资源主路径                  |
 
 ---
 
