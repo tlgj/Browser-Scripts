@@ -2,7 +2,7 @@
 
 > **脚本文件**：[`image-helper.user.js`](./image-helper.user.js)
 
-![version](https://img.shields.io/badge/version-1.10.17-blue?style=flat-square)
+![version](https://img.shields.io/badge/version-1.10.18-blue?style=flat-square)
 ![match](https://img.shields.io/badge/match-*://*/*-green?style=flat-square)
 ![run](https://img.shields.io/badge/run-document--idle-yellow?style=flat-square)
 ![license](https://img.shields.io/badge/license-MIT-orange?style=flat-square)
@@ -24,7 +24,7 @@
 | 属性         | 值                      |
 | :----------- | :---------------------- |
 | **名称**     | Image Helper / 图片助手 |
-| **版本**     | `1.10.17`               |
+| **版本**     | `1.10.18`               |
 | **运行时机** | `document-idle`         |
 | **匹配范围** | `*://*/*`               |
 | **作者**     | tlgj                    |
@@ -132,8 +132,9 @@
 ### 1️⃣ 页面图片提取与清洗
 
 - 扫描页面中的图片候选资源
-- 支持从常见图片 URL、`srcset` 等来源中提取候选图
+- 支持从常见图片 URL、`srcset`、`application/ld+json` 等来源中提取候选图
 - 对已识别站点应用专用清洗规则，将缩略图、带尺寸参数图、带渲染 query 的图片尽量转换成更高清版本
+- 默认提取流程已纳入 JSON-LD 图片扫描；更重的 `application/json` / `#__NEXT_DATA__` / `data-*` 深挖仍保持在增强模式
 - 未命中规则时，保留原始链接
 
 ### 2️⃣ 幻灯片浏览

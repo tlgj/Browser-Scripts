@@ -3,7 +3,7 @@
 // @name:zh-CN   图片助手
 // @name:en      Image Helper
 // @namespace    https://github.com/tlgj/Browser-Scripts
-// @version      1.10.17
+// @version      1.10.18
 // @description  提取页面图片并清洗到高清，支持多品牌 URL 规则、幻灯片浏览、独立查看器、保存/快速保存/全部保存，并支持脚本黑名单。
 // @author       tlgj
 // @license      MIT
@@ -1463,8 +1463,9 @@
             const descriptor = (m[2] || "").toLowerCase();
             let score = 0;
             if (/w$/.test(descriptor)) score = parseInt(descriptor, 10) || 0;
-            else if (/x$/.test(descriptor))
+            else if (/x$/.test(descriptor)) {
               score = (parseFloat(descriptor) || 0) * 10000;
+            }
             return { url, score };
           })
           .filter((item) => item.url && !/^type$/i.test(item.url));
@@ -1551,6 +1552,36 @@
       }
     };
 
+    const parseScriptJsonForImages = (script) => {
+      const raw = script.textContent || "";
+      if (!raw) return;
+
+      const lowerId = String(script.id || "").toLowerCase();
+      const lowerClass = String(script.className || "").toLowerCase();
+      const lowerType = String(script.type || "").toLowerCase();
+      const hintText = `${lowerId} ${lowerClass} ${lowerType}`;
+      const isNextData = lowerId === "__next_data__";
+      const isLdJson = lowerType === "application/ld+json";
+      const shouldParseJson =
+        isNextData ||
+        isLdJson ||
+        /(?:image|img|gallery|media|product)/.test(hintText) ||
+        /(?:image|img|gallery|media|product)/.test(
+          raw.slice(0, 400).toLowerCase()
+        );
+
+      if (!shouldParseJson) return;
+
+      try {
+        addJsonImageValues(JSON.parse(raw));
+      } catch {
+        const matches = raw.matchAll(
+          /https?:\/\/[^\s"'<>]+(?:jpe?g|png|gif|webp|avif|bmp|svg)(?:[^\s"'<>]*)/gi
+        );
+        for (const m of matches) add(m[0], 0);
+      }
+    };
+
     const LAZY_URL_ATTRS = [
       "data-src",
       "data-original",
@@ -1603,6 +1634,11 @@
     document
       .querySelectorAll('link[rel="preload"][as="image"][href]')
       .forEach((l) => add(l.getAttribute("href"), 0));
+    document
+      .querySelectorAll('script[type="application/ld+json"]')
+      .forEach((script) => {
+        parseScriptJsonForImages(script);
+      });
 
     const IMG_EXT_RE = /\.(?:jpe?g|png|gif|webp|avif|bmp|svg)(?:[?#]|$)/i;
     document.querySelectorAll("a[href]").forEach((a) => {
@@ -1634,36 +1670,10 @@
 
       document
         .querySelectorAll(
-          'script[type="application/ld+json"], script[type="application/json"], script#__NEXT_DATA__'
+          'script[type="application/json"], script#__NEXT_DATA__'
         )
         .forEach((script) => {
-          const raw = script.textContent || "";
-          if (!raw) return;
-
-          const lowerId = String(script.id || "").toLowerCase();
-          const lowerClass = String(script.className || "").toLowerCase();
-          const lowerType = String(script.type || "").toLowerCase();
-          const hintText = `${lowerId} ${lowerClass} ${lowerType}`;
-          const isNextData = lowerId === "__next_data__";
-          const isLdJson = lowerType === "application/ld+json";
-          const shouldParseJson =
-            isNextData ||
-            isLdJson ||
-            /(?:image|img|gallery|media|product)/.test(hintText) ||
-            /(?:image|img|gallery|media|product)/.test(
-              raw.slice(0, 400).toLowerCase()
-            );
-
-          if (!shouldParseJson) return;
-
-          try {
-            addJsonImageValues(JSON.parse(raw));
-          } catch {
-            const matches = raw.matchAll(
-              /https?:\/\/[^\s"'<>]+(?:jpe?g|png|gif|webp|avif|bmp|svg)(?:[^\s"'<>]*)/gi
-            );
-            for (const m of matches) add(m[0], 0);
-          }
+          parseScriptJsonForImages(script);
         });
     }
 
