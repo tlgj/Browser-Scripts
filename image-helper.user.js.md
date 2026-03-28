@@ -2,7 +2,7 @@
 
 > **脚本文件**：[`image-helper.user.js`](./image-helper.user.js)
 
-![version](https://img.shields.io/badge/version-1.10.18-blue?style=flat-square)
+![version](https://img.shields.io/badge/version-1.10.20-blue?style=flat-square)
 ![match](https://img.shields.io/badge/match-*://*/*-green?style=flat-square)
 ![run](https://img.shields.io/badge/run-document--idle-yellow?style=flat-square)
 ![license](https://img.shields.io/badge/license-MIT-orange?style=flat-square)
@@ -24,7 +24,7 @@
 | 属性         | 值                      |
 | :----------- | :---------------------- |
 | **名称**     | Image Helper / 图片助手 |
-| **版本**     | `1.10.18`               |
+| **版本**     | `1.10.20`               |
 | **运行时机** | `document-idle`         |
 | **匹配范围** | `*://*/*`               |
 | **作者**     | tlgj                    |
@@ -72,27 +72,27 @@
 
 ### 🏃 运动品牌官方 / 区域站
 
-| 品牌               | 覆盖区域             |
-| :----------------- | :------------------- |
-| **Adidas**         | 全球                 |
-| **Asics**          | 全球 / 香港 / 台湾   |
-| **Brooks**         | 全球                 |
-| **Converse**       | 中国                 |
-| **Hoka**           | 全球 / 中国          |
-| **Li-Ning**        | 中国                 |
-| **Mizuno**         | 美国                 |
-| **New Balance**    | 全球 / 中国          |
-| **On**             | 全球 / 中国          |
-| **Puma**           | 全球 / 中国          |
-| **Salomon**        | 全球                 |
-| **Saucony**        | 全球                 |
-| **Skechers**       | 美国 / 香港 / 新加坡 |
-| **The North Face** | 全球 / 中国          |
-| **Under Armour**   | 全球                 |
-| **Vans**           | 全球                 |
-| **Nike**           | 中国 / 全球 / 中东   |
-| **Fila**           | 香港 / 东南亚        |
-| **MLB**            | 韩国                 |
+| 品牌               | 覆盖区域                    |
+| :----------------- | :-------------------------- |
+| **Adidas**         | 全球                        |
+| **Asics**          | 全球 / 香港 / 台湾          |
+| **Brooks**         | 全球                        |
+| **Converse**       | 中国                        |
+| **Hoka**           | 全球 / 中国                 |
+| **Li-Ning**        | 中国                        |
+| **Mizuno**         | 美国                        |
+| **New Balance**    | 全球 / 中国                 |
+| **On**             | 全球 / 中国                 |
+| **Puma**           | 全球 / 中国 / 香港 / 台湾   |
+| **Salomon**        | 全球                        |
+| **Saucony**        | 全球                        |
+| **Skechers**       | 美国 / 香港 / 新加坡 / 台湾 |
+| **The North Face** | 全球 / 中国 / 台湾          |
+| **Under Armour**   | 全球                        |
+| **Vans**           | 全球 / 台湾                 |
+| **Nike**           | 中国 / 全球 / 中东          |
+| **Fila**           | 香港 / 新加坡 / 中国        |
+| **MLB**            | 韩国 / 香港                 |
 
 ### 🛒 综合运动零售 / 户外 / 通用电商
 
@@ -211,6 +211,7 @@
 - `sneaker-freaker.b-cdn.net` → `sneaker-freaker-bcdn`
 - `catalog.hkstore.com` → `hkstore-catalog`
 - `dynamic.zacdn.com` → `zalora-dynamic-cdn`
+- `img.cdn.91app.hk` / `img.91app.com` → `cdn-91app`
 
 ### 4️⃣ `PARTIAL_MATCH_RULES`
 
@@ -235,6 +236,7 @@
 - `sneaker-freaker-bcdn`：对 `sneaker-freaker.b-cdn.net` 的包装 CDN 路径做 decode，从 `pathname` 中提取被 percent-encode 的真实原图 URL
 - `hkstore-catalog`：对 `catalog.hkstore.com/media/catalog/product/...` 的 Magento 媒体图保守去 query，保留原始图片路径
 - `zalora-dynamic-cdn`：对 `dynamic.zacdn.com/.../https://static-hk.zacdn.com/...` 这类包装 CDN 路径直接提取 pathname 后段的明文原图 URL
+- `cdn-91app`：统一承接 91APP 平台共享图片域，保守去版本 query；当前已确认覆盖 Asics / Puma / MLB 香港，以及 Puma / The North Face / Vans / Skechers 台湾等共用 91APP 图片域的站点
 - `puma-intl`：复用同一 helper，但要求真实资源路径必须以 `global/` 开头
 
 ---
@@ -270,8 +272,14 @@
 | -------------------- | ------------------ | -------------------------------------------------------------- | ---------------------------------- |
 | Adidas 全球          | adidas-intl        | `assets.adidas.com`                                            | 清理变换路径，JPG 转 PNG           |
 | Asics 全球           | asics-intl         | `images.asics.com`                                             | 强制高分辨率参数                   |
-| Asics 香港           | asics-hk           | `img.cdn.91app.hk`                                             | 去版本 query                       |
-| Asics 台湾           | asics-tw           | `img.91app.com`                                                | 去版本 query                       |
+| 91APP CDN            | cdn-91app          | `img.cdn.91app.hk`, `img.91app.com`                            | 去版本 query                       |
+| Asics 香港           | cdn-91app          | `img.cdn.91app.hk`                                             | 去版本 query                       |
+| Puma 香港            | cdn-91app          | `img.cdn.91app.hk`                                             | 去版本 query                       |
+| MLB 香港             | cdn-91app          | `img.cdn.91app.hk`                                             | 去版本 query                       |
+| Puma 台湾            | cdn-91app          | `img.91app.com`                                                | 去版本 query                       |
+| The North Face 台湾  | cdn-91app          | `img.91app.com`                                                | 去版本 query                       |
+| Vans 台湾            | cdn-91app          | `img.91app.com`                                                | 去版本 query                       |
+| Skechers 台湾        | cdn-91app          | `img.91app.com`                                                | 去版本 query                       |
 | Brooks 全球          | brooks-intl        | `www.brooksrunning.com`                                        | 去 query，转 PNG                   |
 | Converse 中国        | converse-cn        | `res-converse.baozun.com`                                      | 去 query                           |
 | Converse 中国        | converse-cn        | `dam-converse.baozun.com`                                      | 去 query                           |
@@ -285,22 +293,28 @@
 | On 中国              | on-cn              | `oss.on-running.cn`                                            | 去 OSS 图片处理参数                |
 | Puma 全球            | puma-intl          | `images.puma.com`                                              | Cloudinary upload 变换路径清理     |
 | Puma 中国            | puma-cn            | `itg-tezign-files-tx.tezign.com`                               | 清理中国站图片处理参数             |
+| Puma 香港            | cdn-91app          | `img.cdn.91app.hk`                                             | 去版本 query                       |
+| Puma 台湾            | cdn-91app          | `img.91app.com`                                                | 去版本 query                       |
 | Salomon 全球         | salomon-intl       | `cdn.dam.salomon.com`                                          | 去 query                           |
 | Saucony 全球         | saucony-intl       | `s7d4.scene7.com`                                              | 先去 Scene7 `$...$` 段，再去 query |
 | Skechers 美国        | skechers-usa       | `images.skechers.com`                                          | 清理 `/image;...` 风格路径         |
 | Skechers 香港        | skechers-hk        | `www.skechers.com.hk`                                          | 去版本 query                       |
 | Skechers 新加坡      | skechers-sg        | `www.skechers.com.sg`                                          | 去尺寸后缀，再去版本 query         |
+| Skechers 台湾        | cdn-91app          | `img.91app.com`                                                | 去版本 query                       |
 | The North Face 全球  | thenorthface-intl  | `assets.thenorthface.com`                                      | 清理 `t_img/.../v...` 变换路径     |
 | The North Face 中国  | thenorthface-cn    | `img2.thenorthface.com.cn`                                     | 去中国站 query                     |
+| The North Face 台湾  | cdn-91app          | `img.91app.com`                                                | 去版本 query                       |
 | Under Armour 全球    | underarmour-scene7 | `underarmour.scene7.com`                                       | 统一重写为高质量 PNG 参数          |
 | Vans 全球            | vans-intl          | `assets.vans.com`                                              | 清理国际站图片参数路径             |
+| Vans 台湾            | cdn-91app          | `img.91app.com`                                                | 去版本 query                       |
 | Nike 中国            | nike-cn            | `static.nike.com.cn`                                           | 保留中国站域名、清路径、转 PNG     |
 | Nike 全球            | nike-global        | `static.nike.com`                                              | 清路径、转 PNG                     |
 | Nike 全球            | nike-global        | `c.static-nike.com`                                            | 清路径、转 PNG                     |
 | Nike 中东            | nike-ae-like       | `www.nike.ae`, `www.nike.com.kw`, `www.nike.qa`, `www.nike.sa` | 保留原始图片格式并去展示参数       |
 | Fila 香港            | fila-hk            | `shoplineimg.com`                                              | 转换到 CloudFront 原图地址         |
 | Fila 香港 CloudFront | fila-hk-cloudfront | `d31xv78q8gnfco.cloudfront.net`                                | 提取 CloudFront 原图               |
-| Fila 东南亚          | fila-sg            | `img.myshopline.com`                                           | 按条件清理尺寸/质量 query          |
+| Fila 新加坡          | fila-sg            | `img.myshopline.com`                                           | 按条件清理尺寸/质量 query          |
+| Fila 中国            | fila-cn            | `img.fishfay.com`                                              | 去 `x-image-process` 展示参数      |
 | MLB 韩国             | mlb-korea          | `static-resource.mlb-korea.com`                                | 调整 CDN-CGI 图片参数              |
 | MLB 韩国             | mlb-korea-shop     | `en.mlb-korea.com`                                             | 清理 shop 文件的版本/宽度参数      |
 

@@ -3,7 +3,7 @@
 // @name:zh-CN   图片助手
 // @name:en      Image Helper
 // @namespace    https://github.com/tlgj/Browser-Scripts
-// @version      1.10.18
+// @version      1.10.20
 // @description  提取页面图片并清洗到高清，支持多品牌 URL 规则、幻灯片浏览、独立查看器、保存/快速保存/全部保存，并支持脚本黑名单。
 // @author       tlgj
 // @license      MIT
@@ -944,6 +944,16 @@
         return url;
       },
     },
+    FILA_CN_QUERY: {
+      apply: (url) => {
+        const u = safeUrlParse(url);
+        if (!u) return url;
+        if (u.searchParams.has("x-image-process")) {
+          return url.split("?")[0];
+        }
+        return url;
+      },
+    },
     FILA_HK_TO_CLOUDFRONT: {
       apply: (url) =>
         url.replace(
@@ -1104,8 +1114,8 @@
     ["www.nike.sa", "nike-ae-like"],
     ["assets.adidas.com", "adidas-intl"],
     ["images.asics.com", "asics-intl"],
-    ["img.cdn.91app.hk", "asics-hk"],
-    ["img.91app.com", "asics-tw"],
+    ["img.cdn.91app.hk", "cdn-91app"],
+    ["img.91app.com", "cdn-91app"],
     ["www.brooksrunning.com", "brooks-intl"],
     ["res-converse.baozun.com", "converse-cn"],
     ["dam-converse.baozun.com", "converse-cn"],
@@ -1113,6 +1123,7 @@
     ["pixl.decathlon.com.cn", "decathlon-cn"],
     ["contents.mediadecathlon.com", "decathlon-hk"],
     ["img.myshopline.com", "fila-sg"],
+    ["img.fishfay.com", "fila-cn"],
     ["shoplineimg.com", "fila-hk"],
     ["d31xv78q8gnfco.cloudfront.net", "fila-hk-cloudfront"],
     ["dms.deckers.com", "hoka-intl"],
@@ -1196,14 +1207,14 @@
       BRAND_RULES.ADIDAS_JPG_TO_PNG,
     ],
     "asics-intl": [BRAND_RULES.ASICS_HIGH_RES],
-    "asics-hk": [REUSABLE_RULES.REMOVE_VERSION_QUERY],
-    "asics-tw": [REUSABLE_RULES.REMOVE_VERSION_QUERY],
+    "cdn-91app": [REUSABLE_RULES.REMOVE_VERSION_QUERY],
     "brooks-intl": [REUSABLE_RULES.REMOVE_ALL_QUERY, REUSABLE_RULES.TO_PNG],
     "converse-cn": [REUSABLE_RULES.REMOVE_ALL_QUERY],
     "decathlon-intl": [REUSABLE_RULES.REMOVE_ALL_QUERY],
     "decathlon-cn": [REUSABLE_RULES.REMOVE_ALL_QUERY, REUSABLE_RULES.TO_PNG],
     "decathlon-hk": [REUSABLE_RULES.REMOVE_ALL_QUERY, REUSABLE_RULES.TO_PNG],
     "fila-sg": [BRAND_RULES.FILA_SG_QUERY],
+    "fila-cn": [BRAND_RULES.FILA_CN_QUERY],
     "fila-hk": [BRAND_RULES.FILA_HK_TO_CLOUDFRONT],
     "fila-hk-cloudfront": [BRAND_RULES.FILA_HK_CLOUDFRONT],
     "hoka-intl": [REUSABLE_RULES.REMOVE_ALL_QUERY],
