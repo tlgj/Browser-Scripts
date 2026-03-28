@@ -3,7 +3,7 @@
 // @name:zh-CN   图片助手
 // @name:en      Image Helper
 // @namespace    https://github.com/tlgj/Browser-Scripts
-// @version      1.10.20
+// @version      1.10.21
 // @description  提取页面图片并清洗到高清，支持多品牌 URL 规则、幻灯片浏览、独立查看器、保存/快速保存/全部保存，并支持脚本黑名单。
 // @author       tlgj
 // @license      MIT
@@ -996,7 +996,7 @@
         const u = safeUrlParse(urlStr);
         if (!u) return urlStr;
         u.search = "";
-        u.searchParams.set("scl", "0.7");
+        u.searchParams.set("scl", "1");
         u.searchParams.set("fmt", "png-alpha");
         u.searchParams.set("qlt", "100");
         return u.toString();
