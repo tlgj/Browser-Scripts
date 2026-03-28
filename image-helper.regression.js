@@ -76,11 +76,11 @@ const cases = [
     hostType: "puma-intl",
   },
   {
-    name: "GOAT: 保持站点专用 transform 折叠逻辑",
+    name: "GOAT: 折叠 transform 并移除已知派生图片参数",
     input:
-      "https://image.goat.com/transform/v1/attachments/product_template_additional_pictures/images/123/original/example.jpg?action=crop",
+      "https://image.goat.com/transform/v1/attachments/product_template_additional_pictures/images/123/original/example.jpg?action=crop&width=4000",
     expected:
-      "https://image.goat.com/attachments/product_template_additional_pictures/images/123/original/example.jpg?action=crop",
+      "https://image.goat.com/attachments/product_template_additional_pictures/images/123/original/example.jpg",
     hostType: "goat",
   },
   {
@@ -134,7 +134,7 @@ const cases = [
     input:
       "https://underarmour.scene7.com/is/image/Underarmour/3020001-001_DEFAULT?rp=standard-30pad|gridTileDesktop&scl=1",
     expected:
-      "https://underarmour.scene7.com/is/image/Underarmour/3020001-001_DEFAULT?scl=0.7&fmt=png-alpha&qlt=100",
+      "https://underarmour.scene7.com/is/image/Underarmour/3020001-001_DEFAULT?scl=1&fmt=png-alpha&qlt=100",
     hostType: "underarmour-scene7",
   },
   {

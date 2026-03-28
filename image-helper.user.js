@@ -3,7 +3,7 @@
 // @name:zh-CN   图片助手
 // @name:en      Image Helper
 // @namespace    https://github.com/tlgj/Browser-Scripts
-// @version      1.10.21
+// @version      1.10.22
 // @description  提取页面图片并清洗到高清，支持多品牌 URL 规则、幻灯片浏览、独立查看器、保存/快速保存/全部保存，并支持脚本黑名单。
 // @author       tlgj
 // @license      MIT
@@ -913,16 +913,22 @@
     },
     GOAT_CLEAN: {
       apply: (urlStr) => {
+        let cleanedUrl = urlStr;
         if (
-          urlStr.includes("/transform/") &&
-          urlStr.includes("/attachments/")
+          cleanedUrl.includes("/transform/") &&
+          cleanedUrl.includes("/attachments/")
         ) {
-          return urlStr.replace(
+          cleanedUrl = cleanedUrl.replace(
             /\/transform\/.*\/attachments\//,
             "/attachments/"
           );
         }
-        return urlStr.replace(/\?.*$/, "");
+        const u = safeUrlParse(cleanedUrl);
+        if (!u) return cleanedUrl.replace(/\?.*$/, "");
+        ["action", "width", "height", "fit", "crop", "quality"].forEach((key) =>
+          u.searchParams.delete(key)
+        );
+        return u.search ? u.toString() : u.origin + u.pathname;
       },
     },
     STOCKX_HIGH_RES: createQueryReplaceRule("?fm=jpg&dpr=3"),

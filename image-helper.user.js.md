@@ -2,7 +2,7 @@
 
 > **脚本文件**：[`image-helper.user.js`](./image-helper.user.js)
 
-![version](https://img.shields.io/badge/version-1.10.21-blue?style=flat-square)
+![version](https://img.shields.io/badge/version-1.10.22-blue?style=flat-square)
 ![match](https://img.shields.io/badge/match-*://*/*-green?style=flat-square)
 ![run](https://img.shields.io/badge/run-document--idle-yellow?style=flat-square)
 ![license](https://img.shields.io/badge/license-MIT-orange?style=flat-square)
@@ -24,7 +24,7 @@
 | 属性         | 值                      |
 | :----------- | :---------------------- |
 | **名称**     | Image Helper / 图片助手 |
-| **版本**     | `1.10.20`               |
+| **版本**     | `1.10.22`               |
 | **运行时机** | `document-idle`         |
 | **匹配范围** | `*://*/*`               |
 | **作者**     | tlgj                    |
@@ -232,6 +232,7 @@
 - `shein-ltwebstatic`：先移除 `_thumbnail_(宽x高|x高)` 后缀，再去 query
 - `finishline-media`：仅保守去 query
 - `complex-cloudinary`：复用通用 Cloudinary upload 清洗 helper，移除 `/complex/image/upload/` 后连续的 transform path，保留真实资源路径
+- `goat`：先折叠 `image.goat.com/transform/.../attachments/...` 包装路径，再仅删除 `action` / `width` / `height` / `fit` / `crop` / `quality` 等已知派生图片参数，保留未知 query
 - `hypebeast-cdn`：对 `image-cdn.hypb.st` 的包装 CDN 路径做 decode，从 `pathname` 中提取被 percent-encode 的真实原图 URL
 - `sneaker-freaker-bcdn`：对 `sneaker-freaker.b-cdn.net` 的包装 CDN 路径做 decode，从 `pathname` 中提取被 percent-encode 的真实原图 URL
 - `hkstore-catalog`：对 `catalog.hkstore.com/media/catalog/product/...` 的 Magento 媒体图保守去 query，保留原始图片路径
@@ -253,18 +254,18 @@
 
 ### 👟 球鞋交易与垂直零售
 
-| 区域            | 规则组               | 支持 host                   | 规则摘要                                       |
-| --------------- | -------------------- | --------------------------- | ---------------------------------------------- |
-| Goat            | goat                 | `image.goat.com`            | 清理 transform 路径或去 query                  |
-| FlightClub      | flightclub           | `cdn.flightclub.com`        | 去 query                                       |
-| StockX          | stockx               | `images.stockx.com`         | 强制高分辨率 query                             |
-| Foot Locker     | footlocker-scene7    | `assets.footlocker.com`     | Scene7 强制 zoom2000 png                       |
-| Finish Line     | finishline-media     | `media.finishline.com`      | 保守去 query                                   |
-| Sneaker News    | sneakernews-wp       | `sneakernews.com`           | 去 query                                       |
-| Sneaker Freaker | sneaker-freaker-bcdn | `sneaker-freaker.b-cdn.net` | decode 包装 CDN 路径并提取 pathname 中原图 URL |
-| Novelship       | novelship-img        | `images.novelship.com`      | 去 query                                       |
-| Stadium Goods   | stadiumgoods-shopify | `www.stadiumgoods.com`      | Shopify 尺寸后缀清理，再去 query               |
-| Snipes          | snipes-demandware    | `www.snipesusa.com`         | 去 query                                       |
+| 区域            | 规则组               | 支持 host                   | 规则摘要                                          |
+| --------------- | -------------------- | --------------------------- | ------------------------------------------------- |
+| Goat            | goat                 | `image.goat.com`            | 折叠 transform 包装路径，并仅移除已知派生图片参数 |
+| FlightClub      | flightclub           | `cdn.flightclub.com`        | 去 query                                          |
+| StockX          | stockx               | `images.stockx.com`         | 强制高分辨率 query                                |
+| Foot Locker     | footlocker-scene7    | `assets.footlocker.com`     | Scene7 强制 zoom2000 png                          |
+| Finish Line     | finishline-media     | `media.finishline.com`      | 保守去 query                                      |
+| Sneaker News    | sneakernews-wp       | `sneakernews.com`           | 去 query                                          |
+| Sneaker Freaker | sneaker-freaker-bcdn | `sneaker-freaker.b-cdn.net` | decode 包装 CDN 路径并提取 pathname 中原图 URL    |
+| Novelship       | novelship-img        | `images.novelship.com`      | 去 query                                          |
+| Stadium Goods   | stadiumgoods-shopify | `www.stadiumgoods.com`      | Shopify 尺寸后缀清理，再去 query                  |
+| Snipes          | snipes-demandware    | `www.snipesusa.com`         | 去 query                                          |
 
 ### 🏃 运动品牌官方 / 区域站
 
@@ -312,25 +313,25 @@
 
 ### 🛒 综合运动零售 / 户外 / 通用电商
 
-| 区域           | 规则组             | 支持 host                                | 规则摘要                                       |
-| -------------- | ------------------ | ---------------------------------------- | ---------------------------------------------- |
-| Decathlon 全球 | decathlon-intl     | `www.decathlon.com`                      | 去 query                                       |
-| Decathlon 中国 | decathlon-cn       | `pixl.decathlon.com.cn`                  | 去 query，转 PNG                               |
-| Decathlon 香港 | decathlon-hk       | `contents.mediadecathlon.com`            | 去 query，转 PNG                               |
-| Catalog 香港   | hkstore-catalog    | `catalog.hkstore.com`                    | Magento 媒体图保守去 query                     |
-| Amazon         | amazon-media       | `m.media-amazon.com`                     | 清理媒体图尺寸/格式片段                        |
-| eBay           | ebay-img-force-png | `i.ebayimg.com`                          | 强制改为 `s-l2000.png`                         |
-| END. Clothing  | end-clothing       | `media.endclothing.com`                  | 清理媒体路径                                   |
-| Old Order      | old-order-shopify  | `old-order.com`                          | Shopify 尺寸后缀清理，再去 query               |
-| Runnmore       | runnmore-like      | `www.runnmore.com`                       | thumbs 路径回原图                              |
-| Extra Sports   | runnmore-like      | `www.extrasports.com`                    | thumbs 路径回原图                              |
-| Sport Vision   | runnmore-like      | `www.sportvision.mk`                     | thumbs 路径回原图                              |
-| GNK Store      | opencart-generic   | `gnk-store.ru`                           | 缓存图转原图                                   |
-| Shiekh Shoes   | magento-shiekh     | `static.shiekh.com`                      | Magento 缓存图转原图路径                       |
-| Farfetch       | farfetch-contents  | `cdn-images.farfetch-contents.com`       | 去文件名末尾尺寸后缀，再去 query               |
-| Complex        | complex-cloudinary | `images.complex.com`                     | 清理连续 transform path，保留资源路径          |
-| Zalora 香港    | zalora-dynamic-cdn | `dynamic.zacdn.com`                      | 提取包装 CDN pathname 后段的明文原图 URL       |
-| Hypebeast CDN  | hypebeast-cdn      | `image-cdn.hypb.st`, `www.hypebeast.com` | decode 包装 CDN 路径并提取 pathname 中原图 URL |
+| 区域           | 规则组             | 支持 host                          | 规则摘要                                       |
+| -------------- | ------------------ | ---------------------------------- | ---------------------------------------------- |
+| Decathlon 全球 | decathlon-intl     | `www.decathlon.com`                | 去 query                                       |
+| Decathlon 中国 | decathlon-cn       | `pixl.decathlon.com.cn`            | 去 query，转 PNG                               |
+| Decathlon 香港 | decathlon-hk       | `contents.mediadecathlon.com`      | 去 query，转 PNG                               |
+| Catalog 香港   | hkstore-catalog    | `catalog.hkstore.com`              | Magento 媒体图保守去 query                     |
+| Amazon         | amazon-media       | `m.media-amazon.com`               | 清理媒体图尺寸/格式片段                        |
+| eBay           | ebay-img-force-png | `i.ebayimg.com`                    | 强制改为 `s-l2000.png`                         |
+| END. Clothing  | end-clothing       | `media.endclothing.com`            | 清理媒体路径                                   |
+| Old Order      | old-order-shopify  | `old-order.com`                    | Shopify 尺寸后缀清理，再去 query               |
+| Runnmore       | runnmore-like      | `www.runnmore.com`                 | thumbs 路径回原图                              |
+| Extra Sports   | runnmore-like      | `www.extrasports.com`              | thumbs 路径回原图                              |
+| Sport Vision   | runnmore-like      | `www.sportvision.mk`               | thumbs 路径回原图                              |
+| GNK Store      | opencart-generic   | `gnk-store.ru`                     | 缓存图转原图                                   |
+| Shiekh Shoes   | magento-shiekh     | `static.shiekh.com`                | Magento 缓存图转原图路径                       |
+| Farfetch       | farfetch-contents  | `cdn-images.farfetch-contents.com` | 去文件名末尾尺寸后缀，再去 query               |
+| Complex        | complex-cloudinary | `images.complex.com`               | 清理连续 transform path，保留资源路径          |
+| Zalora 香港    | zalora-dynamic-cdn | `dynamic.zacdn.com`                | 提取包装 CDN pathname 后段的明文原图 URL       |
+| Hypebeast CDN  | hypebeast-cdn      | `image-cdn.hypb.st`                | decode 包装 CDN 路径并提取 pathname 中原图 URL |
 
 ### 🎨 时尚 / 平台 / 通用图片 CDN
 
@@ -355,68 +356,5 @@
 | Reebok 全球    | reebok-intl       | `cdn.shopify.com/s/files/1/0862/7834/0912/files` | 去 query                         |
 | KicksCrew 全球 | kickscrew-shopify | `cdn.shopify.com/s/files/1/0603/3031/1875/files` | Shopify 尺寸后缀清理，再去 query |
 | T4S Czechia    | t4s-cdn           | `t4s.cz`                                         | 去尾部尺寸号，必要时补 `.jpg`    |
-
----
-
-## 🔄 图片清洗流程
-
-脚本的 URL 清洗主流程为：
-
-1. 尝试将输入解析为合法 URL
-2. 通过 `detectHostTypeByUrlObj()` 识别命中的规则组
-   - 优先查 `EXACT_HOST_MAP`
-   - 未命中时再检查特殊 host 与 `PARTIAL_MATCH_RULES`
-3. 根据 `HOST_RULE_MAP[hostType]` 获取规则链
-4. 依次执行每条规则，产出清洗后的 URL
-5. 返回 `{ raw, clean, hostType }`
-
----
-
-## ➕ 新增站点与维护模板
-
-### 1️⃣ 收集样本
-
-- 页面 URL：`https://www.example.com/product/xxx`
-- 原始图片 URL（至少 2~3 条，最好覆盖列表图/详情图/缩略图）：
-  - `https://cdn.example.com/img/a_300x300.jpg`
-  - `https://cdn.example.com/img/b_300x300.jpg`
-- 目标高清 URL 预期：`https://cdn.example.com/img/a.jpg`
-- 是否存在多个图片 host：是 / 否
-
-### 2️⃣ 判断接入方式
-
-- 是否可直接复用 `REUSABLE_RULES`：是 / 否
-- 是否需要新增 `BRAND_RULES`：是 / 否
-- 使用精确 host 匹配还是 URL 片段匹配：
-  - `EXACT_HOST_MAP`
-  - `PARTIAL_MATCH_RULES`
-
-### 3️⃣ 实施清单
-
-1. 先确认图片 host 是否稳定
-2. 优先复用 `REUSABLE_RULES`；若品牌有特殊路径/参数语义，再新增 `BRAND_RULES`
-3. 在 `EXACT_HOST_MAP` 或 `PARTIAL_MATCH_RULES` 中登记入口
-4. 在 `HOST_RULE_MAP` 中配置规则链顺序
-5. 用样本 URL 静态验证清洗结果
-6. 若属于脚本行为变更，按 SemVer 更新 `image-helper.user.js` 版本号
-7. 执行基础校验：
-   ```powershell
-   node --check image-helper.user.js
-   node image-helper.regression.js
-   ```
-8. 同步更新本文档中的：
-   - [当前支持的网站与规则](#-当前支持的网站与规则)
-   - [基于 URL 片段的补充支持](#-基于-url-片段的补充支持partial_match_rules)
-   - [当前已知注意事项](#-当前已知注意事项)（如有边界条件）
-
-### 4️⃣ 规则摘要写法建议
-
-文档里建议写"规则效果"，不要堆完整实现。摘要措辞也尽量保持统一：优先使用“去 query”“去尺寸后缀”“清理图片处理参数/变换路径”等结果导向表达，避免在同类规则中混用“删除 query”“清路径”“改参数”等粒度不一致的描述。例如：
-
-- 去 query
-- 去尺寸后缀，再去 query
-- Scene7 强制高分辨率 PNG
-- Shopify 尺寸后缀清理
-- 缓存图转原图路径
 
 ---
