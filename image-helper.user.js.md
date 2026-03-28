@@ -272,23 +272,27 @@
 | -------------------- | ------------------ | -------------------------------------------------------------- | ---------------------------------- |
 | Adidas 全球          | adidas-intl        | `assets.adidas.com`                                            | 清理变换路径，JPG 转 PNG           |
 | Asics 全球           | asics-intl         | `images.asics.com`                                             | 强制高分辨率参数                   |
-| 91APP CDN            | cdn-91app          | `img.cdn.91app.hk`, `img.91app.com`                            | 去版本 query                       |
 | Asics 香港           | cdn-91app          | `img.cdn.91app.hk`                                             | 去版本 query                       |
-| Puma 香港            | cdn-91app          | `img.cdn.91app.hk`                                             | 去版本 query                       |
-| MLB 香港             | cdn-91app          | `img.cdn.91app.hk`                                             | 去版本 query                       |
-| Puma 台湾            | cdn-91app          | `img.91app.com`                                                | 去版本 query                       |
-| The North Face 台湾  | cdn-91app          | `img.91app.com`                                                | 去版本 query                       |
-| Vans 台湾            | cdn-91app          | `img.91app.com`                                                | 去版本 query                       |
-| Skechers 台湾        | cdn-91app          | `img.91app.com`                                                | 去版本 query                       |
 | Brooks 全球          | brooks-intl        | `www.brooksrunning.com`                                        | 去 query，转 PNG                   |
 | Converse 中国        | converse-cn        | `res-converse.baozun.com`                                      | 去 query                           |
 | Converse 中国        | converse-cn        | `dam-converse.baozun.com`                                      | 去 query                           |
+| Fila 香港            | fila-hk            | `shoplineimg.com`                                              | 转换到 CloudFront 原图地址         |
+| Fila 香港 CloudFront | fila-hk-cloudfront | `d31xv78q8gnfco.cloudfront.net`                                | 提取 CloudFront 原图               |
+| Fila 新加坡          | fila-sg            | `img.myshopline.com`                                           | 按条件清理尺寸/质量 query          |
+| Fila 中国            | fila-cn            | `img.fishfay.com`                                              | 去 `x-image-process` 展示参数      |
 | Hoka 全球            | hoka-intl          | `dms.deckers.com`                                              | 去 query                           |
 | Hoka 中国            | hoka-cn            | `b2c.hoka.wishetin.com`                                        | 去中国站 query                     |
 | Li-Ning 中国         | lining-cn          | `lining-goods-online-1302115263.file.myqcloud.com`             | 去 query                           |
 | Mizuno 美国          | mizuno-usa         | `i1.adis.ws`                                                   | 去 query                           |
+| MLB 韩国             | mlb-korea          | `static-resource.mlb-korea.com`                                | 调整 CDN-CGI 图片参数              |
+| MLB 韩国             | mlb-korea-shop     | `en.mlb-korea.com`                                             | 清理 shop 文件的版本/宽度参数      |
+| MLB 香港             | cdn-91app          | `img.cdn.91app.hk`                                             | 去版本 query                       |
 | New Balance 全球     | newbalance-intl    | `nb.scene7.com`                                                | 去 query                           |
 | New Balance 中国     | newbalance-cn      | `itg-tezign-files.tezign.com`                                  | 清理 `image_process` 参数          |
+| Nike 中国            | nike-cn            | `static.nike.com.cn`                                           | 保留中国站域名、清路径、转 PNG     |
+| Nike 全球            | nike-global        | `static.nike.com`                                              | 清路径、转 PNG                     |
+| Nike 全球            | nike-global        | `c.static-nike.com`                                            | 清路径、转 PNG                     |
+| Nike 中东            | nike-ae-like       | `www.nike.ae`, `www.nike.com.kw`, `www.nike.qa`, `www.nike.sa` | 保留原始图片格式并去展示参数       |
 | On 全球              | on-intl            | `images.ctfassets.net`                                         | 去 query                           |
 | On 中国              | on-cn              | `oss.on-running.cn`                                            | 去 OSS 图片处理参数                |
 | Puma 全球            | puma-intl          | `images.puma.com`                                              | Cloudinary upload 变换路径清理     |
@@ -307,16 +311,6 @@
 | Under Armour 全球    | underarmour-scene7 | `underarmour.scene7.com`                                       | 统一重写为高质量 PNG 参数          |
 | Vans 全球            | vans-intl          | `assets.vans.com`                                              | 清理国际站图片参数路径             |
 | Vans 台湾            | cdn-91app          | `img.91app.com`                                                | 去版本 query                       |
-| Nike 中国            | nike-cn            | `static.nike.com.cn`                                           | 保留中国站域名、清路径、转 PNG     |
-| Nike 全球            | nike-global        | `static.nike.com`                                              | 清路径、转 PNG                     |
-| Nike 全球            | nike-global        | `c.static-nike.com`                                            | 清路径、转 PNG                     |
-| Nike 中东            | nike-ae-like       | `www.nike.ae`, `www.nike.com.kw`, `www.nike.qa`, `www.nike.sa` | 保留原始图片格式并去展示参数       |
-| Fila 香港            | fila-hk            | `shoplineimg.com`                                              | 转换到 CloudFront 原图地址         |
-| Fila 香港 CloudFront | fila-hk-cloudfront | `d31xv78q8gnfco.cloudfront.net`                                | 提取 CloudFront 原图               |
-| Fila 新加坡          | fila-sg            | `img.myshopline.com`                                           | 按条件清理尺寸/质量 query          |
-| Fila 中国            | fila-cn            | `img.fishfay.com`                                              | 去 `x-image-process` 展示参数      |
-| MLB 韩国             | mlb-korea          | `static-resource.mlb-korea.com`                                | 调整 CDN-CGI 图片参数              |
-| MLB 韩国             | mlb-korea-shop     | `en.mlb-korea.com`                                             | 清理 shop 文件的版本/宽度参数      |
 
 ### 🛒 综合运动零售 / 户外 / 通用电商
 
@@ -343,16 +337,17 @@
 
 ### 🎨 时尚 / 平台 / 通用图片 CDN
 
-| 区域   | 规则组            | 支持 host             | 规则摘要                          |
-| ------ | ----------------- | --------------------- | --------------------------------- |
-| Shein  | shein-ltwebstatic | `img.ltwebstatic.com` | 去 `_thumbnail_` 后缀，再去 query |
-| Shein  | shein-ltwebstatic | `img.shein.com`       | 去 `_thumbnail_` 后缀，再去 query |
-| Poizon | poizon-cdn        | `cdn.poizon.com`      | 强制 PNG 参数                     |
-| 识货   | shihuo-cdn        | `static.shihuocdn.cn` | 去尺寸后缀，再去 query            |
-| 识货   | shihuo-cdn        | `eimage.shihuocdn.cn` | 去尺寸后缀，再去 query            |
-| AliCDN | alicdn            | `gw.alicdn.com`       | 去文件名尾部阿里系后缀            |
-| AliCDN | alicdn            | `img.alicdn.com`      | 去文件名尾部阿里系后缀            |
-| Sanity | sanity-cdn        | `cdn.sanity.io`       | 保留原始资源主路径                |
+| 区域      | 规则组            | 支持 host                           | 规则摘要                          |
+| --------- | ----------------- | ----------------------------------- | --------------------------------- |
+| 91APP CDN | cdn-91app         | `img.cdn.91app.hk`, `img.91app.com` | 去版本 query                      |
+| Shein     | shein-ltwebstatic | `img.ltwebstatic.com`               | 去 `_thumbnail_` 后缀，再去 query |
+| Shein     | shein-ltwebstatic | `img.shein.com`                     | 去 `_thumbnail_` 后缀，再去 query |
+| Poizon    | poizon-cdn        | `cdn.poizon.com`                    | 强制 PNG 参数                     |
+| 识货      | shihuo-cdn        | `static.shihuocdn.cn`               | 去尺寸后缀，再去 query            |
+| 识货      | shihuo-cdn        | `eimage.shihuocdn.cn`               | 去尺寸后缀，再去 query            |
+| AliCDN    | alicdn            | `gw.alicdn.com`                     | 去文件名尾部阿里系后缀            |
+| AliCDN    | alicdn            | `img.alicdn.com`                    | 去文件名尾部阿里系后缀            |
+| Sanity    | sanity-cdn        | `cdn.sanity.io`                     | 保留原始资源主路径                |
 
 ---
 
