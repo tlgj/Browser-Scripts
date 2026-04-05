@@ -2,7 +2,7 @@
 
 > **脚本文件**：[`image-helper.user.js`](./image-helper.user.js)
 
-![version](https://img.shields.io/badge/version-1.10.27-blue?style=flat-square)
+![version](https://img.shields.io/badge/version-1.10.28-blue?style=flat-square)
 ![match](https://img.shields.io/badge/match-*://*/*-green?style=flat-square)
 ![run](https://img.shields.io/badge/run-document--idle-yellow?style=flat-square)
 ![license](https://img.shields.io/badge/license-MIT-orange?style=flat-square)
@@ -24,7 +24,7 @@
 | 属性         | 值                      |
 | :----------- | :---------------------- |
 | **名称**     | Image Helper / 图片助手 |
-| **版本**     | `1.10.27`               |
+| **版本**     | `1.10.28`               |
 | **运行时机** | `document-idle`         |
 | **匹配范围** | `*://*/*`               |
 | **作者**     | tlgj                    |
@@ -191,19 +191,19 @@
 
 ### 👟 球鞋交易与垂直零售
 
-| 区域            | 规则组               | 支持 host                   | 规则摘要                                          |
-| --------------- | -------------------- | --------------------------- | ------------------------------------------------- |
-| Goat            | goat                 | `image.goat.com`            | 折叠 transform 包装路径，并仅移除已知派生图片参数 |
-| FlightClub      | flightclub           | `cdn.flightclub.com`        | 去 query                                          |
-| StockX          | stockx               | `images.stockx.com`         | 强制高分辨率 query                                |
-| Foot Locker     | footlocker-scene7    | `assets.footlocker.com`     | Scene7 强制 zoom2000 png                          |
-| Finish Line     | finishline-media     | `media.finishline.com`      | 保守去 query                                      |
-| Sneaker News    | sneakernews-wp       | `sneakernews.com`           | 去 query                                          |
-| Sneaker Freaker | sneaker-freaker-bcdn | `sneaker-freaker.b-cdn.net` | decode 包装 CDN 路径并提取 pathname 中原图 URL    |
-| Novelship       | novelship-img        | `images.novelship.com`      | 去 query                                          |
-| Stadium Goods   | stadiumgoods-shopify | `www.stadiumgoods.com`      | Shopify 尺寸后缀清理，再去 query                  |
-| Snipes 美国     | snipes-us            | `www.snipesusa.com`         | 保守去 query                                      |
-| Snipes 全球     | snipes-global        | `asset.snipes.com`          | 剥离 `/images/` 变换段后再保守去 query            |
+| 区域            | 规则组               | 支持 host                   | 规则摘要                                                |
+| --------------- | -------------------- | --------------------------- | ------------------------------------------------------- |
+| Goat            | goat                 | `image.goat.com`            | 折叠 transform 包装路径，并仅移除已知派生图片参数       |
+| FlightClub      | flightclub           | `cdn.flightclub.com`        | 去 query                                                |
+| StockX          | stockx               | `images.stockx.com`         | 强制高分辨率 query                                      |
+| Foot Locker     | footlocker-scene7    | `assets.footlocker.com`     | Scene7 强制 zoom2000 png                                |
+| Finish Line     | finishline-media     | `media.finishline.com`      | 保守去 query                                            |
+| Sneaker News    | sneakernews-wp       | `sneakernews.com`           | 去 query                                                |
+| Sneaker Freaker | sneaker-freaker-bcdn | `sneaker-freaker.b-cdn.net` | decode 包装 CDN 路径并提取 pathname 中原图 URL          |
+| Novelship       | novelship-img        | `images.novelship.com`      | 去 query                                                |
+| Stadium Goods   | stadiumgoods-shopify | `www.stadiumgoods.com`      | 复用 Shopify 原图清洗共享规则（去尺寸后缀，再去 query） |
+| Snipes 美国     | snipes-us            | `www.snipesusa.com`         | 保守去 query                                            |
+| Snipes 全球     | snipes-global        | `asset.snipes.com`          | 剥离 `/images/` 变换段后再保守去 query                  |
 
 ### 🏃 运动品牌官方 / 区域站
 
@@ -251,25 +251,25 @@
 
 ### 🛒 综合运动零售 / 户外 / 通用电商
 
-| 区域           | 规则组             | 支持 host                          | 规则摘要                                       |
-| -------------- | ------------------ | ---------------------------------- | ---------------------------------------------- |
-| Decathlon 全球 | decathlon-intl     | `www.decathlon.com`                | 去 query                                       |
-| Decathlon 中国 | decathlon-cn       | `pixl.decathlon.com.cn`            | 去 query，转 PNG                               |
-| Decathlon 香港 | decathlon-hk       | `contents.mediadecathlon.com`      | 去 query，转 PNG                               |
-| Catalog 香港   | hkstore-catalog    | `catalog.hkstore.com`              | Magento 媒体图保守去 query                     |
-| Amazon         | amazon-media       | `m.media-amazon.com`               | 清理媒体图尺寸/格式片段                        |
-| eBay           | ebay-img-force-png | `i.ebayimg.com`                    | 强制改为 `s-l2000.png`                         |
-| END. Clothing  | end-clothing       | `media.endclothing.com`            | 清理媒体路径                                   |
-| Old Order      | old-order-shopify  | `old-order.com`                    | Shopify 尺寸后缀清理，再去 query               |
-| Runnmore       | runnmore-like      | `www.runnmore.com`                 | thumbs 路径回原图                              |
-| Extra Sports   | runnmore-like      | `www.extrasports.com`              | thumbs 路径回原图                              |
-| Sport Vision   | runnmore-like      | `www.sportvision.mk`               | thumbs 路径回原图                              |
-| GNK Store      | opencart-generic   | `gnk-store.ru`                     | 缓存图转原图                                   |
-| Shiekh Shoes   | magento-shiekh     | `static.shiekh.com`                | Magento 缓存图转原图路径                       |
-| Farfetch       | farfetch-contents  | `cdn-images.farfetch-contents.com` | 去文件名末尾尺寸后缀，再去 query               |
-| Complex        | complex-cloudinary | `images.complex.com`               | 清理连续 transform path，保留资源路径          |
-| Zalora 香港    | zalora-dynamic-cdn | `dynamic.zacdn.com`                | 提取包装 CDN pathname 后段的明文原图 URL       |
-| Hypebeast CDN  | hypebeast-cdn      | `image-cdn.hypb.st`                | decode 包装 CDN 路径并提取 pathname 中原图 URL |
+| 区域           | 规则组             | 支持 host                          | 规则摘要                                                |
+| -------------- | ------------------ | ---------------------------------- | ------------------------------------------------------- |
+| Decathlon 全球 | decathlon-intl     | `www.decathlon.com`                | 去 query                                                |
+| Decathlon 中国 | decathlon-cn       | `pixl.decathlon.com.cn`            | 去 query，转 PNG                                        |
+| Decathlon 香港 | decathlon-hk       | `contents.mediadecathlon.com`      | 去 query，转 PNG                                        |
+| Catalog 香港   | hkstore-catalog    | `catalog.hkstore.com`              | Magento 媒体图保守去 query                              |
+| Amazon         | amazon-media       | `m.media-amazon.com`               | 清理媒体图尺寸/格式片段                                 |
+| eBay           | ebay-img-force-png | `i.ebayimg.com`                    | 强制改为 `s-l2000.png`                                  |
+| END. Clothing  | end-clothing       | `media.endclothing.com`            | 清理媒体路径                                            |
+| Old Order      | old-order-shopify  | `old-order.com`                    | 复用 Shopify 原图清洗共享规则（去尺寸后缀，再去 query） |
+| Runnmore       | runnmore-like      | `www.runnmore.com`                 | thumbs 路径回原图                                       |
+| Extra Sports   | runnmore-like      | `www.extrasports.com`              | thumbs 路径回原图                                       |
+| Sport Vision   | runnmore-like      | `www.sportvision.mk`               | thumbs 路径回原图                                       |
+| GNK Store      | opencart-generic   | `gnk-store.ru`                     | 缓存图转原图                                            |
+| Shiekh Shoes   | magento-shiekh     | `static.shiekh.com`                | Magento 缓存图转原图路径                                |
+| Farfetch       | farfetch-contents  | `cdn-images.farfetch-contents.com` | 去文件名末尾尺寸后缀，再去 query                        |
+| Complex        | complex-cloudinary | `images.complex.com`               | 清理连续 transform path，保留资源路径                   |
+| Zalora 香港    | zalora-dynamic-cdn | `dynamic.zacdn.com`                | 提取包装 CDN pathname 后段的明文原图 URL                |
+| Hypebeast CDN  | hypebeast-cdn      | `image-cdn.hypb.st`                | decode 包装 CDN 路径并提取 pathname 中原图 URL          |
 
 ### 🎨 时尚 / 平台 / 通用图片 CDN
 
@@ -288,11 +288,11 @@
 
 以下规则不依赖精确 host，而依赖 URL 片段识别；展示顺序也与主表保持一致，优先从区域/归属视角阅读：
 
-| 区域 / 归属    | 规则组            | 匹配片段                                         | 规则摘要                         |
-| -------------- | ----------------- | ------------------------------------------------ | -------------------------------- |
-| Decathlon 全球 | decathlon-intl    | `cdn.shopify.com/s/files/1/1330/6287/files`      | 去 query                         |
-| Reebok 全球    | reebok-intl       | `cdn.shopify.com/s/files/1/0862/7834/0912/files` | 去 query                         |
-| KicksCrew 全球 | kickscrew-shopify | `cdn.shopify.com/s/files/1/0603/3031/1875/files` | Shopify 尺寸后缀清理，再去 query |
-| T4S Czechia    | t4s-cdn           | `t4s.cz`                                         | 去尾部尺寸号，必要时补 `.jpg`    |
+| 区域 / 归属    | 规则组            | 匹配片段                                         | 规则摘要                                                |
+| -------------- | ----------------- | ------------------------------------------------ | ------------------------------------------------------- |
+| Decathlon 全球 | decathlon-intl    | `cdn.shopify.com/s/files/1/1330/6287/files`      | 去 query                                                |
+| Reebok 全球    | reebok-intl       | `cdn.shopify.com/s/files/1/0862/7834/0912/files` | 去 query                                                |
+| KicksCrew 全球 | kickscrew-shopify | `cdn.shopify.com/s/files/1/0603/3031/1875/files` | 复用 Shopify 原图清洗共享规则（去尺寸后缀，再去 query） |
+| T4S Czechia    | t4s-cdn           | `t4s.cz`                                         | 去尾部尺寸号，必要时补 `.jpg`                           |
 
 ---

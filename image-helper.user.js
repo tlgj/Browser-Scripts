@@ -3,7 +3,7 @@
 // @name:zh-CN   图片助手
 // @name:en      Image Helper
 // @namespace    https://github.com/tlgj/Browser-Scripts
-// @version      1.10.27
+// @version      1.10.28
 // @description  提取页面图片并清洗到高清，支持多品牌 URL 规则、幻灯片浏览、独立查看器、保存/快速保存/全部保存，并支持脚本黑名单。
 // @author       tlgj
 // @license      MIT
@@ -1113,6 +1113,13 @@
     },
   };
 
+  const RULE_CHAINS = {
+    SHOPIFY_ORIGINAL_CLEAN: [
+      BRAND_RULES.SHOPIFY_REMOVE_SIZE,
+      REUSABLE_RULES.REMOVE_ALL_QUERY,
+    ],
+  };
+
   // ===== Rules: host maps =====
   const EXACT_HOST_MAP = new Map([
     ["image.goat.com", "goat"],
@@ -1239,10 +1246,7 @@
     "mlb-korea-shop": [BRAND_RULES.MLB_KOREA_SHOP_FILES],
     "newbalance-intl": [REUSABLE_RULES.REMOVE_ALL_QUERY],
     "newbalance-cn": [BRAND_RULES.NEWBALANCE_CN_CLEAN],
-    "old-order-shopify": [
-      BRAND_RULES.SHOPIFY_REMOVE_SIZE,
-      REUSABLE_RULES.REMOVE_ALL_QUERY,
-    ],
+    "old-order-shopify": RULE_CHAINS.SHOPIFY_ORIGINAL_CLEAN,
     "on-intl": [REUSABLE_RULES.REMOVE_ALL_QUERY],
     "on-cn": [BRAND_RULES.ON_CN_REMOVE_OSS_QUERY],
     "puma-intl": [BRAND_RULES.PUMA_INTL_UPLOAD_PARAMS],
@@ -1270,10 +1274,7 @@
       REUSABLE_RULES.REMOVE_SIZE_SUFFIX,
       REUSABLE_RULES.REMOVE_ALL_QUERY,
     ],
-    "kickscrew-shopify": [
-      BRAND_RULES.SHOPIFY_REMOVE_SIZE,
-      REUSABLE_RULES.REMOVE_ALL_QUERY,
-    ],
+    "kickscrew-shopify": RULE_CHAINS.SHOPIFY_ORIGINAL_CLEAN,
     "novelship-img": [REUSABLE_RULES.REMOVE_ALL_QUERY],
     "snipes-us": [REUSABLE_RULES.REMOVE_ALL_QUERY],
     "snipes-global": [
@@ -1303,10 +1304,7 @@
     "sneaker-freaker-bcdn": [BRAND_RULES.SNEAKER_FREAKER_BCDN_ORIGINAL],
     "hkstore-catalog": [REUSABLE_RULES.REMOVE_ALL_QUERY],
     "zalora-dynamic-cdn": [BRAND_RULES.ZALORA_DYNAMIC_ORIGINAL],
-    "stadiumgoods-shopify": [
-      BRAND_RULES.SHOPIFY_REMOVE_SIZE,
-      REUSABLE_RULES.REMOVE_ALL_QUERY,
-    ],
+    "stadiumgoods-shopify": RULE_CHAINS.SHOPIFY_ORIGINAL_CLEAN,
   };
 
   function detectHostTypeByUrlObj(u, fullUrlStr) {
