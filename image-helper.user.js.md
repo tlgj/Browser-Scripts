@@ -2,7 +2,7 @@
 
 > **脚本文件**：[`image-helper.user.js`](./image-helper.user.js)
 
-![version](https://img.shields.io/badge/version-1.10.23-blue?style=flat-square)
+![version](https://img.shields.io/badge/version-1.10.27-blue?style=flat-square)
 ![match](https://img.shields.io/badge/match-*://*/*-green?style=flat-square)
 ![run](https://img.shields.io/badge/run-document--idle-yellow?style=flat-square)
 ![license](https://img.shields.io/badge/license-MIT-orange?style=flat-square)
@@ -24,7 +24,7 @@
 | 属性         | 值                      |
 | :----------- | :---------------------- |
 | **名称**     | Image Helper / 图片助手 |
-| **版本**     | `1.10.23`               |
+| **版本**     | `1.10.27`               |
 | **运行时机** | `document-idle`         |
 | **匹配范围** | `*://*/*`               |
 | **作者**     | tlgj                    |
@@ -177,7 +177,6 @@
   - `raw`
   - `raw-then-clean`
 
-
 ---
 
 ## 📊 当前支持的网站与规则
@@ -203,7 +202,8 @@
 | Sneaker Freaker | sneaker-freaker-bcdn | `sneaker-freaker.b-cdn.net` | decode 包装 CDN 路径并提取 pathname 中原图 URL    |
 | Novelship       | novelship-img        | `images.novelship.com`      | 去 query                                          |
 | Stadium Goods   | stadiumgoods-shopify | `www.stadiumgoods.com`      | Shopify 尺寸后缀清理，再去 query                  |
-| Snipes          | snipes-demandware    | `www.snipesusa.com`         | 去 query                                          |
+| Snipes 美国     | snipes-us            | `www.snipesusa.com`         | 保守去 query                                      |
+| Snipes 全球     | snipes-global        | `asset.snipes.com`          | 剥离 `/images/` 变换段后再保守去 query            |
 
 ### 🏃 运动品牌官方 / 区域站
 

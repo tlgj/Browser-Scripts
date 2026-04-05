@@ -3,7 +3,7 @@
 // @name:zh-CN   图片助手
 // @name:en      Image Helper
 // @namespace    https://github.com/tlgj/Browser-Scripts
-// @version      1.10.23
+// @version      1.10.27
 // @description  提取页面图片并清洗到高清，支持多品牌 URL 规则、幻灯片浏览、独立查看器、保存/快速保存/全部保存，并支持脚本黑名单。
 // @author       tlgj
 // @license      MIT
@@ -960,6 +960,13 @@
         return url;
       },
     },
+    SNIPES_ASSET_ORIGINAL: {
+      apply: (urlStr) => {
+        const u = safeUrlParse(urlStr);
+        if (!u || u.hostname !== "asset.snipes.com") return urlStr;
+        return stripCloudinaryUploadTransforms(urlStr, "/images/");
+      },
+    },
     FILA_HK_TO_CLOUDFRONT: {
       apply: (url) =>
         url.replace(
@@ -1160,7 +1167,8 @@
     ["static.shihuocdn.cn", "shihuo-cdn"],
     ["eimage.shihuocdn.cn", "shihuo-cdn"],
     ["images.novelship.com", "novelship-img"],
-    ["www.snipesusa.com", "snipes-demandware"],
+    ["www.snipesusa.com", "snipes-us"],
+    ["asset.snipes.com", "snipes-global"],
     ["static.shiekh.com", "magento-shiekh"],
     ["m.media-amazon.com", "amazon-media"],
     ["i.ebayimg.com", "ebay-img-force-png"],
@@ -1267,7 +1275,11 @@
       REUSABLE_RULES.REMOVE_ALL_QUERY,
     ],
     "novelship-img": [REUSABLE_RULES.REMOVE_ALL_QUERY],
-    "snipes-demandware": [REUSABLE_RULES.REMOVE_ALL_QUERY],
+    "snipes-us": [REUSABLE_RULES.REMOVE_ALL_QUERY],
+    "snipes-global": [
+      BRAND_RULES.SNIPES_ASSET_ORIGINAL,
+      REUSABLE_RULES.REMOVE_ALL_QUERY,
+    ],
     "magento-shiekh": [BRAND_RULES.MAGENTO_TO_ORIGINAL],
     "amazon-media": [BRAND_RULES.AMAZON_MEDIA_CLEAN],
     "ebay-img-force-png": [BRAND_RULES.EBAY_TO_PNG_2000],
