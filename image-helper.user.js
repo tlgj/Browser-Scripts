@@ -3,7 +3,7 @@
 // @name:zh-CN   图片助手
 // @name:en      Image Helper
 // @namespace    https://github.com/tlgj/Browser-Scripts
-// @version      1.10.22
+// @version      1.10.23
 // @description  提取页面图片并清洗到高清，支持多品牌 URL 规则、幻灯片浏览、独立查看器、保存/快速保存/全部保存，并支持脚本黑名单。
 // @author       tlgj
 // @license      MIT
@@ -950,7 +950,7 @@
         return url;
       },
     },
-    FILA_CN_QUERY: {
+    ANTA_GROUP_CN_QUERY: {
       apply: (url) => {
         const u = safeUrlParse(url);
         if (!u) return url;
@@ -1129,7 +1129,7 @@
     ["pixl.decathlon.com.cn", "decathlon-cn"],
     ["contents.mediadecathlon.com", "decathlon-hk"],
     ["img.myshopline.com", "fila-sg"],
-    ["img.fishfay.com", "fila-cn"],
+    ["img.fishfay.com", "anta-group-cn"],
     ["shoplineimg.com", "fila-hk"],
     ["d31xv78q8gnfco.cloudfront.net", "fila-hk-cloudfront"],
     ["dms.deckers.com", "hoka-intl"],
@@ -1220,7 +1220,7 @@
     "decathlon-cn": [REUSABLE_RULES.REMOVE_ALL_QUERY, REUSABLE_RULES.TO_PNG],
     "decathlon-hk": [REUSABLE_RULES.REMOVE_ALL_QUERY, REUSABLE_RULES.TO_PNG],
     "fila-sg": [BRAND_RULES.FILA_SG_QUERY],
-    "fila-cn": [BRAND_RULES.FILA_CN_QUERY],
+    "anta-group-cn": [BRAND_RULES.ANTA_GROUP_CN_QUERY],
     "fila-hk": [BRAND_RULES.FILA_HK_TO_CLOUDFRONT],
     "fila-hk-cloudfront": [BRAND_RULES.FILA_HK_CLOUDFRONT],
     "hoka-intl": [REUSABLE_RULES.REMOVE_ALL_QUERY],

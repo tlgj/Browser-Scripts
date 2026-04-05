@@ -2,7 +2,7 @@
 
 > **脚本文件**：[`image-helper.user.js`](./image-helper.user.js)
 
-![version](https://img.shields.io/badge/version-1.10.22-blue?style=flat-square)
+![version](https://img.shields.io/badge/version-1.10.23-blue?style=flat-square)
 ![match](https://img.shields.io/badge/match-*://*/*-green?style=flat-square)
 ![run](https://img.shields.io/badge/run-document--idle-yellow?style=flat-square)
 ![license](https://img.shields.io/badge/license-MIT-orange?style=flat-square)
@@ -24,7 +24,7 @@
 | 属性         | 值                      |
 | :----------- | :---------------------- |
 | **名称**     | Image Helper / 图片助手 |
-| **版本**     | `1.10.22`               |
+| **版本**     | `1.10.23`               |
 | **运行时机** | `document-idle`         |
 | **匹配范围** | `*://*/*`               |
 | **作者**     | tlgj                    |
@@ -92,7 +92,7 @@
 | **Under Armour**   | 全球                        |
 | **Vans**           | 全球 / 台湾                 |
 | **Nike**           | 中国 / 全球 / 中东          |
-| **Fila**           | 香港 / 新加坡 / 中国        |
+| **安踏集团**       | 中国                        |
 | **MLB**            | 韩国 / 香港                 |
 
 ### 🛒 综合运动零售 / 户外 / 通用电商
@@ -279,7 +279,7 @@
 | Fila 香港            | fila-hk            | `shoplineimg.com`                                              | 转换到 CloudFront 原图地址                |
 | Fila 香港 CloudFront | fila-hk-cloudfront | `d31xv78q8gnfco.cloudfront.net`                                | 提取 CloudFront 原图                      |
 | Fila 新加坡          | fila-sg            | `img.myshopline.com`                                           | 按条件清理尺寸/质量 query                 |
-| Fila 中国            | fila-cn            | `img.fishfay.com`                                              | 去 `x-image-process` 展示参数             |
+| 安踏集团中国         | anta-group-cn      | `img.fishfay.com`                                              | 去 `x-image-process` 展示参数             |
 | Hoka 全球            | hoka-intl          | `dms.deckers.com`                                              | 去 query                                  |
 | Hoka 中国            | hoka-cn            | `b2c.hoka.wishetin.com`                                        | 去中国站 query                            |
 | Li-Ning 中国         | lining-cn          | `lining-goods-online-1302115263.file.myqcloud.com`             | 去 query                                  |
