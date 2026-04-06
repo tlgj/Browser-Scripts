@@ -153,6 +153,14 @@ const cases = [
       "https://www.sportvision.mk/files/images/slike_proizvoda/media/SX5/SX5199-900/SX5199-900.jpg",
     hostType: "sportvision-mk",
   },
+  {
+    name: "Sport Vision HR: 复用 MK 独立原图规则链",
+    input:
+      "https://www.sportvision.hr/files/thumbs/files/images/slike_proizvoda/media/SX5/SX5199-900/images/thumbs_1200/SX5199-900_1200_1200px.jpg",
+    expected:
+      "https://www.sportvision.hr/files/images/slike_proizvoda/media/SX5/SX5199-900/SX5199-900.jpg",
+    hostType: "sportvision-mk",
+  },
 ];
 
 let failed = 0;
