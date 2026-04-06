@@ -2,7 +2,7 @@
 
 > **脚本文件**：[`image-helper.user.js`](./image-helper.user.js)
 
-![version](https://img.shields.io/badge/version-1.12.0-blue?style=flat-square)
+![version](https://img.shields.io/badge/version-1.13.0-blue?style=flat-square)
 ![match](https://img.shields.io/badge/match-*://*/*-green?style=flat-square)
 ![run](https://img.shields.io/badge/run-document--idle-yellow?style=flat-square)
 ![license](https://img.shields.io/badge/license-MIT-orange?style=flat-square)
@@ -17,14 +17,14 @@
 
 - 🎯 **智能清洗**：自动将缩略图、带参数图片转换为高清原图
 - 🌐 **广泛支持**：覆盖主流球鞋、运动品牌、电商平台及图片 CDN
-- 🖼️ **幻灯片浏览**：全屏 overlay 方式流畅浏览所有提取图片
+- 🖼️ **幻灯片浏览**：全屏 overlay 方式流畅浏览所有提取图片，并可一键打开当前链接或原始链接
 - 💾 **批量保存**：支持单张/快速/全部保存，自动创建子文件夹
 - ⚙️ **高度可配**：黑名单、过滤条件、加载模式等持久化设置
 
 | 属性         | 值                      |
 | :----------- | :---------------------- |
 | **名称**     | Image Helper / 图片助手 |
-| **版本**     | `1.12.0`                |
+| **版本**     | `1.13.0`                |
 | **运行时机** | `document-idle`         |
 | **匹配范围** | `*://*/*`               |
 | **作者**     | tlgj                    |
@@ -142,6 +142,7 @@
 - 以全屏 overlay 方式浏览已提取图片
 - 支持上一张 / 下一张切换
 - 显示当前图片计数、命中的规则类型（hostType）、保存目录、文件名、清洗后链接与原始链接
+- 支持对当前链接与原始链接分别一键打开
 - 支持滚轮切换、键盘切换与 Esc 关闭
 
 ### 3️⃣ 图片查看器
@@ -149,9 +150,9 @@
 - 点击主图可进入独立查看器
 - 适合对当前图片做更聚焦的预览
 
-### 4️⃣ 复制链接
+### 4️⃣ 链接操作
 
-- 可分别复制：
+- 可分别对以下链接执行一键打开与复制：
   - 当前链接（已清洗）
   - 原始链接
 - 优先使用 `navigator.clipboard.writeText`

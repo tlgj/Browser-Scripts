@@ -42,6 +42,19 @@ vm.runInContext(snippet, context, {
 const api = context.__imageHelperTestExports;
 if (!api) throw new Error("测试导出失败");
 
+const requiredUiSnippets = [
+  'id="tm-open-clean"',
+  'id="tm-open-raw"',
+  "已打开当前链接",
+  "已打开原始链接",
+];
+
+for (const snippetText of requiredUiSnippets) {
+  if (!source.includes(snippetText)) {
+    throw new Error(`缺少链接打开按钮相关 UI 片段: ${snippetText}`);
+  }
+}
+
 const cases = [
   {
     name: "Complex: 剥离连续 transform 并保留 sanity-new 资源路径",

@@ -3,7 +3,7 @@
 // @name:zh-CN   图片助手
 // @name:en      Image Helper
 // @namespace    https://github.com/tlgj/Browser-Scripts
-// @version      1.12.0
+// @version      1.13.0
 // @description  提取页面图片并清洗到高清，支持多品牌 URL 规则、幻灯片浏览、独立查看器、保存/快速保存/全部保存，并支持脚本黑名单。
 // @author       tlgj
 // @license      MIT
@@ -2949,6 +2949,7 @@
                         <div class="tm-link-main">
                             <div id="tm-url-clean" class="tm-url"></div>
                         </div>
+                        <button id="tm-open-clean" class="tm-btn tm-copy-btn" type="button">打开</button>
                         <button id="tm-copy-clean" class="tm-btn tm-copy-btn" type="button">复制</button>
                     </div>
 
@@ -2957,6 +2958,7 @@
                         <div class="tm-link-main">
                             <div id="tm-url-raw" class="tm-url"></div>
                         </div>
+                        <button id="tm-open-raw" class="tm-btn tm-copy-btn" type="button">打开</button>
                         <button id="tm-copy-raw" class="tm-btn tm-copy-btn" type="button">复制</button>
                     </div>
                 </div>
@@ -3005,6 +3007,20 @@
       copyBtnTimers.set(btn, resetTimer);
     }
 
+    function openUrlInNewTab(url, successText) {
+      const value = String(url || "").trim();
+      if (!value) {
+        setStatus("无可打开的链接");
+        return;
+      }
+      const opened = window.open(value, "_blank", "noopener,noreferrer");
+      if (opened) {
+        setStatus(successText);
+      } else {
+        setStatus("打开失败，可能被浏览器拦截弹窗");
+      }
+    }
+
     async function copyTextToClipboard(text, successText, btn) {
       const value = String(text || "").trim();
       if (!value) {
@@ -3050,6 +3066,15 @@
         "已复制原始链接",
         e.currentTarget
       );
+    });
+
+    bindClick($("#tm-open-clean"), () => {
+      if (!list.length) return;
+      openUrlInNewTab(list[current]?.cleanUrl, "已打开当前链接");
+    });
+    bindClick($("#tm-open-raw"), () => {
+      if (!list.length) return;
+      openUrlInNewTab(list[current]?.rawUrl, "已打开原始链接");
     });
 
     bindClick($("#tm-save"), saveCurrentImage);
