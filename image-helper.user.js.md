@@ -2,7 +2,7 @@
 
 > **脚本文件**：[`image-helper.user.js`](./image-helper.user.js)
 
-![version](https://img.shields.io/badge/version-1.10.28-blue?style=flat-square)
+![version](https://img.shields.io/badge/version-1.11.0-blue?style=flat-square)
 ![match](https://img.shields.io/badge/match-*://*/*-green?style=flat-square)
 ![run](https://img.shields.io/badge/run-document--idle-yellow?style=flat-square)
 ![license](https://img.shields.io/badge/license-MIT-orange?style=flat-square)
@@ -24,7 +24,7 @@
 | 属性         | 值                      |
 | :----------- | :---------------------- |
 | **名称**     | Image Helper / 图片助手 |
-| **版本**     | `1.10.28`               |
+| **版本**     | `1.11.0`                |
 | **运行时机** | `document-idle`         |
 | **匹配范围** | `*://*/*`               |
 | **作者**     | tlgj                    |
@@ -251,25 +251,24 @@
 
 ### 🛒 综合运动零售 / 户外 / 通用电商
 
-| 区域           | 规则组             | 支持 host                          | 规则摘要                                                |
-| -------------- | ------------------ | ---------------------------------- | ------------------------------------------------------- |
-| Decathlon 全球 | decathlon-intl     | `www.decathlon.com`                | 去 query                                                |
-| Decathlon 中国 | decathlon-cn       | `pixl.decathlon.com.cn`            | 去 query，转 PNG                                        |
-| Decathlon 香港 | decathlon-hk       | `contents.mediadecathlon.com`      | 去 query，转 PNG                                        |
-| Catalog 香港   | hkstore-catalog    | `catalog.hkstore.com`              | Magento 媒体图保守去 query                              |
-| Amazon         | amazon-media       | `m.media-amazon.com`               | 清理媒体图尺寸/格式片段                                 |
-| eBay           | ebay-img-force-png | `i.ebayimg.com`                    | 强制改为 `s-l2000.png`                                  |
-| END. Clothing  | end-clothing       | `media.endclothing.com`            | 清理媒体路径                                            |
-| Old Order      | old-order-shopify  | `old-order.com`                    | 复用 Shopify 原图清洗共享规则（去尺寸后缀，再去 query） |
-| Runnmore       | runnmore-like      | `www.runnmore.com`                 | thumbs 路径回原图                                       |
-| Extra Sports   | runnmore-like      | `www.extrasports.com`              | thumbs 路径回原图                                       |
-| Sport Vision   | runnmore-like      | `www.sportvision.mk`               | thumbs 路径回原图                                       |
-| GNK Store      | opencart-generic   | `gnk-store.ru`                     | 缓存图转原图                                            |
-| Shiekh Shoes   | magento-shiekh     | `static.shiekh.com`                | Magento 缓存图转原图路径                                |
-| Farfetch       | farfetch-contents  | `cdn-images.farfetch-contents.com` | 去文件名末尾尺寸后缀，再去 query                        |
-| Complex        | complex-cloudinary | `images.complex.com`               | 清理连续 transform path，保留资源路径                   |
-| Zalora 香港    | zalora-dynamic-cdn | `dynamic.zacdn.com`                | 提取包装 CDN pathname 后段的明文原图 URL                |
-| Hypebeast CDN  | hypebeast-cdn      | `image-cdn.hypb.st`                | decode 包装 CDN 路径并提取 pathname 中原图 URL          |
+| 区域            | 规则组             | 支持 host                          | 规则摘要                                                          |
+| --------------- | ------------------ | ---------------------------------- | ----------------------------------------------------------------- |
+| Decathlon 全球  | decathlon-intl     | `www.decathlon.com`                | 去 query                                                          |
+| Decathlon 中国  | decathlon-cn       | `pixl.decathlon.com.cn`            | 去 query，转 PNG                                                  |
+| Decathlon 香港  | decathlon-hk       | `contents.mediadecathlon.com`      | 去 query，转 PNG                                                  |
+| Catalog 香港    | hkstore-catalog    | `catalog.hkstore.com`              | Magento 媒体图保守去 query                                        |
+| Amazon          | amazon-media       | `m.media-amazon.com`               | 清理媒体图尺寸/格式片段                                           |
+| eBay            | ebay-img-force-png | `i.ebayimg.com`                    | 强制改为 `s-l2000.png`                                            |
+| END. Clothing   | end-clothing       | `media.endclothing.com`            | 清理媒体路径                                                      |
+| Old Order       | old-order-shopify  | `old-order.com`                    | 复用 Shopify 原图清洗共享规则（去尺寸后缀，再去 query）           |
+| Runnmore        | runnmore           | `www.runnmore.com`                 | thumbs 路径回原图                                                 |
+| Sport Vision MK | sportvision-mk     | `www.sportvision.mk`               | 精确回退 `/files/thumbs/files/` 缩略路径并去除末段冗余 `/images/` |
+| GNK Store       | opencart-generic   | `gnk-store.ru`                     | 缓存图转原图                                                      |
+| Shiekh Shoes    | magento-shiekh     | `static.shiekh.com`                | Magento 缓存图转原图路径                                          |
+| Farfetch        | farfetch-contents  | `cdn-images.farfetch-contents.com` | 去文件名末尾尺寸后缀，再去 query                                  |
+| Complex         | complex-cloudinary | `images.complex.com`               | 清理连续 transform path，保留资源路径                             |
+| Zalora 香港     | zalora-dynamic-cdn | `dynamic.zacdn.com`                | 提取包装 CDN pathname 后段的明文原图 URL                          |
+| Hypebeast CDN   | hypebeast-cdn      | `image-cdn.hypb.st`                | decode 包装 CDN 路径并提取 pathname 中原图 URL                    |
 
 ### 🎨 时尚 / 平台 / 通用图片 CDN
 

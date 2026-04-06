@@ -3,7 +3,7 @@
 // @name:zh-CN   图片助手
 // @name:en      Image Helper
 // @namespace    https://github.com/tlgj/Browser-Scripts
-// @version      1.10.28
+// @version      1.11.0
 // @description  提取页面图片并清洗到高清，支持多品牌 URL 规则、幻灯片浏览、独立查看器、保存/快速保存/全部保存，并支持脚本黑名单。
 // @author       tlgj
 // @license      MIT
@@ -1050,11 +1050,19 @@
       /\/media\/[^/]+\/(?:prodmedia\/)?media\/catalog\/product\//,
       "/media/catalog/product/"
     ),
-    RUNNMORE_LIKE_TO_ORIGINAL: {
+    RUNNMORE_TO_ORIGINAL: {
       apply: (url) =>
         url
-          .replace(/\/files\/thumbs\//, "/files/")
+          .replace(/\/files\/thumbs\/files\//, "/files/")
           .replace(/\/images\/thumbs_\d+\//, "/")
+          .replace(/(\_\d+\_\d+px)(\.\w+)$/, "$2"),
+    },
+    SPORTVISION_MK_TO_ORIGINAL: {
+      apply: (url) =>
+        url
+          .replace(/\/files\/thumbs\/files\//, "/files/")
+          .replace(/\/images\/thumbs_\d+\//, "/")
+          .replace(/\/images\/([^/]+)_\d+_\d+px(?=\.\w+$)/, "/$1")
           .replace(/(\_\d+\_\d+px)(\.\w+)$/, "$2"),
     },
     MAGENTO_TO_ORIGINAL: createRegexRule(
@@ -1181,9 +1189,8 @@
     ["i.ebayimg.com", "ebay-img-force-png"],
     ["media.endclothing.com", "end-clothing"],
     ["media.finishline.com", "finishline-media"],
-    ["www.runnmore.com", "runnmore-like"],
-    ["www.extrasports.com", "runnmore-like"],
-    ["www.sportvision.mk", "runnmore-like"],
+    ["www.runnmore.com", "runnmore"],
+    ["www.sportvision.mk", "sportvision-mk"],
     ["gnk-store.ru", "opencart-generic"],
     ["gw.alicdn.com", "alicdn"],
     ["img.alicdn.com", "alicdn"],
@@ -1286,7 +1293,8 @@
     "ebay-img-force-png": [BRAND_RULES.EBAY_TO_PNG_2000],
     "end-clothing": [BRAND_RULES.END_CLOTHING_CLEAN],
     "finishline-media": [REUSABLE_RULES.REMOVE_ALL_QUERY],
-    "runnmore-like": [BRAND_RULES.RUNNMORE_LIKE_TO_ORIGINAL],
+    runnmore: [BRAND_RULES.RUNNMORE_TO_ORIGINAL],
+    "sportvision-mk": [BRAND_RULES.SPORTVISION_MK_TO_ORIGINAL],
     "opencart-generic": [BRAND_RULES.OPENCART_TO_ORIGINAL],
     "t4s-cdn": [BRAND_RULES.T4S_TO_ORIGINAL],
     alicdn: [BRAND_RULES.ALICDN_REMOVE_SUFFIX],

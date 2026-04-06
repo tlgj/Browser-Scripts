@@ -145,6 +145,14 @@ const cases = [
       "https://assets.footlocker.com/is/image/FLEU/314215208404_01?$zoom2000png$",
     hostType: "footlocker-scene7",
   },
+  {
+    name: "Sport Vision MK: 独立去除 thumbs 与末段冗余 /images/ 路径",
+    input:
+      "https://www.sportvision.mk/files/thumbs/files/images/slike_proizvoda/media/SX5/SX5199-900/images/thumbs_1200/SX5199-900_1200_1200px.jpg",
+    expected:
+      "https://www.sportvision.mk/files/images/slike_proizvoda/media/SX5/SX5199-900/SX5199-900.jpg",
+    hostType: "sportvision-mk",
+  },
 ];
 
 let failed = 0;
