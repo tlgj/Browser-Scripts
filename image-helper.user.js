@@ -3,7 +3,7 @@
 // @name:zh-CN   图片助手
 // @name:en      Image Helper
 // @namespace    https://github.com/tlgj/Browser-Scripts
-// @version      1.13.1
+// @version      1.14.1
 // @description  提取页面图片并清洗到高清，支持多品牌 URL 规则、幻灯片浏览、独立查看器、保存/快速保存/全部保存，并支持脚本黑名单。
 // @author       tlgj
 // @license      MIT
@@ -1226,7 +1226,6 @@
     ["www.decathlon.com", "decathlon-intl"],
     ["pixl.decathlon.com.cn", "decathlon-cn"],
     ["contents.mediadecathlon.com", "decathlon-hk"],
-    ["img.myshopline.com", "fila-sg"],
     ["img.fishfay.com", "anta-group-cn"],
     ["shoplineimg.com", "fila-hk"],
     ["d31xv78q8gnfco.cloudfront.net", "fila-hk-cloudfront"],
@@ -1297,6 +1296,10 @@
       type: "kickscrew-shopify",
     },
     { str: "t4s.cz", type: "t4s-cdn" },
+    {
+      str: "img.myshopline.com/image/store/1731988466077/",
+      type: "salomon-th-myshopline",
+    },
   ];
 
   // ===== Rules: hostType → rule chain =====
@@ -1337,6 +1340,7 @@
     "puma-cn": [BRAND_RULES.PUMA_CN_IMAGE_PROCESSING],
     "reebok-intl": [REUSABLE_RULES.REMOVE_ALL_QUERY],
     "salomon-intl": [REUSABLE_RULES.REMOVE_ALL_QUERY],
+    "salomon-th-myshopline": RULE_CHAINS.SHOPIFY_ORIGINAL_CLEAN,
     "saucony-intl": [
       BRAND_RULES.SAUCONY_SCENE7_REMOVE_DOLLAR_PARAMS,
       REUSABLE_RULES.REMOVE_ALL_QUERY,
