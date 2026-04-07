@@ -290,7 +290,7 @@
 }
 
 .tm-top-left{ display:flex; align-items:center; gap:12px; flex-wrap: wrap; }
-.tm-top-right{ display:flex; align-items:center; gap:10px; flex-wrap: wrap; justify-content:flex-end; }
+.tm-top-right{ display:flex; align-items:center; gap:10px; flex-wrap: wrap; justify-content:flex-end; margin-left:auto; }
 .tm-top-actions{
   position: relative;
   display:flex;
@@ -298,6 +298,7 @@
   gap:10px;
   flex-wrap: wrap;
   justify-content:flex-end;
+  width:100%;
 }
 
 .tm-more-wrap{ position: relative; }
