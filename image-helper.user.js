@@ -3,7 +3,7 @@
 // @name:zh-CN   图片助手
 // @name:en      Image Helper
 // @namespace    https://github.com/tlgj/Browser-Scripts
-// @version      1.13.0
+// @version      1.13.3
 // @description  提取页面图片并清洗到高清，支持多品牌 URL 规则、幻灯片浏览、独立查看器、保存/快速保存/全部保存，并支持脚本黑名单。
 // @author       tlgj
 // @license      MIT
@@ -937,7 +937,9 @@
     ASICS_HIGH_RES: createQueryReplaceRule(
       "?wid=3000&hei=3000&fmt=png-alpha&qlt=100"
     ),
-    FILA_SG_QUERY: {
+
+    // Shopline 图片规则：CDN 清理 / 源站转 CloudFront / CloudFront 原图提取
+    SHOPLINE_IMAGE_CDN_QUERY: {
       apply: (url) => {
         const u = safeUrlParse(url);
         if (!u) return url;
@@ -967,14 +969,14 @@
         return stripCloudinaryUploadTransforms(urlStr, "/images/");
       },
     },
-    FILA_HK_TO_CLOUDFRONT: {
+    SHOPLINE_IMAGE_ORIGIN_TO_CLOUDFRONT: {
       apply: (url) =>
         url.replace(
           /^https:\/\/shoplineimg\.com\/[a-f0-9]+\/([a-f0-9]+)\/[^?]+\.(jpg|jpeg|png|webp|gif).*/i,
           "https://d31xv78q8gnfco.cloudfront.net/media/image_clips/$1/original.$2"
         ),
     },
-    FILA_HK_CLOUDFRONT: {
+    SHOPLINE_IMAGE_CLOUDFRONT: {
       apply: (url) => {
         const m = url.match(
           /(https:\/\/d31xv78q8gnfco\.cloudfront\.net\/media\/image_clips\/[a-f0-9]+\/original\.(?:jpg|jpeg|png|webp|gif))/i
@@ -1150,10 +1152,12 @@
     ["www.decathlon.com", "decathlon-intl"],
     ["pixl.decathlon.com.cn", "decathlon-cn"],
     ["contents.mediadecathlon.com", "decathlon-hk"],
-    ["img.myshopline.com", "fila-sg"],
+
+    // Shopline 图片域名
+    ["img.myshopline.com", "shopline-image-cdn"],
     ["img.fishfay.com", "anta-group-cn"],
-    ["shoplineimg.com", "fila-hk"],
-    ["d31xv78q8gnfco.cloudfront.net", "fila-hk-cloudfront"],
+    ["shoplineimg.com", "shopline-image-origin"],
+    ["d31xv78q8gnfco.cloudfront.net", "shopline-image-cloudfront"],
     ["dms.deckers.com", "hoka-intl"],
     ["b2c.hoka.wishetin.com", "hoka-cn"],
     ["lining-goods-online-1302115263.file.myqcloud.com", "lining-cn"],
@@ -1242,10 +1246,12 @@
     "decathlon-intl": [REUSABLE_RULES.REMOVE_ALL_QUERY],
     "decathlon-cn": [REUSABLE_RULES.REMOVE_ALL_QUERY, REUSABLE_RULES.TO_PNG],
     "decathlon-hk": [REUSABLE_RULES.REMOVE_ALL_QUERY, REUSABLE_RULES.TO_PNG],
-    "fila-sg": [BRAND_RULES.FILA_SG_QUERY],
+
+    // Shopline 图片规则链
+    "shopline-image-cdn": [BRAND_RULES.SHOPLINE_IMAGE_CDN_QUERY],
     "anta-group-cn": [BRAND_RULES.ANTA_GROUP_CN_QUERY],
-    "fila-hk": [BRAND_RULES.FILA_HK_TO_CLOUDFRONT],
-    "fila-hk-cloudfront": [BRAND_RULES.FILA_HK_CLOUDFRONT],
+    "shopline-image-origin": [BRAND_RULES.SHOPLINE_IMAGE_ORIGIN_TO_CLOUDFRONT],
+    "shopline-image-cloudfront": [BRAND_RULES.SHOPLINE_IMAGE_CLOUDFRONT],
     "hoka-intl": [REUSABLE_RULES.REMOVE_ALL_QUERY],
     "hoka-cn": [BRAND_RULES.HOKA_CN_REMOVE_QUERY],
     "lining-cn": [REUSABLE_RULES.REMOVE_ALL_QUERY],
