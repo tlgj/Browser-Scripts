@@ -3,7 +3,7 @@
 // @name:zh-CN   图片助手
 // @name:en      Image Helper
 // @namespace    https://github.com/tlgj/Browser-Scripts
-// @version      1.13.3
+// @version      1.14.0
 // @description  提取页面图片并清洗到高清，支持多品牌 URL 规则、幻灯片浏览、独立查看器、保存/快速保存/全部保存，并支持脚本黑名单。
 // @author       tlgj
 // @license      MIT
@@ -14,6 +14,7 @@
 // @grant        GM_setValue
 // @grant        GM_xmlhttpRequest
 // @grant        GM_download
+// @grant        GM_setClipboard
 // @connect      *
 // @downloadURL  https://github.com/tlgj/Browser-Scripts/raw/refs/heads/main/image-helper.user.js
 // @updateURL    https://github.com/tlgj/Browser-Scripts/raw/refs/heads/main/image-helper.user.js
@@ -3034,20 +3035,12 @@
         return;
       }
       try {
-        if (navigator.clipboard?.writeText) {
+        if (navigator.clipboard?.writeText && window.isSecureContext) {
           await navigator.clipboard.writeText(value);
+        } else if (typeof GM_setClipboard === "function") {
+          GM_setClipboard(value, "text");
         } else {
-          const ta = document.createElement("textarea");
-          ta.value = value;
-          ta.setAttribute("readonly", "readonly");
-          ta.style.position = "fixed";
-          ta.style.opacity = "0";
-          ta.style.pointerEvents = "none";
-          document.body.appendChild(ta);
-          ta.focus();
-          ta.select();
-          document.execCommand("copy");
-          ta.remove();
+          throw new Error("No clipboard API available");
         }
         flashCopiedButton(btn);
         setStatus(successText);

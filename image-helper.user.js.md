@@ -155,8 +155,8 @@
 - 可分别对以下链接执行一键打开与复制：
   - 当前链接（已清洗）
   - 原始链接
-- 优先使用 `navigator.clipboard.writeText`
-- 不可用时回退到 `document.execCommand('copy')`
+- 优先使用 `navigator.clipboard.writeText`（安全上下文）
+- 不可用时回退到 `GM_setClipboard`
 
 ### 5️⃣ 保存能力
 
