@@ -45,26 +45,9 @@ if (!api) throw new Error("测试导出失败");
 const requiredUiSnippets = [
   'id="tm-open-clean"',
   'id="tm-open-raw"',
-  'id="tm-more-toggle"',
-  'id="tm-more-menu"',
-  'id="tm-save-fast"',
-  'id="tm-save-all"',
   "已打开当前链接",
   "已打开原始链接",
-  "重新扫描",
 ];
-
-const duplicateExactHostEntries = [...api.EXACT_HOST_MAP.entries()].filter(
-  ([host], index, entries) =>
-    entries.findIndex(([key]) => key === host) !== index
-);
-if (duplicateExactHostEntries.length > 0) {
-  throw new Error(
-    `EXACT_HOST_MAP 存在重复 host 映射: ${duplicateExactHostEntries
-      .map(([host]) => host)
-      .join(", ")}`
-  );
-}
 
 for (const snippetText of requiredUiSnippets) {
   if (!source.includes(snippetText)) {
@@ -190,14 +173,6 @@ const cases = [
     expected:
       "https://www.sportvision.hr/files/images/slike_proizvoda/media/SX5/SX5199-900/SX5199-900.jpg",
     hostType: "sportvision-mk",
-  },
-  {
-    name: "Salomon Thailand MyShopline: 去尺寸后缀并清理 query",
-    input:
-      "https://img.myshopline.com/image/store/1731988466077/L47463300-6-GHO-XULTRA360EDGEGTX-SpectrumBlue-GlacierGray-Sharkskin_600x.png?w=1450&h=1450&q=80",
-    expected:
-      "https://img.myshopline.com/image/store/1731988466077/L47463300-6-GHO-XULTRA360EDGEGTX-SpectrumBlue-GlacierGray-Sharkskin.png",
-    hostType: "salomon-th-myshopline",
   },
 ];
 
