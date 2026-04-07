@@ -217,7 +217,7 @@
 | Converse 中国            | converse-cn               | `res-converse.baozun.com`, `dam-converse.baozun.com`           | 去 query                                  |
 | Shopline 图片源站        | shopline-image-origin     | `shoplineimg.com`                                              | 转换到 CloudFront 原图地址                |
 | Shopline 图片 CloudFront | shopline-image-cloudfront | `d31xv78q8gnfco.cloudfront.net`                                | 提取 CloudFront 原图                      |
-| Shopline 图片 CDN        | shopline-image-cdn        | `img.myshopline.com`                                           | 按条件清理尺寸/质量 query                 |
+| Shopline 图片 CDN        | shopline-image-cdn        | `img.myshopline.com`, `img-*.myshopline.com`                   | 按条件清理尺寸/质量 query                 |
 | 安踏集团中国             | anta-group-cn             | `img.fishfay.com`                                              | 去 `x-image-process` 展示参数             |
 | Hoka 全球                | hoka-intl                 | `dms.deckers.com`                                              | 去 query                                  |
 | Hoka 中国                | hoka-cn                   | `b2c.hoka.wishetin.com`                                        | 去中国站 query                            |

@@ -3,7 +3,7 @@
 // @name:zh-CN   图片助手
 // @name:en      Image Helper
 // @namespace    https://github.com/tlgj/Browser-Scripts
-// @version      1.14.0
+// @version      1.14.1
 // @description  提取页面图片并清洗到高清，支持多品牌 URL 规则、幻灯片浏览、独立查看器、保存/快速保存/全部保存，并支持脚本黑名单。
 // @author       tlgj
 // @license      MIT
@@ -1329,6 +1329,13 @@
       u.hostname.endsWith(".360buyimg.com")
     ) {
       return "jd-360buyimg";
+    }
+
+    if (
+      u.hostname === "img.myshopline.com" ||
+      /^img-[a-z0-9-]+\.myshopline\.com$/i.test(u.hostname)
+    ) {
+      return "shopline-image-cdn";
     }
 
     let hostType = EXACT_HOST_MAP.get(u.hostname);
