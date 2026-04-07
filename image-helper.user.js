@@ -347,12 +347,10 @@
 
 
 .tm-filename{
-  min-width: 0;
-  width: 100%;
-  text-align: center;
-  padding: 0 12px;
-  font-size: 20px;
-  font-weight: 900;
+  flex: 1 1 320px;
+  min-width: 220px;
+  font-size: 18px;
+  font-weight: 800;
   letter-spacing: 0.2px;
   color: rgba(255,255,255,0.94);
   white-space: nowrap;
