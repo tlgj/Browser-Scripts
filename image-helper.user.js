@@ -285,9 +285,9 @@
 }
 
 .tm-topbar{
-  display:grid;
-  grid-template-columns: minmax(0, max-content) minmax(220px, 1fr) minmax(0, max-content);
+  display:flex;
   align-items:center;
+  justify-content:space-between;
   gap: 14px;
   padding: 12px 14px;
 }
@@ -305,6 +305,7 @@
   gap:10px;
   justify-content:flex-end;
   min-width:0;
+  margin-left:auto;
 }
 .tm-top-actions{
   position: relative;
@@ -345,10 +346,10 @@
   content: "▴";
 }
 
-
 .tm-filename{
-  flex: 1 1 320px;
-  min-width: 220px;
+  align-self: center;
+  max-width: min(96vw, 1400px);
+  padding: 2px 20px 0;
   font-size: 18px;
   font-weight: 800;
   letter-spacing: 0.2px;
@@ -356,21 +357,21 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  text-align: center;
   user-select: text;
 }
 
 @media (max-width: 1200px){
   .tm-topbar{
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .tm-top-left,
-  .tm-top-right,
-  .tm-filename{
-    justify-self: stretch;
+    flex-wrap: wrap;
   }
   .tm-top-right,
   .tm-top-actions{
     justify-content:flex-end;
+  }
+  .tm-filename{
+    width: 100%;
+    padding-inline: 8px;
   }
 }
 
@@ -3002,8 +3003,8 @@
                     </div>
                 </div>
 
+            <div class="tm-stage">
                 <div id="tm-filename" class="tm-filename"></div>
-            </div>
 
 
             <div class="tm-stage">
