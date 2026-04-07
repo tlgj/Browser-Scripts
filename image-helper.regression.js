@@ -45,8 +45,13 @@ if (!api) throw new Error("测试导出失败");
 const requiredUiSnippets = [
   'id="tm-open-clean"',
   'id="tm-open-raw"',
+  'id="tm-more-toggle"',
+  'id="tm-more-menu"',
+  'id="tm-save-fast"',
+  'id="tm-save-all"',
   "已打开当前链接",
   "已打开原始链接",
+  "重新扫描",
 ];
 
 for (const snippetText of requiredUiSnippets) {

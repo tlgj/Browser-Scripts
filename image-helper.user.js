@@ -3,7 +3,7 @@
 // @name:zh-CN   图片助手
 // @name:en      Image Helper
 // @namespace    https://github.com/tlgj/Browser-Scripts
-// @version      1.13.0
+// @version      1.13.1
 // @description  提取页面图片并清洗到高清，支持多品牌 URL 规则、幻灯片浏览、独立查看器、保存/快速保存/全部保存，并支持脚本黑名单。
 // @author       tlgj
 // @license      MIT
@@ -291,6 +291,46 @@
 
 .tm-top-left{ display:flex; align-items:center; gap:12px; flex-wrap: wrap; }
 .tm-top-right{ display:flex; align-items:center; gap:10px; flex-wrap: wrap; justify-content:flex-end; }
+.tm-top-actions{
+  position: relative;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-wrap: wrap;
+  justify-content:flex-end;
+}
+
+.tm-more-wrap{ position: relative; }
+.tm-more-menu{
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  display: none;
+  min-width: 148px;
+  padding: 8px;
+  border-radius: 14px;
+  border: 1px solid var(--tm-border);
+  background: rgba(18,18,20,0.94);
+  box-shadow: var(--tm-shadow);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  z-index: 3;
+}
+.tm-more-menu.is-open{ display: grid; gap: 8px; }
+.tm-more-menu .tm-btn{
+  width: 100%;
+  justify-content: center;
+}
+.tm-more-toggle::after{
+  content: "▾";
+  margin-left: 6px;
+  font-size: 12px;
+  opacity: 0.85;
+}
+.tm-more-toggle[aria-expanded="true"]::after{
+  content: "▴";
+}
+
 
 .tm-filename{
   flex: 1 1 320px; min-width: 220px; text-align: center; padding: 0 12px;
@@ -2908,14 +2948,20 @@
                 </div>
 
                 <div class="tm-top-right">
-                    <button id="tm-save" class="tm-btn tm-btn-primary">保存</button>
-                    <button id="tm-save-fast" class="tm-btn">快速保存</button>
-                    <button id="tm-save-all" class="tm-btn">全部保存</button>
-                    <button id="tm-save-stop" class="tm-btn tm-btn-danger" disabled>停止</button>
-                    <button id="tm-open" class="tm-btn">新标签打开</button>
-                    <button id="tm-refresh" class="tm-btn">重新扫描</button>
-                    <button id="tm-close" class="tm-btn tm-btn-danger">关闭</button>
-
+                    <div class="tm-top-actions">
+                        <button id="tm-save-fast" class="tm-btn">快速保存</button>
+                        <button id="tm-save-all" class="tm-btn">全部保存</button>
+                        <button id="tm-open" class="tm-btn">新标签打开</button>
+                        <div class="tm-more-wrap">
+                            <button id="tm-more-toggle" class="tm-btn tm-btn-ghost tm-more-toggle" type="button" aria-expanded="false" aria-haspopup="true">更多</button>
+                            <div id="tm-more-menu" class="tm-more-menu" role="menu" aria-hidden="true">
+                                <button id="tm-save" class="tm-btn tm-btn-primary" type="button" role="menuitem">保存</button>
+                                <button id="tm-save-stop" class="tm-btn tm-btn-danger" type="button" role="menuitem" disabled>停止</button>
+                                <button id="tm-refresh" class="tm-btn" type="button" role="menuitem">重新扫描</button>
+                            </div>
+                        </div>
+                        <button id="tm-close" class="tm-btn tm-btn-danger">关闭</button>
+                    </div>
                 </div>
 
                 <div id="tm-filename" class="tm-filename"></div>
@@ -2977,16 +3023,56 @@
         helpEl.style.opacity = "0";
       }, 3000);
     }
+    const moreToggleBtn = $("#tm-more-toggle");
+    const moreMenuEl = $("#tm-more-menu");
+    const setMoreMenuOpen = (open) => {
+      if (!moreToggleBtn || !moreMenuEl) return;
+      moreToggleBtn.setAttribute("aria-expanded", open ? "true" : "false");
+      moreMenuEl.classList.toggle("is-open", open);
+      moreMenuEl.setAttribute("aria-hidden", open ? "false" : "true");
+    };
+    const toggleMoreMenu = () => {
+      if (!moreMenuEl?.classList.contains("is-open")) {
+        setMoreMenuOpen(true);
+      } else {
+        setMoreMenuOpen(false);
+      }
+    };
+    setMoreMenuOpen(false);
 
     bindClick($("#tm-close"), closeSlideshow);
+    bindClick(moreToggleBtn, (e) => {
+      e.stopPropagation();
+      toggleMoreMenu();
+    });
+    overlay.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") setMoreMenuOpen(false);
+    });
 
     bindClick($("#tm-prev"), () => show(current - 1));
     bindClick($("#tm-next"), () => show(current + 1));
-    bindClick($("#tm-refresh"), rebuildAndOpen);
+    bindClick($("#tm-refresh"), () => {
+      setMoreMenuOpen(false);
+      rebuildAndOpen();
+    });
+    bindClick($("#tm-save"), () => {
+      setMoreMenuOpen(false);
+      saveCurrentImage();
+    });
 
     bindClick($("#tm-open"), () => {
+      setMoreMenuOpen(false);
       if (!list.length) return;
       window.open(list[current].cleanUrl, "_blank", "noopener,noreferrer");
+    });
+    moreMenuEl?.addEventListener("click", (e) => {
+      e.stopPropagation();
+    });
+    overlay.addEventListener("click", (e) => {
+      if (!moreMenuEl?.classList.contains("is-open")) return;
+      if (moreMenuEl.contains(e.target) || moreToggleBtn?.contains(e.target))
+        return;
+      setMoreMenuOpen(false);
     });
 
     const copyBtnTimers = new WeakMap();
@@ -3076,11 +3162,23 @@
       if (!list.length) return;
       openUrlInNewTab(list[current]?.rawUrl, "已打开原始链接");
     });
+    bindClick($("#tm-save-fast"), () => {
+      setMoreMenuOpen(false);
+      saveCurrentImageFast();
+    });
+    bindClick($("#tm-save-all"), () => {
+      setMoreMenuOpen(false);
+      slideSaveAll();
+    });
+    bindClick($("#tm-save-stop"), () => {
+      setMoreMenuOpen(false);
+      slideStopAll();
+    });
 
-    bindClick($("#tm-save"), saveCurrentImage);
-    bindClick($("#tm-save-fast"), saveCurrentImageFast);
-    bindClick($("#tm-save-all"), slideSaveAll);
-    bindClick($("#tm-save-stop"), slideStopAll);
+    bindClick($("#tm-refresh"), () => {
+      setMoreMenuOpen(false);
+      rebuildAndOpen();
+    });
 
     // 文件夹显示和点击修改功能
     const folderEl = $("#tm-folder");
@@ -3113,6 +3211,7 @@
     const canvasEl = $("#tm-canvas");
     wheelHandler = (e) => {
       // ✅ 修复：查看器打开时不响应
+
       if (viewerOpen) return;
 
       const now = Date.now();
