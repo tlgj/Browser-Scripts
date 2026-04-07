@@ -2,7 +2,7 @@
 
 > **脚本文件**：[`image-helper.user.js`](./image-helper.user.js)
 
-![version](https://img.shields.io/badge/version-1.13.0-blue?style=flat-square)
+![version](https://img.shields.io/badge/version-1.14.0-blue?style=flat-square)
 ![match](https://img.shields.io/badge/match-*://*/*-green?style=flat-square)
 ![run](https://img.shields.io/badge/run-document--idle-yellow?style=flat-square)
 ![license](https://img.shields.io/badge/license-MIT-orange?style=flat-square)
@@ -217,7 +217,7 @@
 | Converse 中国        | converse-cn        | `res-converse.baozun.com`, `dam-converse.baozun.com`           | 去 query                                  |
 | Fila 香港            | fila-hk            | `shoplineimg.com`                                              | 转换到 CloudFront 原图地址                |
 | Fila 香港 CloudFront | fila-hk-cloudfront | `d31xv78q8gnfco.cloudfront.net`                                | 提取 CloudFront 原图                      |
-| Fila 新加坡          | fila-sg            | `img.myshopline.com`                                           | 按条件清理尺寸/质量 query                 |
+| MyShopline 图片 CDN  | myshopline-image   | `img.myshopline.com`                                           | 按条件清理尺寸/质量 query                 |
 | 安踏集团中国         | anta-group-cn      | `img.fishfay.com`                                              | 去 `x-image-process` 展示参数             |
 | Hoka 全球            | hoka-intl          | `dms.deckers.com`                                              | 去 query                                  |
 | Hoka 中国            | hoka-cn            | `b2c.hoka.wishetin.com`                                        | 去中国站 query                            |

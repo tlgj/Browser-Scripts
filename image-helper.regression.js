@@ -97,6 +97,13 @@ const cases = [
     hostType: "goat",
   },
   {
+    name: "MyShopline 图片 CDN: 保守移除 w/h/q 展示参数并命中通用 hostType",
+    input:
+      "https://img.myshopline.com/image/store/1234567890/example.jpg?w=1200&h=1200&q=80",
+    expected: "https://img.myshopline.com/image/store/1234567890/example.jpg",
+    hostType: "myshopline-image",
+  },
+  {
     name: "Hypebeast CDN: 解码 pathname 中的 percent-encoded 原图 URL",
     input:
       "https://image-cdn.hypb.st/https%3A%2F%2Fs3.store.hypebeast.com%2Fmedia%2Fimage%2F54%2Fdd%2Flongtee-1-1-662c4.jpg?fit=max&w=720&q=90",
