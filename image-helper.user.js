@@ -16,8 +16,8 @@
 // @grant        GM_download
 // @grant        GM_setClipboard
 // @connect      *
-// @downloadURL  https://github.com/tlgj/Browser-Scripts/raw/refs/heads/main/image-helper.user.js
-// @updateURL    https://github.com/tlgj/Browser-Scripts/raw/refs/heads/main/image-helper.user.js
+// @downloadURL  https://raw.githubusercontent.com/tlgj/Browser-Scripts/main/image-helper.user.js
+// @updateURL    https://raw.githubusercontent.com/tlgj/Browser-Scripts/main/image-helper.user.js
 // ==/UserScript==
 
 (function () {
