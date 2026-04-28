@@ -82,6 +82,7 @@
     SLIDE_LOAD_MODE: "sih_slide_load_mode",
     SLIDE_RAW_PREVIEW_DELAY_MS: "sih_slide_raw_preview_delay_ms",
     ENHANCED_IMAGE_DISCOVERY: "sih_enhanced_image_discovery",
+    PROBE_FILESIZE: "sih_probe_filesize",
   };
 
   const DEFAULT_BTN_OFFSET = 18;
@@ -99,6 +100,7 @@
     scanBackgroundImages: false,
     maxElementsForBgScan: 8000,
     enhancedImageDiscovery: false,
+    probeFilesize: true,
     preloadRadius: 2,
     blacklist: [],
     saveRootFolder: "TM_Images",
@@ -145,6 +147,10 @@
     enhancedImageDiscovery: GM_getValue(
       STORE_KEYS.ENHANCED_IMAGE_DISCOVERY,
       DEFAULTS.enhancedImageDiscovery
+    ),
+    probeFilesize: GM_getValue(
+      STORE_KEYS.PROBE_FILESIZE,
+      DEFAULTS.probeFilesize
     ),
     preloadRadius: DEFAULTS.preloadRadius,
     blacklist: GM_getValue(STORE_KEYS.BLACKLIST, DEFAULTS.blacklist) || [],
@@ -2404,7 +2410,7 @@
       imgEl.style.opacity = "1";
       imgEl.classList.remove("loading");
 
-      // 图片加载成功后，异步获取并显示文件大小
+      // 图片加载成功后，显示文件大小（仅在开关开启时主动探测）
       const showFilesize = (len) => {
         if (imgEl.dataset.tmToken !== token) return;
         if (filesizePill && filesizeEl) {
@@ -2418,13 +2424,13 @@
         }
       };
 
-      if (!it.contentLength && it.cleanUrl) {
+      if (it.contentLength) {
+        showFilesize(it.contentLength);
+      } else if (SETTINGS.probeFilesize && it.cleanUrl) {
         probeContentLength(it.cleanUrl).then((len) => {
           it.contentLength = len;
           showFilesize(len);
         });
-      } else {
-        showFilesize(it.contentLength);
       }
     };
 
@@ -3700,6 +3706,20 @@
 
             <div style="margin-top:10px;">
                 <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;user-select:none;">
+                    <input id="tm-probe-filesize" type="checkbox" ${
+                      SETTINGS.probeFilesize ? "checked" : ""
+                    } style="margin-top:3px;" />
+                    <span>
+                        <div class="tm-label" style="margin:0;">幻灯片显示文件大小</div>
+                        <div style="margin-top:4px;font-size:12px;line-height:1.4;color:rgba(255,255,255,0.74);">
+                            开启后在幻灯片顶部栏显示图片文件体积；关闭可避免 Tampermonkey 对新域名弹出跨域确认框。
+                        </div>
+                    </span>
+                </label>
+            </div>
+
+            <div style="margin-top:10px;">
+                <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;user-select:none;">
                     <input id="tm-btn-pos-locked" type="checkbox" ${
                       SETTINGS.btnPosLocked ? "checked" : ""
                     } style="margin-top:3px;" />
@@ -3738,6 +3758,7 @@
     const enhancedImageDiscoveryInput = p.querySelector(
       "#tm-enhanced-image-discovery"
     );
+    const probeFilesizeInput = p.querySelector("#tm-probe-filesize");
     const btnPosLockedInput = p.querySelector("#tm-btn-pos-locked");
 
     p.querySelectorAll(".tm-ext-preset").forEach((btn) => {
@@ -3792,6 +3813,7 @@
       );
       SETTINGS.filter.exts = String(p.querySelector("#tm-exts").value || "");
       SETTINGS.enhancedImageDiscovery = !!enhancedImageDiscoveryInput?.checked;
+      SETTINGS.probeFilesize = !!probeFilesizeInput?.checked;
       SETTINGS.btnPosLocked = !!btnPosLockedInput?.checked;
 
       const modeEl = p.querySelector("#tm-slide-load-mode");
@@ -3815,6 +3837,7 @@
         STORE_KEYS.ENHANCED_IMAGE_DISCOVERY,
         SETTINGS.enhancedImageDiscovery
       );
+      GM_setValue(STORE_KEYS.PROBE_FILESIZE, SETTINGS.probeFilesize);
       GM_setValue(STORE_KEYS.BTN_POS_LOCKED, SETTINGS.btnPosLocked);
       GM_setValue(STORE_KEYS.SAVE_ROOT_FOLDER, SETTINGS.saveRootFolder);
       saveFilter();
