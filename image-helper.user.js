@@ -3,7 +3,7 @@
 // @name:zh-CN   图片助手
 // @name:en      Image Helper
 // @namespace    https://github.com/tlgj/Browser-Scripts
-// @version      1.15.1
+// @version      1.16.0
 // @description  提取页面图片并清洗到高清，支持多品牌 URL 规则、幻灯片浏览、独立查看器、保存/快速保存/全部保存，并支持脚本黑名单。
 // @author       tlgj
 // @license      MIT
@@ -2181,6 +2181,8 @@
       mainImg: overlay.querySelector("#tm-main-img"),
       strip: overlay.querySelector("#tm-strip"),
       saveStop: overlay.querySelector("#tm-save-stop"),
+      filesizePill: overlay.querySelector("#tm-filesize-pill"),
+      filesize: overlay.querySelector("#tm-filesize"),
     };
   }
 
@@ -2389,11 +2391,41 @@
     const token = String(Date.now()) + "_" + String(Math.random());
     imgEl.dataset.tmToken = token;
 
+    // 更新顶部文件大小胶囊
+    const filesizePill =
+      els.filesizePill || overlay?.querySelector("#tm-filesize-pill");
+    const filesizeEl = els.filesize || overlay?.querySelector("#tm-filesize");
+    if (filesizePill) filesizePill.style.display = "none";
+    if (filesizeEl) filesizeEl.textContent = "-";
+
     const trySettleSuccess = () => {
       if (imgEl.dataset.tmToken !== token) return;
       setStatus("");
       imgEl.style.opacity = "1";
       imgEl.classList.remove("loading");
+
+      // 图片加载成功后，异步获取并显示文件大小
+      const showFilesize = (len) => {
+        if (imgEl.dataset.tmToken !== token) return;
+        if (filesizePill && filesizeEl) {
+          if (len != null) {
+            filesizeEl.textContent = formatFileSize(len);
+            filesizePill.style.display = "";
+          } else {
+            filesizeEl.textContent = "-";
+            filesizePill.style.display = "none";
+          }
+        }
+      };
+
+      if (!it.contentLength && it.cleanUrl) {
+        probeContentLength(it.cleanUrl).then((len) => {
+          it.contentLength = len;
+          showFilesize(len);
+        });
+      } else {
+        showFilesize(it.contentLength);
+      }
     };
 
     const trySettleError = () => {
@@ -2925,6 +2957,9 @@
                     <div class="tm-pill">
                       <div class="tm-kv" id="tm-folder-pill" title="点击修改保存文件夹"><small>📁</small> <span id="tm-folder">...</span></div>
                     </div>
+                    <div class="tm-pill" id="tm-filesize-pill" style="display:none;">
+                      <div class="tm-kv"><small>📦</small> <span id="tm-filesize">-</span></div>
+                    </div>
                 </div>
 
                 <div class="tm-top-right">
@@ -3297,6 +3332,19 @@
   // =========================================================
   function clamp(n, min, max) {
     return Math.max(min, Math.min(max, n));
+  }
+
+  // 格式化文件大小显示
+  function formatFileSize(bytes) {
+    if (bytes === null || bytes === undefined) return "";
+    if (bytes === 0) return "0 B";
+
+    const units = ["B", "KB", "MB", "GB"];
+    const k = 1024;
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    const size = (bytes / Math.pow(k, i)).toFixed(i > 0 ? 1 : 0);
+
+    return `${size} ${units[i]}`;
   }
 
   function applyBtnPosition(btn) {
