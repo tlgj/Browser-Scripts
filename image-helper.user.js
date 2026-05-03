@@ -3,7 +3,7 @@
 // @name:zh-CN   图片助手
 // @name:en      Image Helper
 // @namespace    https://github.com/tlgj/Browser-Scripts
-// @version      1.17.0
+// @version      1.17.1
 // @description  提取页面图片并清洗到高清，支持多品牌 URL 规则、幻灯片浏览、独立查看器、保存/快速保存/全部保存，并支持脚本黑名单。
 // @author       tlgj
 // @license      MIT
@@ -1134,6 +1134,18 @@
         return extracted || urlStr;
       },
     },
+    BOMBAS_ASSETS_ORIGINAL: {
+      apply: (urlStr) => {
+        const u = safeUrlParse(urlStr);
+        if (!u || u.hostname !== "assets.bombas.com") return urlStr;
+        if (!u.pathname.startsWith("/image/fetch/")) return urlStr;
+
+        const extracted =
+          extractPlainOriginFromWrappedPath(u.pathname) ||
+          extractEncodedOriginFromPath(u.pathname);
+        return extracted || urlStr;
+      },
+    },
   };
 
   const RULE_CHAINS = {
@@ -1221,6 +1233,7 @@
     ["sneaker-freaker.b-cdn.net", "sneaker-freaker-bcdn"],
     ["catalog.hkstore.com", "hkstore-catalog"],
     ["dynamic.zacdn.com", "zalora-dynamic-cdn"],
+    ["assets.bombas.com", "bombas-assets"],
     ["www.stadiumgoods.com", "stadiumgoods-shopify"],
   ]);
 
@@ -1332,6 +1345,7 @@
     "sneaker-freaker-bcdn": [BRAND_RULES.SNEAKER_FREAKER_BCDN_ORIGINAL],
     "hkstore-catalog": [REUSABLE_RULES.REMOVE_ALL_QUERY],
     "zalora-dynamic-cdn": [BRAND_RULES.ZALORA_DYNAMIC_ORIGINAL],
+    "bombas-assets": [BRAND_RULES.BOMBAS_ASSETS_ORIGINAL],
     "stadiumgoods-shopify": RULE_CHAINS.SHOPIFY_ORIGINAL_CLEAN,
   };
 

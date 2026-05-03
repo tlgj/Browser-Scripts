@@ -128,6 +128,14 @@ const cases = [
     hostType: "zalora-dynamic-cdn",
   },
   {
+    name: "Bombas: 提取 Cloudinary fetch 路径中的原图 URL",
+    input:
+      "https://assets.bombas.com/image/fetch/c_crop,h_3040,w_3040/b_rgb:f1f1ee,c_scale,w_1068/f_auto,q_auto/https://images.ctfassets.net/09hbx69ra4p2/1F9eMokCtt17SZDkVusfVS/7c42a029f7c8bde05081a3e9250e237c/11013-neonlime-adult-unisex-layflat-1-transparent.png",
+    expected:
+      "https://images.ctfassets.net/09hbx69ra4p2/1F9eMokCtt17SZDkVusfVS/7c42a029f7c8bde05081a3e9250e237c/11013-neonlime-adult-unisex-layflat-1-transparent.png",
+    hostType: "bombas-assets",
+  },
+  {
     name: "Nike: 保持 /a/images/ 专用路径回源逻辑",
     input:
       "https://static.nike.com/a/images/t_PDP_1728_v1/f_auto,q_auto:eco/abc12345/sample-image.jpg",
