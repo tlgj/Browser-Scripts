@@ -3,7 +3,7 @@
 // @name:zh-CN   图片助手
 // @name:en      Image Helper
 // @namespace    https://github.com/tlgj/Browser-Scripts
-// @version      1.17.1
+// @version      1.17.2
 // @description  提取页面图片并清洗到高清，支持多品牌 URL 规则、幻灯片浏览、独立查看器、保存/快速保存/全部保存，并支持脚本黑名单。
 // @author       tlgj
 // @license      MIT
@@ -1235,6 +1235,7 @@
     ["dynamic.zacdn.com", "zalora-dynamic-cdn"],
     ["assets.bombas.com", "bombas-assets"],
     ["www.stadiumgoods.com", "stadiumgoods-shopify"],
+    ["f.nooncdn.com", "noon-cdn"],
   ]);
 
   const PARTIAL_MATCH_RULES = [
@@ -1347,6 +1348,7 @@
     "zalora-dynamic-cdn": [BRAND_RULES.ZALORA_DYNAMIC_ORIGINAL],
     "bombas-assets": [BRAND_RULES.BOMBAS_ASSETS_ORIGINAL],
     "stadiumgoods-shopify": RULE_CHAINS.SHOPIFY_ORIGINAL_CLEAN,
+    "noon-cdn": [REUSABLE_RULES.REMOVE_ALL_QUERY],
   };
 
   function detectHostTypeByUrlObj(u, fullUrlStr) {

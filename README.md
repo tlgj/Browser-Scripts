@@ -49,14 +49,6 @@
 - 关键词过滤
 - 指定用户过滤
 
-## 辅助脚本
-
-### image-helper.regression.js
-
-- 文件：`image-helper.regression.js`
-- 类型：Node.js 回归测试脚本
-- 用途：抽取 `image-helper.user.js` 中的 URL 规则逻辑，执行回归测试，避免后续修改破坏既有清洗规则。
-
 ## 安装方式
 
 ### 用户脚本
@@ -72,10 +64,6 @@
 - `Pornhub-Tool.user.js`
 
 这些脚本也都在文件头提供了 `@downloadURL` 与 `@updateURL`，可用于安装和更新。
-
-### 回归测试脚本
-
-`image-helper.regression.js` 需要在 Node.js 环境中运行，用于本地验证 `image-helper.user.js` 的规则逻辑。
 
 ## 仓库说明
 
