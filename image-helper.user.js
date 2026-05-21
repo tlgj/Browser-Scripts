@@ -3,7 +3,7 @@
 // @name:zh-CN   图片助手
 // @name:en      Image Helper
 // @namespace    https://github.com/tlgj/Browser-Scripts
-// @version      1.17.4
+// @version      1.17.5
 // @description  提取页面图片并清洗到高清，支持多品牌 URL 规则、幻灯片浏览、独立查看器、保存/快速保存/全部保存，并支持脚本黑名单。
 // @author       tlgj
 // @license      MIT
@@ -186,15 +186,12 @@
       .trim()
       .toLowerCase()
       .replace(/^https?:\/\//, "")
+      .replace(/^\*\./, "")
       .replace(/^\.+/, "")
       .replace(/\/+.*$/, "")
       .replace(/:\d+$/, "");
     if (!value) return "";
     if (value === "*") return "";
-    if (value.startsWith("*.")) {
-      const domain = value.slice(2).replace(/^\.+/, "");
-      return domain ? `*.${domain}` : "";
-    }
     return value;
   }
 
@@ -3280,6 +3277,7 @@
   // 工具函数：事件绑定辅助
   // =========================================================
   function bindClick(el, fn) {
+    if (!el || typeof fn !== "function") return;
     el.addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
@@ -3287,6 +3285,7 @@
     });
   }
   function bindEvent(el, type, fn) {
+    if (!el || typeof fn !== "function") return;
     el.addEventListener(type, (e) => {
       e.preventDefault();
       e.stopPropagation();
@@ -3359,12 +3358,15 @@
   // 格式化文件大小显示
   function formatFileSize(bytes) {
     if (bytes === null || bytes === undefined) return "";
-    if (bytes === 0) return "0 B";
 
-    const units = ["B", "KB", "MB", "GB"];
+    const n = Number(bytes);
+    if (!Number.isFinite(n) || n < 0) return "";
+    if (n === 0) return "0 B";
+
+    const units = ["B", "KB", "MB", "GB", "TB"];
     const k = 1024;
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    const size = (bytes / Math.pow(k, i)).toFixed(i > 0 ? 1 : 0);
+    const i = Math.min(units.length - 1, Math.floor(Math.log(n) / Math.log(k)));
+    const size = (n / Math.pow(k, i)).toFixed(i > 0 ? 1 : 0);
 
     return `${size} ${units[i]}`;
   }
@@ -3805,7 +3807,7 @@
 
         SETTINGS.blacklist = SETTINGS.blacklist
           .map((entry) => normalizeBlacklistEntry(entry))
-          .filter((entry) => entry && !entry.startsWith("*."))
+          .filter(Boolean)
           .filter((entry, index, arr) => arr.indexOf(entry) === index);
 
         saveBlacklist();
@@ -3975,9 +3977,13 @@
       emptyText,
       deleteClassName
     ) {
-      targetEl.innerHTML = "";
+      targetEl.textContent = "";
       if (!targetList || targetList.length === 0) {
-        targetEl.innerHTML = `<div style="text-align:center;padding:20px;color:rgba(255,255,255,0.54);font-size:14px;">${emptyText}</div>`;
+        const emptyEl = document.createElement("div");
+        emptyEl.style.cssText =
+          "text-align:center;padding:20px;color:rgba(255,255,255,0.54);font-size:14px;";
+        emptyEl.textContent = emptyText;
+        targetEl.appendChild(emptyEl);
         return;
       }
 
@@ -3985,12 +3991,20 @@
         const item = document.createElement("div");
         item.style.cssText =
           "display:flex;align-items:center;gap:8px;padding:8px 0;";
-        item.innerHTML = `
-                    <span style="flex:1;font-family:monospace;font-size:14px;
-                        color:rgba(255,255,255,0.88);word-break:break-all;">${site}</span>
-                    <button class="${deleteClassName} tm-btn tm-btn-danger" data-idx="${idx}"
-                        style="padding:6px 12px;font-size:13px;">删除</button>
-                `;
+
+        const siteEl = document.createElement("span");
+        siteEl.style.cssText =
+          "flex:1;font-family:monospace;font-size:14px;color:rgba(255,255,255,0.88);word-break:break-all;";
+        siteEl.textContent = site;
+
+        const deleteBtn = document.createElement("button");
+        deleteBtn.className = `${deleteClassName} tm-btn tm-btn-danger`;
+        deleteBtn.dataset.idx = String(idx);
+        deleteBtn.style.cssText = "padding:6px 12px;font-size:13px;";
+        deleteBtn.textContent = "删除";
+
+        item.appendChild(siteEl);
+        item.appendChild(deleteBtn);
         targetEl.appendChild(item);
       });
     }
