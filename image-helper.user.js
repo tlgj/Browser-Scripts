@@ -3,7 +3,7 @@
 // @name:zh-CN   图片助手
 // @name:en      Image Helper
 // @namespace    https://github.com/tlgj/Browser-Scripts
-// @version      1.17.3
+// @version      1.17.4
 // @description  提取页面图片并清洗到高清，支持多品牌 URL 规则、幻灯片浏览、独立查看器、保存/快速保存/全部保存，并支持脚本黑名单。
 // @author       tlgj
 // @license      MIT
@@ -74,7 +74,7 @@
   // =========================================================
   const STORE_KEYS = {
     ENABLE_BUTTON: "sih_enable_button",
-    BTN_POS: "sih_btn_pos",
+    BTN_POS: "sih_btn_pos_v2",
     BTN_POS_LOCKED: "sih_btn_pos_locked",
     FILTER: "sih_filter",
     BLACKLIST: "sih_blacklist",
