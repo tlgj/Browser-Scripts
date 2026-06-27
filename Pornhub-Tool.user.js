@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         Pornhub Tool V2.4.1
+// @name         Pornhub Tool V2.5.0
 // @namespace    http://tampermonkey.net/
-// @version      2.4.1
-// @description  Pornhub 增强工具：已看降噪 / 短视频屏蔽 / 关键词屏蔽 / 用户屏蔽
+// @version      2.5.0
+// @description  Pornhub 增强工具：已看降噪 / 短视频屏蔽 / 关键词屏蔽 / 用户屏蔽(支持彻底屏蔽)
 // @author       tlgj
 // @match        https://*.pornhub.com/*
 // @updateURL    https://github.com/tlgj/Browser-Scripts/raw/refs/heads/main/Pornhub-Tool.user.js
@@ -31,6 +31,7 @@
         keywords: [],
         userFilterEnabled: true,
         userOpacity: 0.05,
+        userBlockHard: false,
         blockedUsers: []
     };
 
@@ -98,7 +99,7 @@
 
         panel.innerHTML = `
             <div style="text-align: center; margin-bottom: 12px; font-weight: bold; color: #ffa31a; border-bottom: 1px solid #333; padding-bottom: 8px; font-size: 15px;">
-                PH 工具箱 V2.4
+                PH 工具箱 V2.5
             </div>
 
             <!-- 1. 已看过 -->
@@ -153,6 +154,10 @@
                     <span style="font-weight: bold;">👤 用户屏蔽</span>
                     <input type="checkbox" id="ph-user-toggle" style="transform: scale(1.2);">
                 </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span style="color: #aaa; font-size: 12px;">彻底屏蔽(完全不显示)</span>
+                    <input type="checkbox" id="ph-user-hard-toggle" style="transform: scale(1.2);">
+                </div>
                 <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
                     <span style="color: #aaa; font-size: 12px;">透明度</span>
                     <input type="range" id="ph-user-slider" min="0" max="1" step="0.05" style="flex: 1;">
@@ -184,6 +189,7 @@
             kwBtn: panel.querySelector('#ph-kw-btn'),
             kwList: panel.querySelector('#ph-kw-list'),
             userToggle: panel.querySelector('#ph-user-toggle'),
+            userHardToggle: panel.querySelector('#ph-user-hard-toggle'),
             userSlider: panel.querySelector('#ph-user-slider'),
             userVal: panel.querySelector('#ph-user-val'),
             userInput: panel.querySelector('#ph-user-input'),
@@ -206,12 +212,13 @@
             config.keywordOpacity = parseFloat(ui.kwSlider.value);
             config.userFilterEnabled = ui.userToggle.checked;
             config.userOpacity = parseFloat(ui.userSlider.value);
+            config.userBlockHard = ui.userHardToggle.checked;
             saveConfig();
             updateUIPanel();
         };
 
         [ui.dimToggle, ui.dimSlider, ui.blkToggle, ui.durInput,
-         ui.kwToggle, ui.kwSlider, ui.userToggle, ui.userSlider].forEach(el => {
+         ui.kwToggle, ui.kwSlider, ui.userToggle, ui.userSlider, ui.userHardToggle].forEach(el => {
             el.onchange = handleChange;
             el.oninput = handleChange;
         });
@@ -271,6 +278,7 @@
         ui.kwSlider.value = config.keywordOpacity;
         ui.kwVal.innerText = Math.round(config.keywordOpacity * 100) + '%';
         ui.userToggle.checked = config.userFilterEnabled;
+        ui.userHardToggle.checked = config.userBlockHard;
         ui.userSlider.value = config.userOpacity;
         ui.userVal.innerText = Math.round(config.userOpacity * 100) + '%';
 
@@ -360,6 +368,12 @@
             // 2. 检查用户屏蔽
             if (config.userFilterEnabled && config.blockedUsers.length > 0) {
                 if (config.blockedUsers.some(user => author.includes(user.toLowerCase()))) {
+                    // 彻底屏蔽：完全不显示
+                    if (config.userBlockHard) {
+                        card.classList.add('ph-item-hidden');
+                        card.classList.remove('ph-item-blocked-user', 'ph-item-keyword', 'ph-item-watched');
+                        return;
+                    }
                     applyUserBlock = true;
                 }
             }
