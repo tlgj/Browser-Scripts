@@ -3,7 +3,7 @@
 // @name:zh-CN   图片助手
 // @name:en      Image Helper
 // @namespace    https://github.com/tlgj/Browser-Scripts
-// @version      1.17.5
+// @version      1.17.6
 // @description  提取页面图片并清洗到高清，支持多品牌 URL 规则、幻灯片浏览、独立查看器、保存/快速保存/全部保存，并支持脚本黑名单。
 // @author       tlgj
 // @license      MIT
@@ -67,6 +67,17 @@
     const ss = String(now.getSeconds()).padStart(2, "0");
     const timeStr = `${yyyy}-${mo}-${dd}_${hh}${mm}${ss}`;
     return `${root}/${title}_${timeStr}`;
+  }
+
+  // 清洗自定义保存路径：按路径段 sanitize，保留合法层级分隔
+  function sanitizeSaveFolderPath(input, maxSegments = 8) {
+    const parts = String(input || "")
+      .replace(/\\/g, "/")
+      .split("/")
+      .map((seg) => sanitizeFilename(seg, 60))
+      .filter((seg) => seg && seg !== "untitled");
+    if (!parts.length) return "";
+    return parts.slice(0, maxSegments).join("/");
   }
 
   // =========================================================
@@ -1346,6 +1357,7 @@
     "bombas-assets": [BRAND_RULES.BOMBAS_ASSETS_ORIGINAL],
     "stadiumgoods-shopify": RULE_CHAINS.SHOPIFY_ORIGINAL_CLEAN,
     "noon-cdn": [REUSABLE_RULES.REMOVE_ALL_QUERY],
+    "jd-360buyimg": [BRAND_RULES.JD_360BUYIMG_REMOVE_AVIF],
   };
 
   function detectHostTypeByUrlObj(u, fullUrlStr) {
@@ -2437,7 +2449,7 @@
         }
       };
 
-      if (it.contentLength) {
+      if (it.contentLength != null) {
         showFilesize(it.contentLength);
       } else if (SETTINGS.probeFilesize && it.cleanUrl) {
         probeContentLength(it.cleanUrl).then((len) => {
@@ -3162,8 +3174,8 @@
         slideSaveFolder || ""
       );
       if (newFolder !== null) {
-        const trimmed = newFolder.trim();
-        slideSaveFolder = trimmed || buildSaveFolderForPage();
+        const sanitized = sanitizeSaveFolderPath(newFolder);
+        slideSaveFolder = sanitized || buildSaveFolderForPage();
         updateFolderDisplay();
         setStatus(`保存文件夹已更新为：${slideSaveFolder}`);
       }
