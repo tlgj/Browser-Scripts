@@ -2,7 +2,7 @@
 
 > **脚本文件**：[`image-helper.user.js`](./image-helper.user.js)
 
-![version](https://img.shields.io/badge/version-1.13.0-blue?style=flat-square)
+![version](https://img.shields.io/badge/version-1.17.6-blue?style=flat-square)
 ![match](https://img.shields.io/badge/match-*://*/*-green?style=flat-square)
 ![run](https://img.shields.io/badge/run-document--idle-yellow?style=flat-square)
 ![license](https://img.shields.io/badge/license-MIT-orange?style=flat-square)
@@ -18,13 +18,14 @@
 - 🎯 **智能清洗**：自动将缩略图、带参数图片转换为高清原图
 - 🌐 **广泛支持**：覆盖主流球鞋、运动品牌、电商平台及图片 CDN
 - 🖼️ **幻灯片浏览**：全屏 overlay 方式流畅浏览所有提取图片，并可一键打开当前链接或原始链接
-- 💾 **批量保存**：支持单张/快速/全部保存，自动创建子文件夹
-- ⚙️ **高度可配**：黑名单、过滤条件、加载模式等持久化设置
+- 💾 **批量保存**：支持单张/快速/全部保存；自动生成或自定义保存子文件夹（路径会做安全清洗）
+- 📏 **文件大小探测**：可选探测 Content-Length，在幻灯片状态栏展示
+- ⚙️ **高度可配**：黑名单（导入/导出）、过滤条件、主图加载模式、增强发现等持久化设置
 
 | 属性         | 值                      |
 | :----------- | :---------------------- |
 | **名称**     | Image Helper / 图片助手 |
-| **版本**     | `1.13.0`                |
+| **版本**     | `1.17.6`                |
 | **运行时机** | `document-idle`         |
 | **匹配范围** | `*://*/*`               |
 | **作者**     | tlgj                    |
@@ -106,6 +107,8 @@
 | Farfetch      | 奢侈品电商 |
 | Complex       | 媒体内容   |
 | Zalora        | 东南亚电商 |
+| Noon          | 中东电商   |
+| 京东图片 CDN  | 360buyimg  |
 
 ### 🎨 时尚 / 平台 / 通用图片 CDN
 
@@ -166,30 +169,82 @@
   - 快速保存当前图片
   - 全部保存
   - 停止批量保存
-- 自动根据页面标题与当前时间生成子文件夹名
+- 默认根据「保存根目录 + 页面标题 + 时间戳」生成子文件夹名
+- 可在幻灯片状态栏点击文件夹胶囊，自定义保存路径；输入会按路径段清洗非法字符
 - 对文件名进行安全清洗，减少 Windows/macOS/Linux 上保存失败风险
 - 若运行环境不支持带目录的下载名，会自动降级为平铺文件名
+- 下载失败时具备重试；文件夹路径不被支持时会回退平铺
 
 ### 6️⃣ 黑名单与设置
 
 - 支持站点黑名单，命中后禁止打开幻灯片与扫描图片
-- 支持保存目录、按钮位置、过滤条件等配置持久化
+- 黑名单为**精确域名**匹配；输入 `*.example.com` 会被规范化为 `example.com`（不支持通配符）
+- 支持黑名单导入 / 导出（JSON 配置格式版本字段为 `1.2`，**不是**脚本版本号）
+- 支持保存根目录、按钮位置、过滤条件、增强图片发现、文件大小探测等配置持久化
 - 支持主图加载模式：
-  - `clean`
-  - `raw`
-  - `raw-then-clean`
+  - `clean`：直接加载清洗后的高清链接
+  - `raw`：直接加载原始链接
+  - `raw-then-clean`：先原始预览，再切换到清洗后高清（默认）
+- 主图加载使用 `tmToken` 防竞态，避免快速切图时旧请求覆盖新图
+- 可选探测文件大小（HEAD → Range GET，结果缓存，失败不打断浏览）
+
+---
+
+## 🔧 规则系统设计
+
+规则系统按分层组织，便于扩展与复用：
+
+```
+helpers（正则/路径提取/Cloudinary 变换剥离）
+    ↓
+REUSABLE_RULES（通用规则，如去 query、转 PNG、去尺寸后缀）
+    ↓
+BRAND_RULES（站点/品牌专用规则）
+    ↓
+RULE_CHAINS（可复用规则链，如 SHOPIFY_ORIGINAL_CLEAN）
+    ↓
+HOST_RULE_MAP（hostType → 规则链）
+    ↓
+detectHostTypeByUrlObj + cleanUrl（识别 hostType 并依次 apply）
+```
+
+### hostType 识别顺序
+
+`detectHostTypeByUrlObj(u, fullUrlStr)` 的判定顺序：
+
+1. **特殊动态 host**（不进 `EXACT_HOST_MAP`）
+   - `360buyimg.com` / `*.360buyimg.com` → `jd-360buyimg`
+   - `img.myshopline.com` / `img-*.myshopline.com` → `shopline-image-cdn`
+2. **`EXACT_HOST_MAP`**：hostname 精确匹配
+3. **Shopify 路径兜底**：pathname 以 `/cdn/shop/files/` 开头 → `old-order-shopify`
+4. **`PARTIAL_MATCH_RULES`**：完整 URL 字符串包含指定片段
+
+未识别到 hostType 时，`cleanUrl` 原样返回 raw，不改写链接。
+
+### cleanUrl 行为
+
+```js
+cleanUrl(urlStr) → { raw, clean, hostType }
+```
+
+- 解析失败 / 无 hostType：`clean === raw`，`hostType === null`
+- 有 hostType 但 `HOST_RULE_MAP` 无对应链：仍返回 hostType，`clean === raw`（展示用标签，但不清洗）
+- 有规则链：按数组顺序依次 `rule.apply(url)`
+
+> **维护要点**：新增动态识别的 hostType 时，**必须同时**在 `HOST_RULE_MAP` 挂上规则链，否则会出现「显示了 [hostType] 但不清洗」的半接线问题（v1.17.6 已修复的京东规则即属此类）。
 
 ---
 
 ## 📊 当前支持的网站与规则
 
-以下清单基于当前 `image-helper.user.js` 中的 `EXACT_HOST_MAP` 与 `HOST_RULE_MAP` 整理，按品类分组。
+以下清单基于当前 `image-helper.user.js` 中的 `EXACT_HOST_MAP`、`HOST_RULE_MAP` 及动态 host 识别逻辑整理，按品类分组。
 
 > **说明**
 >
 > - "规则摘要"展示的是规则链意图，不逐字复制完整源码实现。
 > - 同一规则组可能对应多个 host。
 > - 此表不含 `PARTIAL_MATCH_RULES` 中的 URL 片段命中项，详见[后文补充](#-基于-url-片段的补充支持partial_match_rules)。
+> - 部分 host（如 `jd-360buyimg`、`img-*.myshopline.com`）为动态识别，不在 `EXACT_HOST_MAP` 中。
 
 ### 👟 球鞋交易与垂直零售
 
@@ -272,6 +327,8 @@
 | Complex              | complex-cloudinary | `images.complex.com`                       | 清理连续 transform path，保留资源路径                             |
 | Zalora 香港          | zalora-dynamic-cdn | `dynamic.zacdn.com`                        | 提取包装 CDN pathname 后段的明文原图 URL                          |
 | Hypebeast CDN        | hypebeast-cdn      | `image-cdn.hypb.st`                        | decode 包装 CDN 路径并提取 pathname 中原图 URL                    |
+| Noon                 | noon-cdn           | `f.nooncdn.com`                            | 去 query                                                          |
+| 京东图片 CDN         | jd-360buyimg       | `*.360buyimg.com`（动态识别，非 EXACT_HOST_MAP） | 去掉 `.jpg.avif` / `.png.avif` 等双后缀，保留真实扩展名      |
 
 ### 🎨 时尚 / 平台 / 通用图片 CDN
 
@@ -298,3 +355,94 @@
 | T4S Czechia    | t4s-cdn           | `t4s.cz`                                         | 去尾部尺寸号，必要时补 `.jpg`                           |
 
 ---
+
+## 🔄 图片清洗流程
+
+1. **收集候选**
+   - 默认：`<img>` / `srcset` / 常见 lazy 属性 / `application/ld+json`
+   - 增强模式（设置可开）：更深挖 `application/json`、`#__NEXT_DATA__`、`data-*` 等
+   - 背景图扫描（`scanBackgroundImages`）当前默认关闭，且无 UI，属半成品配置
+2. **规范化 URL**：相对路径转绝对；过滤 `data:` / `blob:` / `javascript:`
+3. **hostType 识别 + 规则链清洗**（见[规则系统设计](#-规则系统设计)）
+4. **过滤**：按最小边长、最小体积（若已探测）、扩展名白名单
+5. **展示 / 保存**
+   - 幻灯片主图按 `slideLoadMode` 加载；`raw-then-clean` 用 `tmToken` 防止竞态
+   - 缩略图条最多渲染前 `THUMB_MAX_RENDER`（800）张；列表本身可更长，键盘/滚轮仍可切到后面
+
+---
+
+## ➕ 新增站点与维护模板
+
+### A. 精确 host（最常见）
+
+1. 在 `EXACT_HOST_MAP` 增加 `["cdn.example.com", "example-cdn"]`
+2. 若需专用逻辑：在 `BRAND_RULES` 增加规则对象（`{ apply(url) { ... } }`）
+3. 在 `HOST_RULE_MAP` 增加 `"example-cdn": [BRAND_RULES.XXX]` 或复用 `REUSABLE_RULES` / `RULE_CHAINS`
+4. 更新本文件的「支持站点速览」与「当前支持的网站与规则」表格
+
+### B. URL 片段匹配
+
+1. 在 `PARTIAL_MATCH_RULES` 增加 `{ str: "cdn.../files", type: "xxx" }`
+2. 确保 `HOST_RULE_MAP["xxx"]` 已存在
+3. 更新「基于 URL 片段的补充支持」表格
+
+### C. 动态 host（正则 / 后缀）
+
+1. 在 `detectHostTypeByUrlObj` **前部**增加特殊判断（参考 `jd-360buyimg`、`shopline-image-cdn`）
+2. **同步**挂 `HOST_RULE_MAP`
+3. 文档中注明「动态识别，非 EXACT_HOST_MAP」
+
+### D. 规则编写建议
+
+- 优先复用 `REUSABLE_RULES`（去 query、转 PNG、去尺寸后缀等）
+- 包装型 CDN 优先用 `extractEncodedOriginFromPath` / `extractPlainOriginFromWrappedPath`
+- Cloudinary upload 变换路径优先用 `createCloudinaryUploadStripRule`
+- 规则应**幂等**：对已是原图的 URL 再 apply 一次应尽量不变
+- 不要过度扩大 host 匹配范围，避免误伤无关域名
+
+---
+
+## 📝 文档维护原则
+
+1. **版本对齐**：`image-helper.user.js` 的 `@version`、`README.md` 当前版本、本文件 badge/表格应一致
+2. **表格与源码同源**：规则明细以 `EXACT_HOST_MAP` / `HOST_RULE_MAP` / `PARTIAL_MATCH_RULES` / 动态识别逻辑为准
+3. **规则摘要写意图**，不逐字粘贴完整正则源码
+4. **配置 schema 版本 ≠ 脚本版本**：黑名单导出 JSON 中的 `version: "1.2"` 是配置格式版本
+5. **仅文档修正可不升脚本版本号**（按仓库 SemVer 约定：X 大版本 / Y 功能 / Z 小修；文档/注释可不升）
+6. 目录锚点对应的章节必须真实存在，避免“目录有、正文无”
+
+---
+
+## ⚠️ 当前已知注意事项
+
+### 权限与跨域
+
+- `@connect *` 权限较宽，开启「探测文件大小」时可能增加 Tampermonkey 跨域确认噪音；可在设置中关闭 `probeFilesize`
+- 下载依赖 `GM_download`；不同脚本管理器对「带文件夹的 name」支持不一致，脚本已做平铺降级
+
+### 黑名单
+
+- 仅精确域名；`*.example.com` 会去掉 `*.` 前缀后存为 `example.com`
+- 列表渲染使用 `createElement` + `textContent`，避免把导入域名拼进 HTML
+
+### 半成品 / 内部配置（无 UI）
+
+| 配置 | 默认 | 说明 |
+| :--- | :--- | :--- |
+| `scanBackgroundImages` | `false` | 背景图扫描，不持久化、无设置项 |
+| `maxElementsForBgScan` | `8000` | 背景扫描元素上限 |
+| `preloadRadius` | `2` | 幻灯片邻图预加载半径 |
+
+上述项若暴露为用户功能，应按 **Y（功能位）** 升版本。
+
+### 体验边界
+
+- 缩略图条只渲染前 800 张；超过后仍可用键盘/滚轮浏览，但底部条无对应入口
+- `STYLE_ID`（如 `sih-style-v1440`）与脚本版本号无强制绑定；同页热更新时若旧 style 节点残留，CSS 变更可能不生效
+- 仅在**顶层窗口**注入悬浮按钮，避免 iframe 重复注入
+- 自定义保存文件夹会经 `sanitizeSaveFolderPath` 清洗；全非法输入时回退默认「根目录/标题_时间」
+
+### 仓库说明
+
+- 详细交互与实现以本文件 + 源码为准；仓库根 `README.md` 只做脚本列表总览
+- 当前仓库**不含** `image-helper.regression.js`；若日后补回归脚本，应同步更新 README

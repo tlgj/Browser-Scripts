@@ -1,6 +1,6 @@
 # Browser-Scripts
 
-一个收集浏览器用户脚本与相关辅助脚本的仓库，当前主要包含多个 Tampermonkey / 油猴脚本，以及一个用于 `image-helper.user.js` 的回归测试脚本。
+一个收集浏览器用户脚本与相关辅助脚本的仓库，当前主要包含多个 Tampermonkey / 油猴脚本。
 
 ## 脚本列表
 
@@ -19,6 +19,8 @@
 - 支持单张保存、快速保存、全部保存
 - 支持脚本黑名单
 - 支持多品牌、多站点图片链接规则处理
+
+详细说明见：`image-helper.user.js.md`
 
 ### 2. Custom Link Opener
 
