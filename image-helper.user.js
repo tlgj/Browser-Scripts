@@ -3,7 +3,7 @@
 // @name:zh-CN   图片助手
 // @name:en      Image Helper
 // @namespace    https://github.com/tlgj/Browser-Scripts
-// @version      1.17.6
+// @version      1.17.7
 // @description  提取页面图片并清洗到高清，支持多品牌 URL 规则、幻灯片浏览、独立查看器、保存/快速保存/全部保存，并支持脚本黑名单。
 // @author       tlgj
 // @license      MIT
@@ -67,6 +67,16 @@
     const ss = String(now.getSeconds()).padStart(2, "0");
     const timeStr = `${yyyy}-${mo}-${dd}_${hh}${mm}${ss}`;
     return `${root}/${title}_${timeStr}`;
+  }
+
+  // HTML 转义：设置面板用 innerHTML 拼接，所有来自存储/用户输入的值必须先转义
+  function escapeHtmlAttr(value) {
+    return String(value ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
   }
 
   // 清洗自定义保存路径：按路径段 sanitize，保留合法层级分隔
@@ -1421,31 +1431,49 @@
     }
   }
 
+  // 按 HTML 规范思路解析 srcset：URL 以空白为界（URL 内部允许逗号，如 Cloudinary/Scene7 变换段），
+  // 候选之间以“URL 尾随逗号”或“descriptor 之后的逗号”分隔，不能简单按逗号切分
   function pickBestFromSrcset(srcset) {
     if (!srcset) return null;
-    const parts = srcset
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean);
-    if (!parts.length) return null;
-
+    const s = String(srcset);
+    const len = s.length;
+    let pos = 0;
     let best = null;
-    for (const p of parts) {
-      const seg = p.split(/\s+/).filter(Boolean);
-      const url = seg[0];
-      const desc = seg[1] || "";
+
+    while (pos < len) {
+      // 跳过候选间的空白与逗号
+      while (pos < len && /[\s,]/.test(s[pos])) pos++;
+      if (pos >= len) break;
+
+      // URL 段：遇到空白结束
+      let end = pos;
+      while (end < len && !/\s/.test(s[end])) end++;
+      let url = s.slice(pos, end);
+      pos = end;
+
       let score = 0;
       let wHint = 0;
 
-      const mw = desc.match(/^(\d+)w$/i);
-      if (mw) {
-        wHint = parseInt(mw[1], 10);
-        score = wHint;
+      if (url.endsWith(",")) {
+        // 无 descriptor 的候选以尾随逗号结尾
+        url = url.slice(0, -1);
+      } else {
+        while (pos < len && /\s/.test(s[pos])) pos++;
+        const dStart = pos;
+        while (pos < len && !/[\s,]/.test(s[pos])) pos++;
+        const desc = s.slice(dStart, pos);
+        if (pos < len && s[pos] === ",") pos++;
+
+        const mw = desc.match(/^(\d+)w$/i);
+        if (mw) {
+          wHint = parseInt(mw[1], 10);
+          score = wHint;
+        }
+        const mx = desc.match(/^(\d+(?:\.\d+)?)x$/i);
+        if (mx) score = parseFloat(mx[1]) * 10000;
       }
 
-      const mx = desc.match(/^(\d+(?:\.\d+)?)x$/i);
-      if (mx) score = parseFloat(mx[1]) * 10000;
-
+      if (!url) continue;
       if (!best || score > best.score) best = { url, score, wHint };
     }
     return best;
@@ -1537,29 +1565,18 @@
       const urlMatches = cssText.matchAll(/url\(["']?(.*?)["']?\)/gi);
       for (const m of urlMatches) add(m[1], 0);
 
-      const imageSetMatches = cssText.matchAll(/image-set\((.*?)\)/gi);
+      // 兼容 -webkit-image-set 与 url() 包裹；先归一化成 srcset 形态再复用 pickBestFromSrcset
+      const imageSetMatches = cssText.matchAll(
+        /(?:-webkit-)?image-set\(((?:\([^)]*\)|[^)])*)\)/gi
+      );
       for (const match of imageSetMatches) {
-        const body = match[1] || "";
-        const candidates = Array.from(
-          body.matchAll(
-            /(?:url\()?["']?([^"')\s,]+)["']?\)?\s*(\d+(?:\.\d+)?x|\d+w)?/gi
-          )
-        )
-          .map((m) => {
-            const url = m[1];
-            const descriptor = (m[2] || "").toLowerCase();
-            let score = 0;
-            if (/w$/.test(descriptor)) score = parseInt(descriptor, 10) || 0;
-            else if (/x$/.test(descriptor)) {
-              score = (parseFloat(descriptor) || 0) * 10000;
-            }
-            return { url, score };
-          })
-          .filter((item) => item.url && !/^type$/i.test(item.url));
-
-        if (!candidates.length) continue;
-        candidates.sort((a, b) => b.score - a.score);
-        add(candidates[0].url, 0);
+        const body = (match[1] || "")
+          .replace(/type\([^)]*\)/gi, " ")
+          .replace(/url\(/gi, " ")
+          .replace(/["']/g, "")
+          .replace(/\)/g, " ");
+        const best = pickBestFromSrcset(body);
+        if (best?.url) add(best.url, best.wHint || 0);
       }
     };
 
@@ -2421,6 +2438,9 @@
     // 用 token 防止快速切换时旧 onload/onerror 乱入
     const token = String(Date.now()) + "_" + String(Math.random());
     imgEl.dataset.tmToken = token;
+    delete imgEl.dataset.tmRawOk;
+    delete imgEl.dataset.tmCleanFailed;
+    delete imgEl.dataset.tmFallback;
 
     // 更新顶部文件大小胶囊
     const filesizePill =
@@ -2429,12 +2449,7 @@
     if (filesizePill) filesizePill.style.display = "none";
     if (filesizeEl) filesizeEl.textContent = "-";
 
-    const trySettleSuccess = () => {
-      if (imgEl.dataset.tmToken !== token) return;
-      setStatus("");
-      imgEl.style.opacity = "1";
-      imgEl.classList.remove("loading");
-
+    const tryShowFilesize = () => {
       // 图片加载成功后，显示文件大小（仅在开关开启时主动探测）
       const showFilesize = (len) => {
         if (imgEl.dataset.tmToken !== token) return;
@@ -2459,6 +2474,14 @@
       }
     };
 
+    const trySettleSuccess = () => {
+      if (imgEl.dataset.tmToken !== token) return;
+      setStatus("");
+      imgEl.style.opacity = "1";
+      imgEl.classList.remove("loading");
+      tryShowFilesize();
+    };
+
     const trySettleError = () => {
       if (imgEl.dataset.tmToken !== token) return;
       setStatus("加载失败（可能防盗链/不存在）");
@@ -2467,15 +2490,17 @@
     };
 
     imgEl.onload = () => {
-      // raw-then-clean 时：raw 加载成功先显示，并清掉“加载中”避免用户误判卡死；clean 成功后再静默收口一次
+      // raw-then-clean 时：raw 加载成功先显示（体积仍按 clean 探测），clean 成功后再静默收口一次
       if (imgEl.dataset.tmToken !== token) return;
       if (
         SETTINGS.slideLoadMode === "raw-then-clean" &&
         imgEl.dataset.tmPhase === "raw"
       ) {
+        imgEl.dataset.tmRawOk = "1";
         imgEl.style.opacity = "1";
         imgEl.classList.remove("loading");
-        setStatus("");
+        if (imgEl.dataset.tmFallback !== "1") setStatus("");
+        tryShowFilesize();
         return;
       }
       trySettleSuccess();
@@ -2483,11 +2508,30 @@
 
     imgEl.onerror = () => {
       if (imgEl.dataset.tmToken !== token) return;
-      // raw-then-clean：raw 失败就直接切 clean 再试一次
-      if (
-        SETTINGS.slideLoadMode === "raw-then-clean" &&
-        imgEl.dataset.tmPhase === "raw"
-      ) {
+      if (SETTINGS.slideLoadMode !== "raw-then-clean") {
+        trySettleError();
+        return;
+      }
+      // clean 失败：raw 已上屏则回退保留原图，否则用 raw 兜底一次，避免误报“加载失败”
+      if (imgEl.dataset.tmPhase === "clean") {
+        imgEl.dataset.tmCleanFailed = "1";
+        if (imgEl.dataset.tmRawOk === "1") {
+          imgEl.dataset.tmPhase = "raw";
+          imgEl.dataset.tmFallback = "1";
+          imgEl.src = it.rawUrl || it.cleanUrl;
+          setStatus("高清链接加载失败，已保留原图预览");
+          return;
+        }
+        if (it.rawUrl && it.rawUrl !== it.cleanUrl) {
+          imgEl.dataset.tmPhase = "raw";
+          imgEl.src = it.rawUrl;
+          return;
+        }
+        trySettleError();
+        return;
+      }
+      // raw 失败：切 clean 再试一次；clean 已失败过则终止，避免来回重试
+      if (imgEl.dataset.tmCleanFailed !== "1") {
         imgEl.dataset.tmPhase = "clean";
         imgEl.src = it.cleanUrl;
         return;
@@ -2708,7 +2752,7 @@
   }
 
   function onViewerKeydown(e) {
-    if (!viewerOverlay) return;
+    if (!viewerOverlay || isEditableTarget(e)) return;
 
     if (e.key === "Escape") {
       e.preventDefault();
@@ -3269,7 +3313,7 @@
   }
 
   function onKeydown(e) {
-    if (!overlay || viewerOpen) return;
+    if (!overlay || viewerOpen || isEditableTarget(e)) return;
 
     const keyHandlers = {
       Escape: closeSlideshow,
@@ -3303,6 +3347,18 @@
       e.stopPropagation();
       fn(e);
     });
+  }
+
+  // 焦点在表单控件/可编辑元素时不接管按键，避免输入时误触切图/关闭
+  function isEditableTarget(e) {
+    const t = e && e.target;
+    if (!(t instanceof Element)) return false;
+    return (
+      t.tagName === "INPUT" ||
+      t.tagName === "TEXTAREA" ||
+      t.tagName === "SELECT" ||
+      t.isContentEditable === true
+    );
   }
 
   function yyyymmdd(date = new Date()) {
@@ -3641,28 +3697,28 @@
 
             <div style="margin-top:10px;">
                 <div class="tm-label">下载根目录名称</div>
-                <input id="tm-root-folder" type="text" value="${String(
+                <input id="tm-root-folder" type="text" value="${escapeHtmlAttr(
                   SETTINGS.saveRootFolder || "TM_Images"
                 )}" placeholder="TM_Images" />
             </div>
 
             <div style="margin-top:10px;">
                 <div class="tm-label">分辨率：最短边 ≥ (px)</div>
-                <input id="tm-minSide" type="number" min="0" value="${Number(
-                  SETTINGS.filter.minSidePx || 0
+                <input id="tm-minSide" type="number" min="0" value="${escapeHtmlAttr(
+                  Number(SETTINGS.filter.minSidePx || 0)
                 )}" />
             </div>
 
             <div style="margin-top:10px;">
                 <div class="tm-label" style="line-height:1.35;">文件大小：Content-Length ≥ (KB)（0=不限）</div>
-                <input id="tm-minKB" type="number" min="0" value="${Number(
-                  SETTINGS.filter.minSizeKB || 0
+                <input id="tm-minKB" type="number" min="0" value="${escapeHtmlAttr(
+                  Number(SETTINGS.filter.minSizeKB || 0)
                 )}" />
             </div>
 
             <div style="margin-top:10px;">
                 <div class="tm-label">允许后缀名（逗号分隔；空=不限）</div>
-                <input id="tm-exts" type="text" value="${String(
+                <input id="tm-exts" type="text" value="${escapeHtmlAttr(
                   SETTINGS.filter.exts || ""
                 )}" placeholder="jpg,png,webp" />
                 <div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:6px;">
@@ -3691,8 +3747,8 @@
                 </select>
                 <div style="margin-top:8px;">
                   <div class="tm-label">raw→clean 切换延迟 (ms)（仅“先原始预览”生效）</div>
-                  <input id="tm-slide-raw-preview-delay" type="number" min="0" max="5000" value="${Number(
-                    SETTINGS.slideRawPreviewDelayMs || 0
+                  <input id="tm-slide-raw-preview-delay" type="number" min="0" max="5000" value="${escapeHtmlAttr(
+                    Number(SETTINGS.slideRawPreviewDelayMs || 0)
                   )}" />
                 </div>
                 <div style="margin-top:6px;font-size:12px;line-height:1.4;color:rgba(255,255,255,0.74);">
@@ -3703,7 +3759,7 @@
             <div style="margin-top:10px;">
                 <div class="tm-label">当前站点黑名单</div>
                 <div style="display:flex;gap:8px;align-items:center;">
-                    <input id="tm-blacklist-current-host" type="text" value="${currentHost}"
+                    <input id="tm-blacklist-current-host" type="text" value="${escapeHtmlAttr(currentHost)}"
                         readonly style="flex:1;opacity:0.78;cursor:not-allowed;" />
                     <button id="tm-toggle-current-host-blacklist" class="tm-btn ${
                       currentHostBlacklisted
@@ -3714,8 +3770,8 @@
                     </button>
                 </div>
                 <div style="margin-top:6px;font-size:12px;line-height:1.4;color:rgba(255,255,255,0.74);">
-                    当前支持自动识别 ${hostVariants.join(
-                      " / "
+                    当前支持自动识别 ${escapeHtmlAttr(
+                      hostVariants.join(" / ")
                     )}，可一键将当前域名加入或移出黑名单。
                 </div>
             </div>
