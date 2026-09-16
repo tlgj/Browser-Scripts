@@ -3,7 +3,7 @@
 // @name:zh-CN   图片助手
 // @name:en      Image Helper
 // @namespace    https://github.com/tlgj/Browser-Scripts
-// @version      1.17.7
+// @version      1.17.8
 // @description  提取页面图片并清洗到高清，支持多品牌 URL 规则、幻灯片浏览、独立查看器、保存/快速保存/全部保存，并支持脚本黑名单。
 // @author       tlgj
 // @license      MIT
@@ -157,8 +157,10 @@
           savedFilter.minSizeKB !== undefined && savedFilter.minSizeKB !== ""
             ? savedFilter.minSizeKB
             : DEFAULTS.filter.minSizeKB,
+        // 空字符串是"不限后缀"的合法取值，必须与"从未设置过"区分开，
+        // 因此这里只判断 undefined，不能把 "" 回落成默认值
         exts:
-          savedFilter.exts !== undefined && savedFilter.exts !== ""
+          savedFilter.exts !== undefined
             ? savedFilter.exts
             : DEFAULTS.filter.exts,
       };
@@ -191,9 +193,10 @@
         SETTINGS.filter.minSizeKB !== "" && SETTINGS.filter.minSizeKB !== null
           ? SETTINGS.filter.minSizeKB
           : DEFAULTS.filter.minSizeKB,
+      // 允许保存空字符串（= 不限后缀）；仅当值为 null/undefined 时才回落默认值
       exts:
-        SETTINGS.filter.exts !== "" && SETTINGS.filter.exts !== null
-          ? SETTINGS.filter.exts
+        SETTINGS.filter.exts !== null && SETTINGS.filter.exts !== undefined
+          ? String(SETTINGS.filter.exts)
           : DEFAULTS.filter.exts,
     };
     GM_setValue(STORE_KEYS.FILTER, filterToSave);
@@ -1453,6 +1456,7 @@
 
       let score = 0;
       let wHint = 0;
+      let density = 0;
 
       if (url.endsWith(",")) {
         // 无 descriptor 的候选以尾随逗号结尾
@@ -1470,11 +1474,14 @@
           score = wHint;
         }
         const mx = desc.match(/^(\d+(?:\.\d+)?)x$/i);
-        if (mx) score = parseFloat(mx[1]) * 10000;
+        if (mx) {
+          density = parseFloat(mx[1]);
+          score = density * 10000;
+        }
       }
 
       if (!url) continue;
-      if (!best || score > best.score) best = { url, score, wHint };
+      if (!best || score > best.score) best = { url, score, wHint, density };
     }
     return best;
   }
@@ -1551,12 +1558,23 @@
     const seen = new Set();
     const list = [];
 
+    // minSideHint：0 表示"尺寸未知"（不参与分辨率过滤），>0 表示已知最短边
     const add = (rawUrl, minSideHint = 0) => {
       const abs = normalizeToAbs(rawUrl);
       if (!abs) return;
       if (seen.has(abs)) return;
       seen.add(abs);
       list.push({ rawUrl: abs, minSideHint: minSideHint || 0 });
+    };
+
+    // srcset / image-set 的最短边推断：
+    // - w 描述符（800w）直接给出宽度
+    // - x 密度描述符（2x/3x）需要基准宽度换算，拿不到基准宽度时返回 0（未知）
+    const resolveSrcsetMinSide = (best, baseWidth = 0) => {
+      if (!best) return 0;
+      if (best.wHint) return best.wHint;
+      if (best.density && baseWidth) return Math.round(baseWidth * best.density);
+      return 0;
     };
 
     const addUrlsFromCssText = (cssText) => {
@@ -1576,14 +1594,14 @@
           .replace(/["']/g, "")
           .replace(/\)/g, " ");
         const best = pickBestFromSrcset(body);
-        if (best?.url) add(best.url, best.wHint || 0);
+        if (best?.url) add(best.url, resolveSrcsetMinSide(best));
       }
     };
 
-    const addBestSrcset = (srcset) => {
+    const addBestSrcset = (srcset, baseWidth = 0) => {
       if (!srcset) return;
       const best = pickBestFromSrcset(srcset);
-      if (best?.url) add(best.url, best.wHint || 0);
+      if (best?.url) add(best.url, resolveSrcsetMinSide(best, baseWidth));
     };
 
     const addJsonImageValues = (value, depth = 0) => {
@@ -1714,7 +1732,14 @@
     document.querySelectorAll("img, source").forEach((el) => {
       const tagName = el.tagName.toLowerCase();
 
-      addBestSrcset(el.getAttribute("srcset"));
+      // 密度描述符（2x/3x）换算宽度需要基准宽度：
+      // <img> 用自身 naturalWidth，<source> 回退到同一 <picture> 内的 <img>
+      const baseWidth =
+        tagName === "img"
+          ? el.naturalWidth || el.clientWidth || 0
+          : el.parentElement?.querySelector?.("img")?.naturalWidth || 0;
+
+      addBestSrcset(el.getAttribute("srcset"), baseWidth);
 
       if (tagName === "img") {
         const src = el.currentSrc || el.src;
@@ -1726,7 +1751,7 @@
         if (v) add(v, 0);
       }
       for (const a of LAZY_SRCSET_ATTRS) {
-        addBestSrcset(el.getAttribute(a));
+        addBestSrcset(el.getAttribute(a), baseWidth);
       }
     });
 
@@ -1876,7 +1901,7 @@
     return p;
   }
 
-  async function applySizeFilter(items, setStatus) {
+  async function applySizeFilter(items, setStatus, shouldAbort) {
     const minKB = Number(SETTINGS.filter.minSizeKB || 0);
     if (!minKB) return items;
 
@@ -1891,6 +1916,8 @@
 
     async function worker() {
       while (idx < items.length) {
+        // 幻灯片已被关闭时立即停止后续探测，避免无意义的后台请求
+        if (shouldAbort?.()) break;
         const i = idx++;
         const it = items[i];
 
@@ -1935,8 +1962,11 @@
 
   function passSimpleFilters(minSideHint, ext) {
     const minSide = Number(SETTINGS.filter.minSidePx || 0);
-    // 如果设置了分辨率过滤，过滤掉尺寸小于阈值或无法获取尺寸的图片
-    if (minSide && minSideHint < minSide) return false;
+    // 只过滤"已知尺寸且小于阈值"的图片。
+    // minSideHint 为 0 表示尺寸未知（og:image / lazy data-* / CSS 背景 / JSON /
+    // 拿不到基准宽度的 srcset 密度描述符等），这类来源一律放行；
+    // 否则在默认 minSide=100 下，除已渲染 <img> 之外的提取渠道会被整体误杀。
+    if (minSide && minSideHint && minSideHint < minSide) return false;
     if (ext && !extAllowed(ext)) return false;
     return true;
   }
@@ -2415,7 +2445,9 @@
   }
 
   function show(i) {
-    if (!list.length) return;
+    // overlay 可能已关闭（例如重建扫描的 await 期间用户按了 Esc），
+    // 此时 cachedEls/overlay 均为空，继续执行会因 imgEl 为 undefined 而抛错
+    if (!overlay || !list.length) return;
     current = (i + list.length) % list.length;
 
     const it = list[current];
@@ -2429,6 +2461,7 @@
     if (els.urlRaw) els.urlRaw.textContent = it.rawUrl;
 
     const imgEl = els.mainImg || overlay?.querySelector("#tm-main-img");
+    if (!imgEl) return;
     setStatus("加载中…");
 
     // ✅ 美化：添加加载动画
@@ -2608,7 +2641,17 @@
       });
     }
 
-    list = await applySizeFilter(tmp, (s) => setStatus(s));
+    const filtered = await applySizeFilter(
+      tmp,
+      (s) => setStatus(s),
+      () => !overlay
+    );
+
+    // 扫描/体积探测期间用户可能已关闭幻灯片：丢弃本次结果，
+    // 避免 list 残留脏数据、以及后续 show() 访问已销毁的 overlay 而抛错
+    if (!overlay) return;
+
+    list = filtered;
     current = 0;
 
     if (!list.length) {
