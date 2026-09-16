@@ -2,7 +2,7 @@
 
 > **脚本文件**：[`image-helper.user.js`](./image-helper.user.js)
 
-![version](https://img.shields.io/badge/version-1.17.7-blue?style=flat-square)
+![version](https://img.shields.io/badge/version-1.17.8-blue?style=flat-square)
 ![match](https://img.shields.io/badge/match-*://*/*-green?style=flat-square)
 ![run](https://img.shields.io/badge/run-document--idle-yellow?style=flat-square)
 ![license](https://img.shields.io/badge/license-MIT-orange?style=flat-square)
@@ -25,7 +25,7 @@
 | 属性         | 值                      |
 | :----------- | :---------------------- |
 | **名称**     | Image Helper / 图片助手 |
-| **版本**     | `1.17.7`                |
+| **版本**     | `1.17.8`                |
 | **运行时机** | `document-idle`         |
 | **匹配范围** | `*://*/*`               |
 | **作者**     | tlgj                    |
@@ -364,7 +364,7 @@ cleanUrl(urlStr) → { raw, clean, hostType }
    - 背景图扫描（`scanBackgroundImages`）当前默认关闭，且无 UI，属半成品配置
 2. **规范化 URL**：相对路径转绝对；过滤 `data:` / `blob:` / `javascript:`
 3. **hostType 识别 + 规则链清洗**（见[规则系统设计](#-规则系统设计)）
-4. **过滤**：按最小边长、最小体积（若已探测）、扩展名白名单
+4. **过滤**：按最小边长（**仅对已知尺寸生效**，尺寸未知的来源一律放行）、最小体积（若已探测）、扩展名白名单（留空 = 不限）
 5. **展示 / 保存**
    - 幻灯片主图按 `slideLoadMode` 加载；`raw-then-clean` 用 `tmToken` 防止竞态
    - 缩略图条最多渲染前 `THUMB_MAX_RENDER`（800）张；列表本身可更长，键盘/滚轮仍可切到后面
@@ -438,6 +438,9 @@ cleanUrl(urlStr) → { raw, clean, hostType }
 ### 体验边界
 
 - 缩略图条只渲染前 800 张；超过后仍可用键盘/滚轮浏览，但底部条无对应入口
+- 分辨率过滤（`minSidePx`）**只对能取到尺寸的图片生效**：`<img>` 用 `naturalWidth`/`clientWidth`，`srcset` 的 `w` 描述符直接取宽度、`x` 密度描述符按「基准宽度 × 密度」换算（`<source>` 的基准宽度取同 `<picture>` 内的 `<img>`）。og:image、lazy `data-*`、CSS 背景、JSON-LD 等拿不到宽度的来源**不再被过滤**（v1.17.8 起），因此开启过滤后候选列表会比旧版更长
+- 关闭幻灯片时若仍在扫描 / 探测体积，会立即中止后续探测并丢弃本轮结果，不残留脏列表、不抛错（v1.17.8 起）
+- 后缀名白名单**留空 = 不限**，该空值可正常持久化（v1.17.8 起；旧版会被回落成默认列表）
 - `STYLE_ID`（如 `sih-style-v1440`）与脚本版本号无强制绑定；同页热更新时若旧 style 节点残留，CSS 变更可能不生效
 - 仅在**顶层窗口**注入悬浮按钮，避免 iframe 重复注入
 - 自定义保存文件夹会经 `sanitizeSaveFolderPath` 清洗；全非法输入时回退默认「根目录/标题_时间」
