@@ -2,7 +2,7 @@
 
 > **脚本文件**：[`image-helper.user.js`](./image-helper.user.js)
 
-![version](https://img.shields.io/badge/version-1.17.8-blue?style=flat-square)
+![version](https://img.shields.io/badge/version-1.17.9-blue?style=flat-square)
 ![match](https://img.shields.io/badge/match-*://*/*-green?style=flat-square)
 ![run](https://img.shields.io/badge/run-document--idle-yellow?style=flat-square)
 ![license](https://img.shields.io/badge/license-MIT-orange?style=flat-square)
@@ -25,7 +25,7 @@
 | 属性         | 值                      |
 | :----------- | :---------------------- |
 | **名称**     | Image Helper / 图片助手 |
-| **版本**     | `1.17.8`                |
+| **版本**     | `1.17.9`                |
 | **运行时机** | `document-idle`         |
 | **匹配范围** | `*://*/*`               |
 | **作者**     | tlgj                    |
@@ -178,7 +178,7 @@
 ### 6️⃣ 黑名单与设置
 
 - 支持站点黑名单，命中后禁止打开幻灯片与扫描图片
-- 黑名单为**精确域名**匹配；输入 `*.example.com` 会被规范化为 `example.com`（不支持通配符）
+- 黑名单为**域名**匹配（忽略 `www.` 前缀，`www.example.com` 与 `example.com` 视为同一站点）；输入 `*.example.com` 会被规范化为 `example.com`（不支持通配符）
 - 支持黑名单导入 / 导出（JSON 配置格式版本字段为 `1.2`，**不是**脚本版本号）
 - 支持保存根目录、按钮位置、过滤条件、增强图片发现、文件大小探测等配置持久化
 - 支持主图加载模式：
@@ -352,7 +352,7 @@ cleanUrl(urlStr) → { raw, clean, hostType }
 | Decathlon 全球 | decathlon-intl    | `cdn.shopify.com/s/files/1/1330/6287/files`      | 去 query                                                |
 | Reebok 全球    | reebok-intl       | `cdn.shopify.com/s/files/1/0862/7834/0912/files` | 去 query                                                |
 | KicksCrew 全球 | kickscrew-shopify | `cdn.shopify.com/s/files/1/0603/3031/1875/files` | 复用 Shopify 原图清洗共享规则（去尺寸后缀，再去 query） |
-| T4S Czechia    | t4s-cdn           | `t4s.cz`                                         | 去尾部尺寸号，必要时补 `.jpg`                           |
+| T4S Czechia    | t4s-cdn           | `t4s.cz`                                         | 去尾部尺寸号，保留原扩展名（仅无扩展名时补 `.jpg`）     |
 
 ---
 
@@ -422,7 +422,7 @@ cleanUrl(urlStr) → { raw, clean, hostType }
 
 ### 黑名单
 
-- 仅精确域名；`*.example.com` 会去掉 `*.` 前缀后存为 `example.com`
+- 匹配时忽略 `www.` 前缀（`www.example.com` 与 `example.com` 视为同一站点）；`*.example.com` 会去掉 `*.` 前缀后存为 `example.com`
 - 列表渲染使用 `createElement` + `textContent`，避免把导入域名拼进 HTML
 
 ### 半成品 / 内部配置（无 UI）
