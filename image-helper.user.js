@@ -3,7 +3,7 @@
 // @name:zh-CN   图片助手
 // @name:en      Image Helper
 // @namespace    https://github.com/tlgj/Browser-Scripts
-// @version      1.17.8
+// @version      1.17.9
 // @description  提取页面图片并清洗到高清，支持多品牌 URL 规则、幻灯片浏览、独立查看器、保存/快速保存/全部保存，并支持脚本黑名单。
 // @author       tlgj
 // @license      MIT
@@ -233,13 +233,22 @@
     return Array.from(variants).filter(Boolean);
   }
 
+  // 黑名单比较时忽略 www. 前缀：www.example.com 与 example.com 视为同一站点，
+  // 与设置面板「当前支持自动识别 www / 非 www」的文案保持一致
+  function stripWwwPrefix(host) {
+    return String(host || "")
+      .trim()
+      .toLowerCase()
+      .replace(/^www\./, "");
+  }
+
   function isHostExactMatchedInList(hostname, list) {
     if (!list || !list.length) return false;
-    const host = String(hostname || "")
-      .trim()
-      .toLowerCase();
+    const host = stripWwwPrefix(hostname);
     if (!host) return false;
-    return list.some((site) => normalizeBlacklistEntry(site) === host);
+    return list.some(
+      (site) => stripWwwPrefix(normalizeBlacklistEntry(site)) === host
+    );
   }
 
   function isBlacklisted(hostname = location.hostname) {
@@ -1110,9 +1119,20 @@
       "https://$1$2$3$5"
     ),
     T4S_TO_ORIGINAL: {
-      apply: (url) => {
-        let c = url.replace(/-\d+(\.\w+)$/, "$1");
-        return c.endsWith(".jpg") ? c : c.replace(/\.\w+$/, ".jpg");
+      apply: (urlStr) => {
+        const u = safeUrlParse(urlStr);
+        if (!u) return urlStr;
+
+        // 去掉路径末尾的尺寸号（-800 / -1024），保留真实扩展名；
+        // 用 lookahead 只删除尺寸号本身，因此「无扩展名」的路径也能正确剥离
+        const stripped = u.pathname.replace(/-\d+(?=\.\w+$|$)/, "");
+        // 仅在路径确实没有扩展名时才按 T4S 惯例补 .jpg；
+        // 旧版会把 png/webp/gif 一律改写成 .jpg，清洗出 404 链接
+        const pathname = /\.[a-z0-9]+$/i.test(stripped)
+          ? stripped
+          : `${stripped}.jpg`;
+
+        return u.origin + pathname + (u.search || "");
       },
     },
     FOOTLOCKER_SCENE7_FORCE_ZOOM2000PNG: {
@@ -1835,7 +1855,18 @@
 
   // Content-Length 探测缓存：避免同一 URL 在一次扫描/多次重扫中重复 HEAD/Range
   // value = Promise<number|null>（保证并发请求去重）
+  // 设容量上限，避免长时间浏览大量图片时无限增长；超出后淘汰最早插入的条目
+  const CONTENT_LENGTH_CACHE_MAX = 500;
   const contentLengthProbeCache = new Map();
+
+  function setProbeCacheEntry(url, promise) {
+    contentLengthProbeCache.set(url, promise);
+    while (contentLengthProbeCache.size > CONTENT_LENGTH_CACHE_MAX) {
+      const oldestKey = contentLengthProbeCache.keys().next().value;
+      if (oldestKey === undefined) break;
+      contentLengthProbeCache.delete(oldestKey);
+    }
+  }
 
   function probeContentLength(url) {
     if (!url) return Promise.resolve(null);
@@ -1897,7 +1928,7 @@
       return await doRangedGET();
     })();
 
-    contentLengthProbeCache.set(url, p);
+    setProbeCacheEntry(url, p);
     return p;
   }
 
